@@ -265,7 +265,7 @@ namespace esriUtil
             }
         }
         /// <summary>
-        /// method used internally to update the defalt service table within the default geodatabase that stores all the server related server info
+        /// method used internally to update the default service table within the default geodatabase that stores all the server related server info
         /// </summary>
         /// <param name="lyrDic">the dictionary that has all related values</param>
         /// <param name="connection">url</param>
@@ -460,7 +460,14 @@ namespace esriUtil
         /// <returns>a dictionary of service name and its corresponding id</returns>
         public Dictionary<string, int> getLayers(IMapServer2 ms2)
         {
+            
+
             Dictionary<string, int> lyrDic = new Dictionary<string, int>();
+            int maxR = getMaxRecords(ms2);
+            if(maxR<1)
+            {
+                return lyrDic;
+            }
             try
             {
                 for (int m = 0; m < ms2.MapCount; m++)
@@ -471,7 +478,11 @@ namespace esriUtil
                     for (int j = 0; j < mLyrInfos.Count; j++)
                     {
                         IMapLayerInfo mLyrInfo = mLyrInfos.get_Element(j);
-                        if (mLyrInfo.IsFeatureLayer)
+                        bool ftrF = mLyrInfo.IsFeatureLayer;
+                        bool ftrC = mLyrInfo.IsComposite;
+                        bool ftrS = mLyrInfo.CanSelect;
+
+                        if (mLyrInfo.IsFeatureLayer&&ftrS&&!ftrC)
                         {
                             string lNm = mLyrInfo.Name;
                             int lyrId = mLyrInfo.ID;
@@ -499,6 +510,10 @@ namespace esriUtil
         {
             Dictionary<string, IAGSServerObjectName3> serviceDic = new Dictionary<string, IAGSServerObjectName3>();
             IAGSServerConnection2 sConn = getServiceConnection(service);
+            if (sConn == null)
+            {
+                return serviceDic;
+            }
             IAGSEnumServerObjectName eSobjN = sConn.ServerObjectNames;
             IAGSServerObjectName3 sobjN = (IAGSServerObjectName3)eSobjN.Next();
             while (sobjN != null)
@@ -902,9 +917,21 @@ namespace esriUtil
                     IRow row = tblSrv.GetRow(svKey);
                     string svName = row.get_Value(row.Fields.FindField("SERVICE")).ToString();
                     int conFk = System.Convert.ToInt32(row.get_Value(row.Fields.FindField("FKID")));
+                    string svType = row.get_Value(row.Fields.FindField("STYPE")).ToString();
+                    string svUrl = row.get_Value(row.Fields.FindField("URL")).ToString();
+
                     row = tblCon.GetRow(conFk);
                     string cnName = row.get_Value(row.Fields.FindField("CONNECTION")).ToString();
-                    fillDbFtrClasses(sFlt, cnName, svName, lyrId);
+                    if (svType.ToLower() == "mapserver")
+                    {
+                        fillDbFtrClasses(sFlt, cnName, svName, lyrId);
+                    }
+                    else
+                    {
+                        IImageServerLayer imsLyr = new ImageServerLayerClass();
+                        imsLyr.Initialize(svUrl);
+                        fillDbRaster(imsLyr, sFlt.Geometry.Envelope);
+                    }
                 }
 
                 compactDatabase();

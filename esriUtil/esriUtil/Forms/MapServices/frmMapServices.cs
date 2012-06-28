@@ -65,9 +65,17 @@ namespace esriUtil.Forms.MapServices
                 lyrDic = msUtil.getLayerDic(cmbCon.Text, cmbSrv.Text);
                 this.UseWaitCursor = false;
             }
-            foreach (KeyValuePair<string, bool> kvp in lyrDic)
+            if (lyrDic.Count < 1)
             {
-                chbLayers.Items.Add(kvp.Key, kvp.Value);
+                MessageBox.Show("Can't find any layers that will allow users to download information");
+
+            }
+            else
+            {
+                foreach (KeyValuePair<string, bool> kvp in lyrDic)
+                {
+                    chbLayers.Items.Add(kvp.Key, kvp.Value);
+                }
             }
         }
         private mapserviceutility msUtil = new mapserviceutility();
