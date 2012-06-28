@@ -1,0 +1,60 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Explode Samples</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Explode samples </span>
+                </strong>
+            </span> 
+            <img src="../images/commandExplodeSample.gif" alt="Explode Samples" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/explodeSampleForm.gif" alt="Explode Sample Form image" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to 
+            explode sample locations that represent multiple plot locations (e.g., FIA 
+            sampling design plot/subplot).  </span>
+        </p>
+        <p>
+            <span class="style1"><strong><em>Sample Locations dropdown and open button:</em></strong> 
+            Allows users to select from which feature class they want to explode the 
+            sample locations.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Link Field:</em></strong> 
+            Allows users to specify the name of the field used to link clustered points to 
+            the original plot center.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Offset from center data grid:</em></strong> 
+            Allows user to specify azimuth and distance offsets from the center plot 
+            location. Each Azimuth and Distance value will create a new point in the output 
+            feature class.</span><br 
+                class="style1" />
+                <span class="style1"><strong><em>Explode button:</em></strong> create a new point 
+            feature class that contains the central point of the Sample locations layer 
+            along with an additional point for each Azimuth and distance specified in the 
+            Offset from center data grid. Output feature classes are stored in the same 
+            workspace as the input feature class and are named the same as the input feature 
+            class with a &quot;_explode&quot; suffix.</span><br 
+                class="style1" />
+        </p>
+        <p class="style3">
+            <strong><span class="style2">Output</span></strong><br />
+        </p>
+        <p class="style1">
+            A new point feature class.</p>
+	</body>
+</html>

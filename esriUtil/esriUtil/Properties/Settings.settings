@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="esriUtil.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="SASEXE" Description="The location of the sas exe" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Program Files\SAS\SASFoundation\9.2\sas.exe</Value>
+    </Setting>
+    <Setting Name="MapServicesLocalDatabase" Type="System.String" Scope="User">
+      <Value Profile="(Default)">""</Value>
+    </Setting>
+    <Setting Name="FuncDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">unknown</Value>
+    </Setting>
+    <Setting Name="AppDownLoad" Type="System.String" Scope="User">
+      <Value Profile="(Default)">http://www.fs.fed.us/rm/raster-utility/includes/downloads/</Value>
+    </Setting>
+    <Setting Name="HelpVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">unknown</Value>
+    </Setting>
+    <Setting Name="MosaicDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">unknown</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

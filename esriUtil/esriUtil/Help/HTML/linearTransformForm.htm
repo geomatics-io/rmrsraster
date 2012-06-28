@@ -1,0 +1,63 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Linear Transform Analysis</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Linear Transform Analysis </span>
+                </strong>
+            </span> 
+            <img src="../images/commandLinearTransformRaster.gif" alt="" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/linearTransformForm.gif" alt="" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to perform 
+            a linear transform (regression) of specified raster datasets. Each band of each 
+            raster dataset selected is added to the slope rasters data grid. For each band a 
+            slope value must be specified. To specify that there is no intercept for the 
+            transformation use a values of 0. To use categorical raster surfaces, convert 
+            each category within a given categorical surface to a binary raster 
+            representation (cell values of 0 or 1).&nbsp; The outputs from the analysis consist of a single band raster dataset with transformed cell values based on 
+            intercept and slope parameters. 
+            </span></p>
+        <p>
+            <span class="style1"><strong><em>Intercept numeric up down:</em></strong> 
+            Allows users to specify an intercept value.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Select Slope Rasters drop down, open button, 
+            and listbox:</em></strong> Allows users to select rasters that represent input 
+            parameters to the linear transformation and specify a slope value for each band 
+            within each raster dataset. To 
+            remove a raster band select that band and click on the - button. To clear the 
+            listbox click on the ! button.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Out Name text box:</em></strong> 
+            Allows users to specify the name of the newly created function raster dataset.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
+            analysis. Outputs are stored as function datasets and can be saved as a 
+            conventional dataset using the <a href="SaveRasterForm.htm">Save Raster</a> 
+            form. </span><br 
+                class="style1" />
+        </p>
+	    <p class="style2">
+            <strong>Examples</strong><br /><br />
+            
+            <img src="../images/linearTransform.png" alt="" /><br /><br />
+        </p>
+	</body>
+</html>

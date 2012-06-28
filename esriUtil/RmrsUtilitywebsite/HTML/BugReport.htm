@@ -1,0 +1,47 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <script type="text/javascript">
+        function sendMail() {
+            var link = "mailto:jshogland@fs.fed.us &subject=Bug RMRS RasterUtility Toolbar &body=" + escape(document.getElementById('TextArea1').value);
+            window.location.href = link;
+        }
+       
+    </script>
+	<head>
+		<title>Bug Report</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: "Courier New", Courier, monospace;
+                font-size: large;
+                }
+            .style2
+            {
+                font-size: medium;
+            }
+            .style3
+            {
+                color: #000000;
+                font-size: xx-large;
+            }
+            #TextArea1
+            {
+                height: 224px;
+                width: 601px;
+            }
+        </style>
+	</head>
+	<body>
+         
+        <p class="style1">
+            <span class="style3"><strong style="text-align: center"><em>Comments or Bugs</em></strong></span><br />
+            <textarea id="TextArea1" name="S1" rows="75" cols="150"></textarea><br />
+             <span class="style2"><br />
+             </span>
+             <button onclick="sendMail();return false">Submit Comment or Bug</button>
+            </p>
+            <div style="text-align: left; float: right;"><a href="welcome.htm">RMRS Raster Utility</a></div>
+	</body>
+</html>
+
+

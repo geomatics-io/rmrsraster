@@ -1,0 +1,71 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Arithmetic Analysis</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Arithmetic Analysis </span>
+                </strong>
+            </span> 
+            <img src="../images/commandArithmeticRaster.gif" alt="Arithemtic Analysis" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/arithmeticAnalysisForm.gif" alt="" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to perform arithmetic analyses between 2 raster datasets or a raster dataset and a constant.  
+            Types of analyses include; plus, minus, multiply, divide, power, and modules 
+            division. If both raster datasets are multiband raster datasets with an equal 
+            number of raster bands than the tool will perform arithmetic analysis between 
+            each corresponding band of the 2 raster datasets. If one raster is a multiband 
+            raster and the other is a constant or raster with fewer bands, then the first 
+            band or constant will be added to the raster with the fewest bands to make both 
+            raster datasets have the same total number of bands. There must be at least one 
+            raster dataset specified for the tool to work.</span></p>
+        <p>
+            <span class="style1"><strong><em>Input Raster 1 or number dropdown and open button:</em></strong> 
+            Allows users to select which raster or constant will represent the first raster 
+            in the analysis. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk. To specify a constant the user must manually type in 
+            number.</span><br 
+                class="style1" />
+                <span class="style1"><strong><em>Input Raster 2 or number dropdown and open button:</em></strong> 
+            Allows users to select which raster or constant will represent the 2nd raster 
+            in the analysis. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk. To specify a constant the user must manually type in 
+            number.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Out Name text box:</em></strong> 
+            Allows users to specify the name of the newly created function raster dataset.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
+            analysis. Outputs are stored as function datasets and can be saved as a 
+            conventional dataset using the <a href="SaveRasterForm.htm">Save Raster</a> 
+            form. </span><br 
+                class="style1" />
+        </p>
+	    <p class="style2">
+            <strong>Examples</strong><br /><br />
+            <em><strong>Plus</strong></em><br />
+            <img src="../images/arithmeticPlus.png" alt="" /><br /><br />
+            <strong><em>Multiply</em></strong><br />
+            <img src="../images/arithmeticMultiply.png" alt="" /><br /><br />
+            <strong><em>Multiband multiply by a constant</em></strong><br />
+            <img src="../images/arithmeticMultiplyMultiBandConstant.png" alt="" /><br /><br />
+        </p>
+	</body>
+</html>

@@ -1,0 +1,73 @@
+[OPTIONS]
+Auto Index=Yes
+Binary TOC=Yes
+Compatibility=1.1 or later
+Compiled file=RmrsRasterUtilitiesToolbarHelp.chm
+Contents file=HTML\Table of Contents.hhc
+Default Font=Arial,8,0
+Default topic=HTML\RmrsRasterUtilitiesToolbar.htm
+Display compile progress=Yes
+Full-text search=Yes
+Index file=HTML\Index.hhk
+Language=0x409 English (United States)
+Title=RMRS Toolbar
+
+
+[FILES]
+HTML\RmrsRasterUtilitiesToolbar.htm
+HTML\DeleteFunctionModel.htm
+HTML\Help.htm
+HTML\OpenFunctionModelForm.htm
+HTML\RasterAnalysisMenu.htm
+HTML\SamplingMenu.htm
+HTML\SaveRasterForm.htm
+HTML\StatisticalModeling.htm
+HTML\WebServicesMenu.htm
+HTML\addArcgisConnectionForm.htm
+HTML\addFeatureClassForm.htm
+HTML\addRasterToMapForm.htm
+HTML\downloadServicesForm.htm
+HTML\FunctionDatasets.htm
+HTML\FunctionModeling.htm
+HTML\GLCM.htm
+HTML\LandScapeMetrics.htm
+HTML\setupServicesForm.htm
+HTML\tiledImageServicesForm.htm
+HTML\calculateRasterStatistics.htm
+HTML\clusterSampleRasterForm.htm
+HTML\explodeForm.htm
+HTML\exportToCsvForm.htm
+HTML\fiaSummarizedBiomassForm.htm
+HTML\stratifiedRandomSampleForm.htm
+HTML\randomSampleForm.htm
+HTML\sampleRasterForm.htm
+HTML\sampleGlcmForm.htm
+HTML\modelPlrForm.htm
+HTML\accuracyAssessmentForm.htm
+HTML\modelRegressionForm.htm
+HTML\runPlrClassification.htm
+HTML\runRegressionModel.htm
+HTML\accuracyAssessmentForm.htm
+HTML\arithmeticAnalysisForm.htm
+HTML\clipRasterForm.htm
+HTML\conditionalAnalysisForm.htm
+HTML\convertPixelTypeForm.htm
+HTML\convolutionAnalysisForm.htm
+HTML\createCompositeForm.htm
+HTML\createMosaicForm.htm
+HTML\extractRasterBandsForm.htm
+HTML\focalAnalyses.htm
+HTML\focalAnalysisForm.htm
+HTML\functionModelForm.htm
+HTML\glcmForm.htm
+HTML\landscapeMetricsForm.htm
+HTML\linearTransformForm.htm
+HTML\localStatsAnalysisForm.htm
+HTML\logicalAnalysisForm.htm
+HTML\mathTransformationForm.htm
+HTML\mergeRasterForm.htm
+HTML\remapRasterForm.htm
+HTML\rescaleRasterForm.htm
+
+[INFOTYPES]
+

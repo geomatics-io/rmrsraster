@@ -1,0 +1,50 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Convert Pixel Type</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+            </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Convert Pixel Type </span>
+                </strong>
+            </span> 
+            <img src="../images/commandConvertPixelTypes.gif" alt="" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/ConvertPixelTypeForm.gif" alt="" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to convert the pixel type of a raster datasets to a different pixel type. Function modeling stores all representation of raster datasets in 64 bit double precision.
+            Before saving a raster dataset to a conventional format, users may want to convert the pixel type to a small bit size. Note, no data values are converted to min or max values depending on whether the
+            pixel type is signed or unsigned (<a href ="http://help.arcgis.com/en/arcgisdesktop/10.0/help/index.html#//009t0000002s000000">link to supported pixel types</a>)</span>
+        </p>
+        <p>
+            <span class="style1"><strong><em>Input Raster dropdown and open button:</em></strong> 
+            Allows users to select which raster layer to convert to a different pixel type. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Pixel Type dropdown:</em></strong> 
+            Allows users to select the new pixel type of the output raster. Note, output 
+            raster datasets no data value will also be converted to the min or max of the 
+            specified pixel type.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Out Name text box:</em></strong> 
+            Allows users to specify the name of the newly created raster dataset.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> performs the 
+            convert pixel type operation.</span><br /><br />
+        </p>
+	</body>
+</html>

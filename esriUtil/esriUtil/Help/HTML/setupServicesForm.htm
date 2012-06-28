@@ -1,0 +1,52 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Setup Services</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Setup Services </span>
+                </strong>
+            </span> 
+            <img src="../images/commandServiceSetup.gif" alt="Setup Services Image" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/setupServicesForm.gif" alt="Setup Services Form image" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to setup a web service database and identify which services will be queried
+            and which layers from that service will be downloaded to the output database (DB). 
+            To select a connection and service use the connection and service dropdown 
+            controls. Once a connection and service has been specified a list of available 
+            layers will appear in the check listbox. All checked layers for all 
+            connections and services will be downloaded
+            when the service download button is clicked. When you are finished selecting layers to download simply close this form. Once downloaded, these layers can
+            be added to a map using the <img src="../images/cmdAddLayer.gif" alt="Add Feature button" align="middle"/> <span class="style1"> </span><img src="../images/cmdAddRaster.gif" alt="Add Raster button" align="middle"/> buttons. 
+            Note for this tool to work you must be connected to the internet.</span>
+        </p>
+        
+	    <p>
+            <span class="style1"><strong><em>Change Output DB button:</em></strong> Allows users to select which database will be used to store web service information</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>+ button:</em></strong> Open the
+            <a href="addArcgisConnectionForm.htm">Add Service Connection</a> form that allows user to add another ArcGIS Server Connection (connection to a web service)</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>- button:</em></strong> Removes a selected ArcGIS Server Connection from the current output DB</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>ArcGIS Server Connection dropdown:</em></strong> The currently active web service connection</span><br class="style1" />
+            <span class="style1"><strong><em>Service Name dropdown:</em></strong> The currently active service</span><br class="style1" />
+            <span class="style1"><strong><em>Download Data for Checked Layers checked list box:</em></strong> Check layers that you want to download from a given service for a given ArcGIS connection</span><br class="style1" />
+        </p>
+    </body>
+</html>

@@ -1,0 +1,109 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Accuracy Assessment</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+            .style3
+            {
+                font-size: large;
+                font-family: Arial;
+            }
+            .style4
+            {
+                font-size: small;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Accuracy Assessment </span>
+                </strong>
+            </span> 
+            <img src="../images/commandAccuracyAssessment.gif" alt="Accuracy Assessment" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/accuracyAssessmentForm.gif" alt="Accuracy Assessment Form" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to build
+            an <a href="http://www.fs.fed.us/rm/raster-utility/tutorials/">Accuracy 
+            Assessment</a> of a given classification. Currently this tool requires SAS to 
+            generate the accuracy assessment. Statistics calculated include  
+            chi-squared, log likelihood, kappa, and a standard error matrix probabilistic confidence intervals. 
+            For a complete description of SAS outputs please refer to the
+            <a href="http://support.sas.com/documentation/cdl/en/statug/63962/HTML/default/viewer.htm#statug_freq_sect001.htm">
+            Freq</a> and
+            <a href="http://support.sas.com/documentation/cdl/en/statug/63962/HTML/default/viewer.htm#statug_logistic_sect001.htm">
+            Logistic</a> procedures.</span></p>
+        <p>
+            <span class="style1"><strong><em>Alpha numeric dropdown: </em></strong>
+            The 
+            level of significance that will be used to build confidence intervals.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Feature Class and open button:</em></strong> 
+            Allows users to select the dataset that contains both mapped values and field 
+            validated values.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Mapped Field dropdown: </em></strong>The field used to 
+            identify the values of the mapped layer at that location.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Reference Field dropdown: </em></strong>
+            The field used to specify 
+            the known (field validated) values at that location.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Weight Field dropdown: </em></strong>
+            The field used to specify 
+            the weight of each sample.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Map to Update CI dropdown and open button: </em></strong>
+            Allows users to select a map layer (raster surface or feature class) to update 
+            the attribute table with a error matrix of user probabilities and confidence 
+            intervals.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Edit Code checkbox: </em></strong>When checked the 
+            prc.sas file will be opened for editing.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Exact checkbox: </em></strong>When checked the 
+            exact statement will be added to the Freq procedure of the SAS file.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button: </em></strong>Executes the PLR 
+            routine. After clicking the Execute button a batch SAS process will 
+            open, running the prc.sas code.</span><br 
+                class="style1" />
+        </p>
+	    <p class="style3">
+            <strong>Output</strong><br />
+            <span class="style4">All outputs are located within a the workspace of the training feature class and are stored within a directory called SASOUTPUTS\ACCURACYASSESSMENT. Outputs include:
+            </span>
+        </p>
+        <ol>
+            <li class="style1">
+                A series of graphical outputs depicting the relationship between response and explanatory variables.
+            </li>
+            <li class="style1">
+                A .csv file of the input data named after the training data feature class.
+            </li>
+            <li class="style1">A SAS log file named prc.log. This file provides all the log information 
+                produced from running the SAS procedure file.</li>
+            <li class="style1">A SAS results file named prc.lst. This file provides all the results produced 
+                from running the SAS procedure file.</li>
+            <li class="style1">A SAS procedure file named prc.sas. This file contains the SAS code that is submitted to SAS in the batch process. You can open this file and modify the SAS procedure to produce different outputs.</li>
+            <li class="style1">A series of fields appended to the selected Map to Update CI 
+                layer&#39;s attribute table depicting users probabilities and confidence intervals associated with each cell 
+                of the error matrix. Prefix P_ denotes predicted probabilities. Prefix LCL_ 
+                denotes lower confidence limits. Prefix UCL_ denotes upper confidence limits.</li>
+
+        </ol>
+           
+	</body>
+</html>
+

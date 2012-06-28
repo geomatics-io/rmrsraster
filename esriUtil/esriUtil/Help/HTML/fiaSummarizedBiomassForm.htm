@@ -1,0 +1,65 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Summarizing Biomass</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Summarizing Biomass </span>
+                </strong>
+            </span> 
+            <img src="../images/commandFIABiomassSummary.gif" alt="Summarize Biomass" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/fiaBiomassSummaryForm.gif" alt="Summarize Biomass Form image" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to summarize biomass estimates 
+            (<a href="http://www.fs.fed.us/pnw_rp584.pdf">Jenkins et. al., 2004</a>) by 
+            plot/subplot given a series of sample locations and a FIA access database.</span></p>
+        <p>
+            <span class="style1"><strong><em>Sample locations dropdown and open button:</em></strong> 
+            Allows users to select the point feature class that represents the sample 
+            locations.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Plot link field dropdown: </em></strong>The field used to specify the link between the plots and the FIA database.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>SubPlot link field dropdown: </em></strong>
+            The field used to specify the link between the subplots and the FIA database.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>FIA database textbox and open button: </em></strong>
+            Allows users to select 
+            the downloaded FIA database.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>AGB types check list box: </em></strong>
+            Allows users to select 
+            which values will be summarized. For each species found within all the samples, 
+            checked items will be added to the sample feature class as a field, named 
+            according to the checked item followed by a &quot;_&quot; and FIA species coded 
+            value. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
+            summarization routine. Summarized values for each item tree species combo are 
+            populated based on the species found at each plot/subplot and represent mean per acre 
+            values.</span><br 
+                class="style1" />
+        </p>
+        <p class="style3">
+            <strong><span class="style2">Output</span></strong><br />
+        </p>
+        <p class="style1">
+            A series of fields and summarized FIA values based on user inputs.</p>
+	</body>
+</html>

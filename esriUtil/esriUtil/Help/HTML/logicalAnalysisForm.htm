@@ -1,0 +1,72 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Logical Analysis</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Logical Analysis </span>
+                </strong>
+            </span> 
+            <img src="../images/commandLogicalAnalysis.gif" alt="" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/logicalAnalysisForm.gif" alt="" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to perform 
+            Logical analyses given two raster datasets or a raster dataset and a constant. Types of 
+            analyses include; greater than, less than, greater than equal to, less than 
+            equal to, equal to, AND, and OR. Every band within the raster datasets will be queried 
+            for the logical operation. The outputs from the analysis consist of a raster dataset with each cell within a band having a value of either 0 or 1. A value of 1 
+            identifies cells meeting the specified criteria while values of 0 denote the 
+            opposite. For AND and OR operators, raster cell values are assumed to have values 
+            of 1 or 0</span></p>
+        <p>
+            <span class="style1"><strong><em>Input Raster 1 dropdown and open button:</em></strong> 
+            Allows users to select which raster will be used to compare against input raster 
+            or constant 2. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Operator dropdown:</em></strong> 
+            Allows users to select which type logical operation will be performed.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Input Raster 2 or number dropdown and open button:</em></strong> 
+            Allows users to select which raster will be used to compare against input raster 
+            1. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk or manually type in a constant.</span><br 
+                class="style1" />
+                
+            <span class="style1"><strong><em>Out Name text box:</em></strong> 
+            Allows users to specify the name of the newly created function raster dataset.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
+            analysis. Outputs are stored as function datasets and can be saved as a 
+            conventional dataset using the <a href="SaveRasterForm.htm">Save Raster</a> 
+            form. </span><br 
+                class="style1" />
+        </p>
+	    <p class="style2">
+            <strong>Examples</strong><br /><br />
+            <em><strong>Greater Than</strong></em><br />
+            <img src="../images/logicalgr.png" alt="" /><br /><br />
+            <strong><em>AND</em></strong><br />
+            <img src="../images/logicaland.png" alt="" /><br /><br />
+            <strong><em>Multiband Less Than Equal To Constant</em></strong><br />
+            <img src="../images/logicallessequal.png" alt="" /><br /><br />
+        </p>
+	</body>
+</html>

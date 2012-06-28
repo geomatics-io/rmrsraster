@@ -1,0 +1,99 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Accuracy Assessment Answers</title>
+	    <style type="text/css">
+            .style4
+            {
+                font-style: italic;
+                font-weight: bold;
+                font-size: large;
+            }
+            .style5
+            {
+                font-size: large;
+            }
+            .style6
+            {
+                font-size: x-large;
+            }
+            </style>
+	</head>
+	<body>
+        <p class="style4">	
+            <span class="style6">Answers for Accuracy Assessment Tutorial</span><br /> 
+            </p>
+            <span class="style5">Exercise1.</span><br />	  
+            <ol>
+                <li class="style5">To account for a nonrandom sampling scheme.</li>
+                <li class="style5">1,382,581.714286</li>
+                <li class="style5">In the modeling stage of the analysis. Sample weights are used to 
+                    weight the importance of each sample related to its natural distribution across 
+                    the landscape.</li>
+            </ol>	
+            <span class="style5">Exercise2.</span><br />
+            <ol>
+                <li class="style5">Aspen (12)</li>
+                <li class="style5">Aspen (11) producers/omission error</li>
+                <li class="style5">Shrub (10) users/commission error</li>
+            </ol>	
+            <span class="style5">
+            Exersice3.</span><br/>
+            <ol>
+                <li class="style5">Yes the result are different. While chi-square, LL, and K are all 
+                    significant their values are substantially different compared to using the 
+                    weight and K is now statistically different between the two datasets at 
+                    (alpha=0.05). Moreover class probabilities are no longer similar between the 2 
+                    datasets. This result indicates the importance of a representative sample and 
+                    how sampling weights can be used to achieve this representative sample; </li>
+                <li class="style5">Training = Clust raster surface and Validation = CCCD raster 
+                    surface.</li>
+                <li class="style5">Because they both represent the same population, the pixels 
+                    within the study area. The difference is simply how those pixels where initially 
+                    grouped together (i.e., the weights). By weighting each sample&#39;s importance 
+                    relative to the proportion of area that grouping consumes within the 
+                    population, both sample schemes end up accurately representing the population (the 
+                    pixels within the study area).</li>
+            </ol>	
+            <span class="style5">
+            Exercise4..</span><br/>
+            <ol>
+                <li class="style5">Because map accuracy is one mean estimate of the probability of 
+                    accurately identifying a pixel across the study area. Without confidence limits 
+                    you do not have a good idea of the range of values that mean estimate can have 
+                    (i.e., precision to the estimate).</li>
+                <li class="style5">Map class 12 has a user error of 6.41% - 8.72% and 7.19% - 9.62% 
+                    for categories 5 and 14, respectively. While mean point error estimates are 
+                    different (7.56% and 8.41%), 95% confidence intervals overlap suggest that the 
+                    error rate is not statistically different at the alpha = 0.05 level. This means 
+                    that when the maps says a pixel is class 12, it is equally likely that a 
+                    misclassification will occur between classes 5 and 14.</li>
+                <li class="style5">The same way as explained in the answer for question 2 except 
+                    that now you are concerned with the accuracy/error rates specifically between 2 
+                    classes such as 12 and 5 as opposed to looking at the error rates between two 
+                    categories given a mapped class. For example, mapped class 12 has a user 
+                    accuracy ranging from 54.94% to 59.26%, while class 5 has a user error rate 
+                    ranging from 6.41% - 8.72%. Clearly, there is a statistical difference in 
+                    between these 2 classes at the alpha=0.05 level (mapped classes can also be 
+                    compared using producer accuracies). Note, these probabilities could also be 
+                    compared using odds and the linear logit equations.</li>
+            </ol>	
+            <span class="style5">
+            Exercise5.</span><br/>
+            <ol>
+                <li class="style5">mean accuracy = 77.17%; lower and upper 90% confidence limits = 
+                    76.90% and 77.44%</li>
+                <li class="style5">mean accuracy = 77.17%; lower and upper 90% confidence limits = 
+                    76.85% and 77.50%</li>
+                <li class="style5">Yes, 95% CI do not overlap. The subset is more accurate then the 
+                    full map.</li>
+            </ol>	
+        
+        <p>
+            For technical questions contact 
+            <a href="mailto:jshogland@fs.fed.us">John Hogland</a>, Biological Scientist in 
+            the Human Dimensions program at the <a href="http://www.fs.fed.us/rmrs/">Rocky Mountain Research Station</a>
+        </p>
+            <div style="text-align: left; float: right;"><a href="welcome.htm">RMRS Raster Utility</a></div>
+	</body>
+</html>

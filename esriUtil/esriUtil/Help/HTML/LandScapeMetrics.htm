@@ -1,0 +1,78 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Landscape Metrics</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+                }
+            .style2
+            {
+                font-size: large;
+                text-align: left;
+            }
+            .style3
+            {
+                text-align: left;
+            }
+            .style4
+            {
+                text-align: left;
+                font-family: Arial;
+            }
+            </style>
+	</head>
+	<body>
+        <p class="style4">
+                <strong>
+                    <span class="style2">Landscape Metrics overview</span></strong></p>
+        <p class="style3">
+            There are numerous landscape metrics and software products that 
+            calculate landscape metrics. One of the more popular applications that quantify 
+            landscape metrics is 
+            <a href="http://www.umass.edu/landeco/research/fragstats/fragstats.html">FragStats</a>. 
+            For a complete discussion of landscape metrics please download and read the 
+            <a href="http://www.umass.edu/landeco/research/fragstats/documents/fragstats_documents.html">FragStats documentation</a>. 
+            Our landscape metrics are calculated using focal analysis, a moving windows 
+            methodology (<a href="#F1">Figure 1</a>), and function modeling. Our metrics are calculated at the 
+            landscape level and values relate to patch area, edge, area to edge 
+            relationships (ratio), and composition. The patch statistics quantified within 
+            the analysis window include max, min, sum, mean, mode, median, variance, standard 
+            deviation, unique, entropy, and probability (<a href="#F2">Figure 2</a>). Unlike 
+            many tools that define unique regions or patches across the landscape, our tool 
+            defines a given patch dynamically within the extent of the moving window. This 
+            means that a homogenous patch at the edge of a analysis window could potentially 
+            be split into multiple patches. Conceptually, one can think of the analysis 
+            window as a mini-landscape with the extent defined to capture the naturally 
+            occurring process. This provides the focal cell with a unique frame of reference 
+            in relationship to the mini-landscape, meaning that the analysis window should 
+            be defined in such a manner that it can be justified (e.g., the distance an 
+            animal can move, water can travel, and a plant can consume resources, over a 
+            specific period of time). The outputs form the analysis consist of function 
+            raster datasets that can be used by any of the other RMRS 
+            Raster Utility tools.</p>
+        <div class="style3">
+            <span class="style1">
+                <strong>
+                    <span class="style2">&nbsp;</span></strong></span><br />
+            <img src="../images/landscaperegionmatrix.png" alt="Create Random Sample Form image" 
+                align="middle" class="style1" width="500"  style="border-style: solid; border-width: thin" /><br />
+                <a id="F1"> Figure 1. Moving window concept. Landscape patch metric are 
+            calculated using the extent of the analysis window and applied to the focal cell. 
+            In the example above there are 4 unique patches within the extent of the moving 
+            window, making the focal cell value in the output raster 4.&nbsp; &nbsp;  </a><br /><br />
+            <img src="../images/patchstatistics.png" alt="GLCM Equations" align="middle" 
+                class="style1" width="500" style="border-style: solid; border-width: thin" /><br />
+            <a id="F2">
+                Figure 2. 
+            A list of patch statistics equations.&quot;n&quot; in these equations refers to the 
+            number of patches. &quot;x&quot; identifies either area, edge, or ratio depending on the 
+            landscape metric specified. &quot;j&quot; refers to unique values of a given statistic 
+            within a specified analysis window.&nbsp;  
+            </a>
+            <br />
+            <br />
+            
+        </body>
+</html>

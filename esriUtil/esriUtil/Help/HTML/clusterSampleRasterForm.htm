@@ -1,0 +1,57 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Cluster Sample</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Cluster Sample Raster </span>
+                </strong>
+            </span> 
+            <img src="../images/commandSampleRasterCluster.gif" alt="Sample Raster" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/sampleRasterClusterForm.gif" alt="Sample Raster Form image" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to 
+            sample a specified raster using the sample location of each feature within the 
+            feature class and the specified Azimuth and Distance offsets. Raster values are 
+            summarized using the Cluster Summarization Type and are added to the attribute table of 
+            the specified feature class. Field names will include the name of the raster sampled 
+            followed by the band number that was sampled.</span></p>
+        <p>
+            <span class="style1"><strong><em>Sample locations dropdown and open button:</em></strong> 
+            Allows users to select the point feature class that represents the sample 
+            locations.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Raster to Sample dropdown and open button: </em></strong>
+            Allows users to select the raster that will be sampled. All bands within the 
+            specified raster will be sampled.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Cluster Summarization dropdown: </em></strong>
+            Allows users to select how to summarize the clustered samples.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Sample button:</em></strong> Samples the 
+            specified Raster.</span><br 
+                class="style1" />
+        </p>
+        <p class="style3">
+            <strong><span class="style2">Output</span></strong><br />
+        </p>
+        <p class="style1">
+            A series of fields with summarized raster band values for the location of each 
+            sample point and that points associated offsets. </p>
+	</body>
+</html>

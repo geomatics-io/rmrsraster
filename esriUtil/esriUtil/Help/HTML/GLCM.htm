@@ -1,0 +1,95 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>GLCM</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+                }
+            .style2
+            {
+                font-size: large;
+                text-align: left;
+            }
+            .style3
+            {
+                text-align: left;
+            }
+            .style4
+            {
+                text-align: left;
+                font-family: Arial;
+            }
+            .style5
+            {
+                font-size: larger;
+            }
+            .style6
+            {
+                font-style: normal;
+            }
+        </style>
+	</head>
+	<body>
+        <p class="style4">
+                <strong>
+                    <span class="style2">GLCM overview</span></strong></p>
+        <p class="style3">
+            Gray Level Co-Occurrence Matrix (GLCM) was first described by Haralick in the 
+            early 1970&#39;s and has since been used in numerous disciplines to quantify pattern 
+            within an image given a specified analysis window. The basic idea behind GLCM is 
+            to quantify differences between neighboring pixel values (vertically or 
+            horizontally) within a specified window of interest (<a href="#F1">figure 1</a>). Typically, GLCMs 
+            are good at quantifying and identifying different aspects of edge and or 
+            homogenous area for a given analysis window within an image. The different GLCM metrics can be grouped into 
+            4 categories that represent Contrast, Statistical, Orderliness, or Extreme 
+            value
+            relationships (<a href="#F2">figure 2</a>). The outputs of GLCM can be used as predictor variables 
+            in a model and can be easily viewed as a 3 band color composite (<a href="#F3">figure 3</a>).</p>
+        <div class="style3">
+            <span class="style1">
+                <strong>
+                    <span class="style2">&nbsp;</span></strong></span><br />
+            <img src="../images/GLCMmatrix.png" alt="Create Random Sample Form image" 
+                align="middle" class="style1" width="500"  style="border-style: solid; border-width: thin" /><br />
+                <a id="F1"> Figure 1. GLCM values are a summary statistic of all neighbor pixel 
+                    relationships in a given direction (vertical or horizontal). Like focal analyses 
+                    GLCM summary values are applied to the center cell of the analysis window. To calculate GLCM 
+                    values, neighboring value combination within a given window analysis area 
+                    (bottom left analysis window) are counted and recorded as counts. Counts are 
+                    then used to generate a probability of occurrence (Pij) for each cell within the 
+                    GLCM matrix (right, I, J matrix). Finally, probability of occurrence are 
+                    transformed using multiple equations that highlight unique aspects of 
+                    neighboring pixel differences.&nbsp; </a><br /><br />
+            <img src="../images/GLCMequations.png" alt="GLCM Equations" align="middle" 
+                class="style1" width="500" style="border-style: solid; border-width: thin" /><br />
+            <a id="F2">
+                Figure 2. GLCM equations. All equation transform neighbor pixel combination probabilities and then summarize those transformations to produce a metric value 
+                using one of the above equations. GLCM equations can be grouped into one of four categories that describe the intent of the transformation; Contrast (blue text), 
+                Statistical (green text), Orderliness (red text), and Extreme (purple text). 
+            </a><br /><br />
+            <div style="border-style: solid; border-width: thin; width: 500px;">
+                <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img src="../images/NAIPpicture.png" alt="GLCM Equations" align="middle" 
+                    class="style1" width="165" />
+                </a><br />
+                <img src="../images/GLCMpicture.png" alt="GLCM Equations" align="middle" class="style1" width="500" /><br /><br />
+             </div>
+                <a id="F3">
+                    Figure 3. Three band color composite of horizontal Contrast, Orderliness, Statistical, and Extreme value GLCM values using a 3*3 analysis window and the first band of color NAIP imagery. The black line in all 4 images serves as a reference.
+                    Note how different patterns emerge given the different GLCM metrics.
+                </a>
+            
+            </div><br /><br />
+        <div style="font-style: italic">
+            <strong><span class="style5">References</span></strong><br />
+            <span class="style6">
+            <a href="http://www.makseq.com/materials/lib/Articles-Books/Filters/Texture/Co-occurence/haralick73.pdf">
+            Haralick, R.R., K. Shanmugam, I. Dinstein. 1973</a></span>. Textural Features 
+            for Image Classification. <span class="style6">IEEE Transactions on Systems, Man 
+            and Cybernetics Vol. SMC-3 No. 6, pp. 610-621.</span>&nbsp;
+            <br />
+            <span class="style6">For more information about GLCM please visit Hall-Beyer 
+            tutorial <a href="http://www.fp.ucalgary.ca/mhallbey/tutorial.htm">website</a>.</span></div>
+        </body>
+</html>

@@ -1,0 +1,79 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>FAQ</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: "Courier New", Courier, monospace;
+                font-size: large;
+                }
+            .style2
+            {
+                font-size: medium;
+            }
+            .style3
+            {
+                color: #000000;
+                font-size: xx-large;
+            }
+            .style4
+            {
+                font-family: "Courier New", Courier, monospace;
+                font-size: xx-large;
+            }
+        </style>
+	</head>
+	<body>
+         
+        <p class="style1">
+            <span class="style3"><strong style="text-align: center"><em>Frequently 
+            Asked Questions</em></strong></span></p>
+        <ol>
+            <li>
+                <span class="style2"><a href="#q1">Why do function models not display correctly?</a></span>
+            </li>
+            <li>
+                    <span class="style2"><a href="#q2">Why do some function model take a long time to display?</a></span>
+            </li>
+            <li>
+                    <span class="style2"><a href="#q3">Why does stratified random sampling take a long time to finish?</a></span>
+            </li>
+            <li>
+                    <span class="style2"><a href="#q4">What happens if I don't have SAS installed?</a></span></li>
+            <li>
+                    <a href="#q5">How is the Raster Analysis menu different than Spatial Analyst?</a></li>
+            <li>
+                    <span class="style2"><a href="#q6">Do you plan on incorporating R into the statistical modeling?</a></span>
+            </li>
+            <li>
+                    <span class="style2"><a href="#q7">How do I submit comments or report bugs and errors?</a></span>
+            </li>
+        </ol>
+        <p id="q1" class="style4">
+            <strong>Answers</strong></p>
+        <ol>
+            <li><a  name="q1">Function models use statistics from the input datasets and make a guess at the output statistics. This can cause the surface to display incorrectly. To fix this simply
+            rerun statics using the calculate statistic button or save the function model as a conventional dataset using the save raster button.</a></li>
+            <li><a  name="q2">When displaying function models each cell must be processed. For most function 
+                datasets this is a relatively quick process but function dataset that are a 
+                composite of multiple functions can require additional time to display.</a></li>
+            <li><a  name="q3">Stratified random sampling can take a long time to finish when raster zones 
+                represent a small portion of the landscape.</a></li>
+            <li><a  name="q4">Currently, if you don&#39;t have SAS you will not be able to use the Statistical 
+                Modeling tools.</a></li>
+            <li><a name="q5">On the surface there appears to be many similarities between the Raster Analysis 
+                menu and Spatial Analyst extension coupled with Model Builder. The primary 
+                difference is how data are processed (not to mention some of the analyses that 
+                can be performed). The tools within the Raster Analysis menu uses delayed 
+                processing and lazy reading techniques to process data. We combine these 
+                methodologies into a modeling framework called <a href="FunctionModeling.htm">
+                Function Modeling</a> that significantly reduces storage space and processing 
+                time associated with raster analysis and modeling. Also RMRS Raster Utility is 
+                free as compared to Spatial Analyst.</a></li>
+            <li><a  name="q6">Yes, we plan on integrating R into the statistical modeling library.</a></li>
+            <li><a  name="q7"></a>By clicking on the <a href="BugReport.htm">Report a Bug</a> link.</li>
+        </ol>
+        <div style="text-align: left; float: right;"><a href="welcome.htm">RMRS Raster Utility</a></div>
+	</body>
+</html>

@@ -1,0 +1,128 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Model Regression</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+            .style3
+            {
+                font-size: large;
+                font-family: Arial;
+            }
+            .style4
+            {
+                font-size: small;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Model Regression </span>
+                </strong>
+            </span> 
+            <img src="../images/commandRegModel.gif" alt="Model Regression" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/modelRegressionForm.gif" alt="Model Regression Form" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to build
+            <a href="http://support.sas.com/documentation/cdl/en/statug/63962/HTML/default/viewer.htm#statug_reg_sect001.htm">
+            Regression</a> and
+            <a 
+                href="http://support.sas.com/documentation/cdl/en/statug/63962/HTML/default/viewer.htm#statug_reg_sect001.htm"> 
+            Multivariate Regression</a> Models. Currently this tool requires SAS to 
+            generate the model. After the model has been created it can be used along 
+            with the <a href="runRegressionModel.htm">Run Regression Model</a> tool 
+            to create a raster datasets of estimated mean model values.</span></p>
+        <p>
+            <span class="style1"><strong><em>Training Dataset and open button:</em></strong> 
+            Allows users to select the training feature class that represents the sample 
+            locations.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Dependent Field dropdown and list box: </em></strong>The field used to 
+            identify the response variable(s). To perform a multivariate regression you will 
+            need to specify multiple response variables. Upon selecting a field, that field 
+            will be added to the dropdown list box. To remove a field form the list box 
+            select that field and click the - button.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Weight Field dropdown: </em></strong>
+            The field used to specify 
+            the weight of each sample.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Stepwise Selection checkbox and % Alpha Enter 
+            and Stay: </em></strong>
+            Allows users to select 
+            if they want to use stepwise selection to select statistically valid parameters 
+            (within the bounds of the Enter and Stay). If the check box is not selected then 
+            all parameters will be used in the model. For multivariate regression models you 
+            will most likely want to leave the checkbox unchecked.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Independent Fields dropdown and&nbsp; list box: </em></strong>
+            Allows users to select 
+            which independent fields will&nbsp; potentially be added to the model. After 
+            selecting a given field it will be added to the Independent Fields list box. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>- button: </em></strong>Allows 
+            users to remove the currently selected field from the Independent Fields 
+            list box. 
+            </span><br 
+                class="style1" />
+            %<span class="style1"><strong><em> button: </em></strong>Allows 
+            users to add all fields from the training dataset. 
+            </span><br 
+                class="style1" />
+            !<span class="style1"><strong><em> button: </em></strong>Allows 
+            users to remove all fields within the Independent Fields list box. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Validation checkbox: </em></strong>When checked 
+            will perform an independent validation of the data. 70% of the data will be used 
+            to create the model and the remaining 30% of the data will be used to validate the 
+            model.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>View Results checkbox: </em></strong>When 
+            checked SAS results will be shown after the process has completed.</span><br 
+                class="style1" />
+                <span class="style1"><strong><em>Edit Sas checkbox: </em></strong>When checked the 
+            prc.sas file will be opened for editing.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button: </em></strong>Executes the PLR 
+            routine. After clicking the Execute button a batch SAS process will 
+            open, running the prc.sas code.</span><br 
+                class="style1" />
+        </p>
+	    <p class="style3">
+            <strong>Output</strong><br />
+            <span class="style4">All outputs are located within a the workspace of the training feature class and are stored within a directory called SASOUTPUTS\REGRESSION. Outputs include:
+            </span>
+        </p>
+        <ol>
+            <li class="style1">
+                A series of graphical outputs depicting the relationship between response and explanatory variables.
+            </li>
+            <li class="style1">
+                A .csv file of the input data named after the training data feature class.
+            </li>
+            <li class="style1">A .csv file of the model parameter estimates. This file is used by the Run PLR 
+                Classification tool to build series of raster datasets that depict the outputs 
+                of the model.</li>
+            <li class="style1">A SAS log file named prc.log. This file provides all the log information 
+                produced from running the SAS procedure file.</li>
+            <li class="style1">A SAS results file named prc.lst. This file provides all the results produced 
+                from running the SAS procedure file.</li>
+            <li class="style1">A SAS procedure file named prc.sas. This file contains the SAS code that is submitted to SAS in the batch process. You can open this file and modify the SAS procedure to produce different outputs. Please note that outputs from export statements are used by other tools.</li>
+
+        </ol>
+           
+	</body>
+</html>

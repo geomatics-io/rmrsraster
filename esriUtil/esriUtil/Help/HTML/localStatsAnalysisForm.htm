@@ -1,0 +1,78 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Local Stats Analysis</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Local Stats Analysis </span>
+                </strong>
+            </span> 
+            <img src="../images/commandSummarizeRaster.gif" alt="" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/localStatsAnalysisForm.gif" alt="" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to perform 
+            Local statistical analyses given specified raster datasets and statistics. Local 
+            statistics transform the overlapping cell values of each band within a raster 
+            dataset into a new statistic stored within a single band raster dataset. Statistics include: 
+            max, min, maxband, minband, sum, multiply, divide, subtract, power, mean, 
+            variance, standard deviation, mode, median, unique, and entropy. The output from the analysis consist of a raster dataset 
+            (single band) with transformed cell values. 
+            </span></p>
+        <p>
+            <span class="style1"><strong><em>Select Raster dropdown, open button, and 
+            listbox:</em></strong> 
+            Allows users to select which raster will be used as an input to the local stats analysis. 
+            All bands within each raster dataset will be used in the analysis. The drop down contains 
+            any raster in the TOC and the open button allows the user to select any existing 
+            raster stored on disk. Once selected raster datasets will be moved to the select 
+            raster listbox. To remove a raster dataset select it within the listbox and click 
+            on the - button. To clear the select raster listbox click on the ! button.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Function:</em></strong> 
+            Allows users to define the type of statistic that will be calculated. These 
+            statistics are calculated in the same manner as <a href="focalAnalyses.htm">focal statistics</a> except 
+            &quot;n&quot; is 
+            determined by the number of bands as opposed to the number of cells within a 
+            focal window.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Out Name text box:</em></strong> 
+            Allows users to specify the name of the newly created function raster dataset.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
+            analysis. Outputs are stored as function datasets and can be saved as a 
+            conventional dataset using the <a href="SaveRasterForm.htm">Save Raster</a> 
+            form. </span><br 
+                class="style1" />
+        </p>
+	    <p class="style2">
+            <strong>Examples</strong><br /><br />
+            
+            <img src="../images/localStatsSum.png" alt="" /><br /><br />
+            <img src="../images/localStatsMax.png" alt="" /><br /><br />
+            <img src="../images/localStatsMaxBand.png" alt="" /><br /><br />
+        </p>
+	</body>
+</html><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title></title>
+	</head>
+	<body>
+	
+	</body>
+</html>

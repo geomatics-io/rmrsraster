@@ -1,0 +1,102 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Sample GLCM</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Sample GLCM </span>
+                </strong>
+            </span> 
+            <img src="../images/commandSampleGLCM.gif" alt="Sample GLCM" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/sampleGlcmForm.gif" alt="Sample GLCM Form image" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to sample <a href="GLCM.htm">GLCM</a> 
+            values given a series of sample locations. Currently some of the 
+            <a href="GLCM.htm">GLCM</a> metrics 
+            create conventional model outputs as opposed to <a href="FunctionDatasets.htm">
+            function datasets</a>, which can substantial increase processing time. This tool 
+            allows the user to sample some of those metrics without creating the conventional data source, 
+            providing a way to test if those values warrant creating the full dataset. 
+            Future release of RMRS Raster Utility will deprecate this form and convert those metrics that 
+            produce conventional raster into function datasets. At that time users can use the
+            <a href="glcmForm.htm">Create GLCM Raster analysis tool</a> to create 
+            function model and then sample that newly created function model using the
+            <a href="sampleRasterForm.htm">Sample Raster Value</a> 
+            form.</span></p>
+        <p>
+            <span class="style1"><strong><em>Sample Feature Class dropdown and open button:</em></strong> 
+            Allows users to select the point feature class that represents the sample 
+            locations.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Raster dropdown and open button: </em></strong>
+            Allows the user to select which raster will be used to calculate
+            <a href="GLCM.htm">GLCM</a> surfaces.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Window Type dropdown: </em></strong>
+            The type of analysis window used to look at neighboring raster 
+            values (Rectangle or 
+            Circle).</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Columns, Rows, and Radius numeric dropdown: </em></strong>
+            Allows users to specify 
+            the size of the analysis window. If window type is Circle the Columns and Rows 
+            numeric dropdown disapears and the Radius numeric dropdown appears. Values are 
+            number of cells within the window.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Direction dropdown: </em></strong>
+            Allows users to select 
+            the direction of comparison for the <a href="GLCM.htm">GLCM</a> (horizontal or 
+            vertical). 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Types dropdown: </em></strong>
+            Allows users to select the types of <a href="GLCM.htm">GLCM</a> metrics to 
+            calculate. Once selected in the dropdown the users must click on the + button to 
+            add the metric to list of GLCM metrics to sample. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>+ button: </em></strong>Adds metric types to 
+            the list of <a href="GLCM.htm">GLCM</a> values to sample. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>- button: </em></strong>Subtracts the currently 
+            selected metric type from the list of <a href="GLCM.htm">GLCM</a> values to 
+            sample. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>% button: </em></strong>
+            Adds all metric types to the list of <a href="GLCM.htm">GLCM</a> values to 
+            sample. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>! button: </em></strong>Subtracts all metrics 
+            types from the list of <a href="GLCM.htm">GLCM</a> values to sample. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Sample button:</em></strong> Samples the 
+            specified <a href="GLCM.htm">GLCM</a> metric values for the specified raster 
+            surface. </span><br 
+                class="style1" />
+        </p>
+        <p class="style3">
+            <strong><span class="style2">Output</span></strong><br />
+        </p>
+        <p class="style1">
+            A .csv file located at the specified location.</p>
+	</body>
+</html>

@@ -1,0 +1,83 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Run PLR Classification</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+            }
+            .style2
+            {
+                font-size: large;
+            }
+            .style3
+            {
+                font-size: large;
+                font-family: Arial;
+            }
+            .style4
+            {
+                font-size: small;
+            }
+        </style>
+	</head>
+	<body>
+        <p>
+            <span class="style1">
+                <strong>
+                    <span class="style2">Run PLR Classification </span>
+                </strong>
+            </span> 
+            <img src="../images/commandPlrClassification.gif" alt="Model PLR" align="middle" class="style1" height="25" width="25" /><br class="style1" />
+            <br />
+            <img src="../images/runPlrClassificationForm.gif" alt="Model PLR Form" align="middle" class="style1" />
+        </p>
+        <p>
+            <span class="style1"> This form is used to create new raster surfaces using the 
+            ouputs from the <a href="modelPlrForm.htm">Model PLR tool</a>.</span></p>
+        <p>
+            <span class="style1"><strong><em>Training Dataset and open button:</em></strong> 
+            Allows users to select the training feature class that represents the sample 
+            locations. The workspace of this feature class should contain the outputs of the 
+            model building stage.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Rasters dropdown, open button and list box: </em></strong>
+            Allows users to select which raster surfaces were be used as independent 
+            variables to build the classification model. Note that raster surfaces should be 
+            in the same order as specified in the model output (ascending order). To 
+            view that order click the Order of Raster Button.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>- button: </em></strong>Allows 
+            users to remove the currently selected field from the Independent Fields 
+            listbox. 
+            </span><br 
+                class="style1" />
+            %<span class="style1"><strong><em> button: </em></strong>Allows 
+            users to add all fields from the training dataset. 
+            </span><br 
+                class="style1" />
+            !<span class="style1"><strong><em> button: </em></strong>Allows 
+            users to remove all fields within the Independent Fields list box. 
+            </span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Order of Raster button: </em></strong>When clicked 
+            will open a window that displays the name and order of independent variables.</span><br 
+                class="style1" />
+            <span class="style1"><strong><em>Create button: </em></strong>Executes the PLR 
+            model. Currently this process creates a conventional raster dataset. Future 
+            releases will create function datasets.</span><br 
+                class="style1" />
+        </p>
+	    <p class="style3">
+            <strong>Output</strong><br />
+            <span class="style4">All outputs are located within the workspace of the training feature class and are 
+            named MLC and PROB. MLC layer defines the most probable class given the 
+            modeled probabilities. The PROB raster depicts the probability of each class 
+            given the independent variables. Raster band order correspond to the 
+            ordering of the PLR categories.
+            </span>
+        </p>
+           
+	</body>
+</html>

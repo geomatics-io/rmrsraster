@@ -1,0 +1,51 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Focal</title>
+	    <style type="text/css">
+            .style1
+            {
+                font-family: Arial;
+                }
+            .style2
+            {
+                font-size: large;
+                text-align: left;
+            }
+            .style3
+            {
+                text-align: left;
+            }
+            .style4
+            {
+                text-align: left;
+                font-family: Arial;
+            }
+            </style>
+	</head>
+	<body>
+        <p class="style4">
+                <strong>
+                    <span class="style2">Focal Analysis overview</span></strong></p>
+        <p class="style3">
+            Focal analysis is concerned with summarizing neighboring cell values within an analysis window and applying that 
+            summary to a specific focal cell within the analysis window <a href="http://help.arcgis.com/en/arcgisdesktop/10.0/Index.htm#/How_Focal_Statistics_works/009z000000r7000000/">(ESRI website)</a>. 
+            The Focal cell sits in the middle of analysis window <a href="#F1">(figure 1)</a> and can take a wide range of numeric values<a href="#F2">(figure 2)</a>. The outputs of Focal Analysis
+            can be used as predictor variables in a model and can be combined in numerous ways using the RMRS Raster Utility. 
+        </p>
+        <div class="style3">
+            <span class="style1">
+                <strong>
+                    <span class="style2">&nbsp;</span></strong></span><br />
+            <img src="../images/focalSum3by3.png" alt="Focal Sum 3 by 3" 
+                align="middle" class="style1" width="500"  style="border-style: solid; border-width: thin" /><br />
+                <a id="F1"> Figure 1. An example of how focal analyses works. In this example the analysis window is defined by the cells with a light blue background and the focal pixel is outlined in red.
+                All values within the analysis window are summed to calculate the focal statistic. This statistic is then applied to the focal cell of the output raster. This process is then repeated for all cells within the output dataset. </a><br /><br />
+            <img src="../images/focalStatisticsEquations.png" alt="GLCM Equations" align="middle" 
+                class="style1" width="500" style="border-style: solid; border-width: thin" /><br />
+            <a id="F2">
+                Figure 2. Focal statistic equations. 
+            </a><br /><br />
+            
+        </body>
+</html>
