@@ -41,10 +41,10 @@
             // 
             // btnGeoDb
             // 
-            this.btnGeoDb.Image = ((System.Drawing.Image)(resources.GetObject("btnGeoDb.Image")));
-            this.btnGeoDb.Location = new System.Drawing.Point(182, 114);
+            this.btnGeoDb.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnGeoDb.Location = new System.Drawing.Point(182, 113);
             this.btnGeoDb.Name = "btnGeoDb";
-            this.btnGeoDb.Size = new System.Drawing.Size(32, 23);
+            this.btnGeoDb.Size = new System.Drawing.Size(30, 26);
             this.btnGeoDb.TabIndex = 0;
             this.btnGeoDb.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnGeoDb.UseVisualStyleBackColor = true;
@@ -79,9 +79,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(12, 98);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(146, 13);
+            this.label2.Size = new System.Drawing.Size(150, 13);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Database to Store Image tiles";
+            this.label2.Text = "Database to Store Image Tiles";
             // 
             // btnDownload
             // 
@@ -114,7 +114,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(228, 170);
+            this.ClientSize = new System.Drawing.Size(223, 170);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.cmbExtent);
             this.Controls.Add(this.btnDownload);

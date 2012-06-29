@@ -172,9 +172,21 @@ namespace esriUtil.Forms.MapServices
                 MessageBox.Show("You must select a Image server layer");
                 return;
             }
+            this.Visible = false;
             ESRI.ArcGIS.Geodatabase.IWorkspace wks = geoUtil.OpenWorkSpace(txtGeoDb.Text);
-            string msg = msUtil.fillDbRaster(svLyr,wks,ext,svLyr.ServiceInfo.SpatialReference);
-            MessageBox.Show(msg);
+            ESRI.ArcGIS.Geodatabase.IRaster rs = null;
+            string msg = msUtil.fillDbRaster(svLyr,wks,ext,svLyr.ServiceInfo.SpatialReference,out rs);
+            IMap mp = (IMap)av;
+            if (rs != null)
+            {
+                IRasterLayer rsLyr = new RasterLayerClass();
+                rsLyr.CreateFromRaster(rs);
+                rsLyr.Name = svLyr.ServiceInfo.Name;
+                rsLyr.Visible = false;
+                mp.AddLayer((ILayer)rsLyr);
+            }
+            this.Close();
+            //MessageBox.Show(msg);
         }
 
     }

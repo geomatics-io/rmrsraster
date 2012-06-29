@@ -112,7 +112,14 @@ namespace esriUtil
                 }
                 catch
                 {
-                    
+
+                }
+            }
+            else
+            {
+                if (System.IO.File.Exists(rmrsDir + "\\" + nm))
+                {
+                    outName = rmrsDir + "\\" + nm;
                 }
             }
             return outName;
@@ -132,7 +139,7 @@ namespace esriUtil
         {
             bool up = true;
             System.Net.NetworkInformation.Ping png = new System.Net.NetworkInformation.Ping();
-            System.Net.NetworkInformation.PingReply rp = png.Send(rmrsDir);
+            System.Net.NetworkInformation.PingReply rp = png.Send(rmrsDir,120);
             System.Net.NetworkInformation.IPStatus ipStat = rp.Status;
             if (ipStat != System.Net.NetworkInformation.IPStatus.Success)
             {

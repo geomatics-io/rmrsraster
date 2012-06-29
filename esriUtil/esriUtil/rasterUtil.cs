@@ -4467,7 +4467,17 @@ namespace esriUtil
                 {
                     if (System.IO.Directory.Exists(s))
                     {
-                        System.IO.Directory.Delete(s, true);
+                        foreach (string d in System.IO.Directory.GetDirectories(s))
+                        {
+                            try
+                            {
+                                System.IO.Directory.Delete(s + "\\" + d, true);
+                            }
+                            catch
+                            {
+                            }
+
+                        }
                     }
                 }
                 catch

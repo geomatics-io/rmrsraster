@@ -20,15 +20,23 @@ namespace servicesToolBar
             //
             //  TODO: Sample code showing how to access button host
             //
-            ArcMap.Application.CurrentTool = null;
-            esriUtil.Forms.MapServices.frmMapServices frmMapService = new esriUtil.Forms.MapServices.frmMapServices();
-            frmMapService.TopLevel = true;
-            frmMapService.Show();
+            if (esriUtil.mapserviceutility.connectedToInternet)
+            {
+                ArcMap.Application.CurrentTool = null;
+                esriUtil.Forms.MapServices.frmMapServices frmMapService = new esriUtil.Forms.MapServices.frmMapServices();
+                frmMapService.TopLevel = true;
+                frmMapService.Show();
+            }
+            else
+            {
+                MessageBox.Show("You are not connected to the internet. To use this tool you must be connected to the internet!", "No Internet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
 
         }
         protected override void OnUpdate()
         {
-            Enabled = ArcMap.Application != null;
+            
         }
     }
 

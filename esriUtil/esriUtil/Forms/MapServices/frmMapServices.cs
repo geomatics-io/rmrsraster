@@ -67,7 +67,8 @@ namespace esriUtil.Forms.MapServices
             }
             if (lyrDic.Count < 1)
             {
-                MessageBox.Show("Can't find any layers that will allow users to download information");
+                MessageBox.Show("Can't find any layers that will allow users to download information. Setting server name to blank.");
+                cmbSrv.Text = "";
 
             }
             else

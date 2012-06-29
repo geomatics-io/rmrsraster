@@ -487,6 +487,7 @@
     <Compile Include="regressionRaster.cs" />
     <Compile Include="sasIntegration.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="update.cs" />
     <Compile Include="viewutility.cs" />
   </ItemGroup>
   <ItemGroup>

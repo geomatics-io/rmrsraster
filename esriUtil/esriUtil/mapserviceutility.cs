@@ -284,44 +284,66 @@ namespace esriUtil
             int urlIndex = tblSrv.FindField("URL");
             int sfkIndex = tblSrv.FindField("FKID");
             int sTypeIndex = tblSrv.FindField("STYPE");
-
-            foreach (KeyValuePair<string, IAGSServerObjectName3> kVp in msSvrDic)
+            Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
+            rp.TopMost = true;
+            rp.Show();
+            rp.Refresh();
+            try
             {
-                
-                IWorkspaceEdit wksE = (IWorkspaceEdit)servWks;
-                bool weStart = false;
-                if (!wksE.IsBeingEdited())
+                rp.addMessage("Getting all available services...");
+                rp.addMessage("Please be patient...");
+                rp.stepPGBar(10);
+                rp.Refresh();
+
+                foreach (KeyValuePair<string, IAGSServerObjectName3> kVp in msSvrDic)
                 {
-                    wksE.StartEditing(false);
-                    weStart = true;
-                }
-                wksE.StartEditOperation();
-                try
-                {
-                    IRow row2 = tblSrv.CreateRow();
-                    int srvOidValue = row2.OID;
-                    string ky = kVp.Key;
-                    string kyl = ky.ToLower();
-                    string vl = kVp.Value.URL;
-                    string lTyp = kVp.Value.Type;
-                    row2.set_Value(srvIndex, ky);
-                    row2.set_Value(urlIndex, vl);
-                    row2.set_Value(sTypeIndex, lTyp);
-                    row2.set_Value(sfkIndex, System.Convert.ToInt32(conOidValue));
-                    row2.Store();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-                finally
-                {
-                    wksE.StopEditOperation();
-                    if (weStart)
+                    rp.addMessage("Looking at service " + kVp.Key);
+                    rp.stepPGBar(5);
+                    rp.Refresh();
+                    IWorkspaceEdit wksE = (IWorkspaceEdit)servWks;
+                    bool weStart = false;
+                    if (!wksE.IsBeingEdited())
                     {
-                        wksE.StopEditing(true);
+                        wksE.StartEditing(false);
+                        weStart = true;
+                    }
+                    wksE.StartEditOperation();
+                    try
+                    {
+                        IRow row2 = tblSrv.CreateRow();
+                        int srvOidValue = row2.OID;
+                        string ky = kVp.Key;
+                        string kyl = ky.ToLower();
+                        string vl = kVp.Value.URL;
+                        string lTyp = kVp.Value.Type;
+                        row2.set_Value(srvIndex, ky);
+                        row2.set_Value(urlIndex, vl);
+                        row2.set_Value(sTypeIndex, lTyp);
+                        row2.set_Value(sfkIndex, System.Convert.ToInt32(conOidValue));
+                        row2.Store();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                    finally
+                    {
+                        wksE.StopEditOperation();
+                        if (weStart)
+                        {
+                            wksE.StopEditing(true);
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+            }
+            finally
+            {
+                rp.stepPGBar(100);
+                rp.enableClose();
+                rp.Close();
             }
         }
         /// <summary>
@@ -468,10 +490,19 @@ namespace esriUtil
             {
                 return lyrDic;
             }
+            esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
             try
             {
+                rp.TopMost = true;
+                rp.addMessage("Looking for eligible layers...");
+                rp.addMessage("Please be patient...");
+                rp.Show();
+                rp.Refresh();
                 for (int m = 0; m < ms2.MapCount; m++)
                 {
+                    rp.addMessage("Searching Map " + m.ToString());
+                    rp.stepPGBar(5);
+                    rp.Refresh();
                     string mName = ms2.get_MapName(m);
                     IMapServerInfo msInfo = ms2.GetServerInfo(mName);
                     IMapLayerInfos mLyrInfos = msInfo.MapLayerInfos;
@@ -481,9 +512,20 @@ namespace esriUtil
                         bool ftrF = mLyrInfo.IsFeatureLayer;
                         bool ftrC = mLyrInfo.IsComposite;
                         bool ftrS = mLyrInfo.CanSelect;
-
-                        if (mLyrInfo.IsFeatureLayer&&ftrS&&!ftrC)
+                        bool geoField = false;
+                        for (int i = 0; i < mLyrInfo.Fields.FieldCount; i++)
                         {
+                            IField fld = mLyrInfo.Fields.get_Field(i);
+                            if (fld.Type == esriFieldType.esriFieldTypeGeometry)
+                            {
+                                geoField = true;
+                                break;
+                            }
+                        }
+                        if (ftrF && ftrS && geoField && !ftrC)
+                        {
+                            rp.addMessage("\tFound layer" + mLyrInfo.Name);
+                            rp.Refresh();
                             string lNm = mLyrInfo.Name;
                             int lyrId = mLyrInfo.ID;
                             if (!lyrDic.ContainsKey(lNm))
@@ -498,6 +540,12 @@ namespace esriUtil
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+            }
+            finally
+            {
+                rp.stepPGBar(100);
+                rp.enableClose();
+                rp.Close();
             }
             return lyrDic;
         }
@@ -522,7 +570,17 @@ namespace esriUtil
                 string tp = sobjN.Type;
                 if (tp.ToLower()=="mapserver"||tp.ToLower()=="imageserver")
                 {
-                    if (!serviceDic.ContainsKey(nm))
+                    int mR = 0;
+                    if (tp.ToLower() == "mapserver")
+                    {
+                        mR = getMaxRecords(getMapService(sobjN));
+                    }
+                    else
+                    {
+                        IImageServer imServ = getIMageService(sobjN);
+                        mR = ((IImageServiceInfo2)imServ.ServiceInfo).MaxRecordCount;
+                    }
+                    if (mR>0&&!serviceDic.ContainsKey(nm))
                     {
                         serviceDic.Add(nm, (IAGSServerObjectName3)sobjN);
                     }
@@ -704,7 +762,7 @@ namespace esriUtil
             return conStrLst;
         }
         /// <summary>
-        /// returns a dicitonary of layers that identify if that layer needs to be updated within the database (true false)
+        /// returns a dictionary of layers that identify if that layer needs to be updated within the database (true false)
         /// </summary>
         public Dictionary<string,bool> getLayerDic(string connection, string service)
         {
@@ -938,6 +996,7 @@ namespace esriUtil
             }
             catch (Exception e)
             {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
                 Console.WriteLine(e.ToString());
             }
 
@@ -971,6 +1030,7 @@ namespace esriUtil
                 msg.AppendLine("Could not get map service "+service);
                 rpd.addMessage("Could not get map service "+service);
                 updateServiceTable(serviceConnection);
+                rpd.enableClose();
                 return msg.ToString();
             }
             IQueryFilter qryFl = new QueryFilterClass();
@@ -1156,8 +1216,8 @@ namespace esriUtil
                     wksE.StopEditing(true);
                 }
                 rpd.stepPGBar(100);
-                rpd.enableClose();
                 rpd.TopMost = false;
+                rpd.enableClose();
             }
             return msg.ToString();
 
@@ -1179,15 +1239,29 @@ namespace esriUtil
         /// <param name="ext">spatial extent</param>
         /// <param name="sr">spatial reference</param>
         /// <returns>method messages</returns>
-        public string fillDbRaster(IImageServerLayer imSvLyr, IWorkspace wks,ESRI.ArcGIS.Geometry.IEnvelope ext,ISpatialReference sr)
+        public string fillDbRaster(IImageServerLayer imSvLyr, IWorkspace wks, ESRI.ArcGIS.Geometry.IEnvelope ext, ISpatialReference sr)
+        {
+            IRaster rs = null;
+            return fillDbRaster(imSvLyr, wks, ext, sr, out rs);
+        }
+        public string fillDbRaster(IImageServerLayer imSvLyr, IWorkspace wks,ESRI.ArcGIS.Geometry.IEnvelope ext,ISpatialReference sr, out IRaster outrs)
         {
             StringBuilder msg = new StringBuilder();
             if (wks == null)
             {
                 wks = servWks;
             }
+            outrs = null;
+            Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
+            rp.addMessage("Downloading images please be patient...");
+            rp.Show();
+            rp.TopMost = true;
+            rp.stepPGBar(10);
+            rp.Refresh();
+            DateTime dtS = DateTime.Now;
             try
             {
+                rasterUtil rsUtil = new rasterUtil();
                 int minX = System.Convert.ToInt32(ext.XMin);
                 int maxX = System.Convert.ToInt32(ext.XMax);
                 int minY = System.Convert.ToInt32(ext.YMin);
@@ -1197,18 +1271,15 @@ namespace esriUtil
                 ISaveAs saveas = (ISaveAs)rast;
                 IRasterProps rasterProps = (IRasterProps)rast;
                 imSvLyr.SpatialReference = sr;
-                string nm = imSvLyr.ServiceInfo.Name;
+                string nm = "T" + System.Guid.NewGuid().ToString().Substring(0, 3);
+                string svImgNm = imSvLyr.ServiceInfo.Name;
                 string rNm = nm;
-                if (rNm.Length > 12)
-                {
-                    rNm = nm.Substring(nm.Length - 7, 7);
-                }
                 int mCols = System.Convert.ToInt32(imSvLyr.ServiceInfo.MaxNCols * .90);
                 int mRows = System.Convert.ToInt32(imSvLyr.ServiceInfo.MaxNRows * .90);
-                bool testLng = true;                    
-                for (int i = minX; ((i < maxX) && (testLng)); i += mRows)
+                List<IRaster> tileLst = new List<IRaster>();
+                for (int i = minX; i < maxX; i += mRows)
                 {
-                    for (int j = minY; ((j < maxY) && (testLng)); j += mCols)
+                    for (int j = minY; j < maxY; j += mCols)
                     {
 
                         IEnvelope clipEnvelope = new EnvelopeClass();
@@ -1217,31 +1288,49 @@ namespace esriUtil
                         rasterProps.Width = mRows;
                         rasterProps.Height = mCols;
                         rasterProps.SpatialReference = sr;
-                        string r = rNm + "_T" + tile.ToString();
+                        string r = rNm + tile.ToString();
                         if (r.Length > 12)
                         {
+                            rp.addMessage("Too many tiles. Ending at Tile: " + tile);
                             msg.AppendLine("Too many tiles. Ending at Tile: " + tile);
-                            testLng = false;
-                            break;
+                            outrs = rsUtil.mergeRasterFunction(tileLst.ToArray(), rstMosaicOperatorType.MT_FIRST, svImgNm);
+                            return msg.ToString();
                         }
-                        if(((IWorkspace2)wks).get_NameExists(esriDatasetType.esriDTRasterDataset,r))
+                        if (((IWorkspace2)wks).get_NameExists(esriDatasetType.esriDTRasterDataset, r))
                         {
-                            Console.WriteLine("Deleting Raster " + r);
-                            ((IRasterWorkspaceEx)wks).DeleteRasterDataset(r); 
+                            r = rsUtil.getSafeOutputName(wks, r);
+                            //Console.WriteLine("Deleting Raster " + r);
+                            //((IRasterWorkspaceEx)wks).DeleteRasterDataset(r);
                         }
-                        Console.WriteLine("Creating tile " + tile.ToString());
-                        Console.WriteLine("TestLength  = " + testLng.ToString());
-                        saveas.SaveAs(r, wks, "gdb");
+                        rp.addMessage("Creating tile " + r);
+                        rp.stepPGBar(5);
+                        rp.Refresh();
+                        //Console.WriteLine("TestLength  = " + testLng.ToString());
+                        tileLst.Add(rsUtil.returnRaster((IRasterDataset)saveas.SaveAs(r, wks, "GDB")));
                         msg.AppendLine("Added Tile " + r);
                         tile++;
                     }
                 }
+                rp.addMessage("Merging rasters...");
+                rp.Refresh();
+                outrs = rsUtil.mergeRasterFunction(tileLst.ToArray(), rstMosaicOperatorType.MT_FIRST, svImgNm);
             }
             catch (Exception e)
             {
                 string x = e.ToString();
                 msg.AppendLine(x);
                 Console.WriteLine("Error: " + x);
+            }
+            finally
+            {
+                DateTime dtE = DateTime.Now;
+                TimeSpan ts = dtE.Subtract(dtS);
+                msg.AppendLine("Finished process in " + ts.TotalMinutes + " minutes.");
+                rp.addMessage("Finished process in " + ts.TotalMinutes + " minutes.");
+                rp.stepPGBar(100);
+                rp.enableClose();
+                rp.TopMost = false;
+                rp.Close();
             }
             return msg.ToString();
         }
@@ -1251,8 +1340,16 @@ namespace esriUtil
         /// <param name="ms2">Map service</param>
         public int getMaxRecords(IMapServer2 ms2)
         {
-            IPropertySet pSet = ms2.ServiceConfigurationInfo;
-            return System.Convert.ToInt32(pSet.GetProperty("MaximumRecordCount"));
+            int rc = 0;
+            try
+            {
+                IPropertySet pSet = ms2.ServiceConfigurationInfo;
+                rc = System.Convert.ToInt32(pSet.GetProperty("MaximumRecordCount"));
+            }
+            catch
+            {
+            }
+            return rc;
         }
         /// <summary>
         /// return the number of bands for a given image server
@@ -1343,6 +1440,28 @@ namespace esriUtil
                 dSet = eDset.Next();
             }
 
+        }
+        public static bool connectedToInternet
+        {
+            get
+            {
+                bool con = true;
+                try
+                {
+                    System.Net.NetworkInformation.Ping png = new System.Net.NetworkInformation.Ping();
+                    System.Net.NetworkInformation.PingReply rp = png.Send("www.esri.com", 120);
+                    System.Net.NetworkInformation.IPStatus ipStat = rp.Status;
+                    if (ipStat != System.Net.NetworkInformation.IPStatus.Success)
+                    {
+                        con = false;
+                    }
+                }
+                catch
+                {
+                    con = false;
+                }
+                return con;
+            }
         }
     }
 }
