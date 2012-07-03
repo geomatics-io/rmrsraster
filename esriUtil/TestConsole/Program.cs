@@ -30,11 +30,18 @@ namespace TestConsole
             //ESRI License Initializer generated code.
             m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[] { esriLicenseProductCode.esriLicenseProductCodeArcInfo }, new esriLicenseExtensionCode[] { esriLicenseExtensionCode.esriLicenseExtensionCode3DAnalyst, esriLicenseExtensionCode.esriLicenseExtensionCodeSpatialAnalyst });
             System.DateTime dt = System.DateTime.Now;
+
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-
-            esriUtil.Forms.Texture.frmLandscapeMetrics frm = new esriUtil.Forms.Texture.frmLandscapeMetrics(null, ref rsUtil, false);
-            System.Windows.Forms.Application.Run(frm);
+            string outWks = @"C:\Users\jshogland\Documents\John\temp\testFGD.gdb";
+            string outRsNm = "rsEE";
+            string InRsStr = outWks + "\\CCCD";
+            IWorkspace wks = geoUtil.OpenRasterWorkspace(outWks);
+            Console.WriteLine(wks.Type.ToString());
+            IRaster rs = rsUtil.returnRaster(InRsStr);
+            IRaster outrs = rsUtil.regionGroup(rs, wks, outRsNm);
+            //esriUtil.Forms.RasterAnalysis.frmRegionGroup frm = new esriUtil.Forms.RasterAnalysis.frmRegionGroup(null, ref rsUtil, false);
+            //System.Windows.Forms.Application.Run(frm);
 
             
             //rsUtil.calcStatsAndHist(rs, 5);

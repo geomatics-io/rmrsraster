@@ -1690,10 +1690,12 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster createNewRaster(IRaster templateRaster, IWorkspace outWks, string outRasterName, int numBands, rstPixelType pixelType)
         {
-            deleteRasterDataset(outWks.PathName + "\\" + outRasterName);
+            //deleteRasterDataset(outWks.PathName + "\\" + outRasterName);
+            outRasterName = getSafeOutputName(outWks, outRasterName);
             IRasterProps rstProps = (IRasterProps)templateRaster;
             IRasterDataset3 newRstDset = null;
             IRaster rs = null;
+            Console.WriteLine(outWks.Type);
             if (outWks.Type == esriWorkspaceType.esriFileSystemWorkspace)
             {
                 IPnt mPnt = rstProps.MeanCellSize();
@@ -3407,7 +3409,7 @@ namespace esriUtil
                     minVl = Single.MinValue;
                     break;
                 case rstPixelType.PT_LONG:
-                    minVl = long.MinValue;
+                    minVl = Int32.MinValue;
                     break;
                 case rstPixelType.PT_SHORT:
                     minVl = short.MinValue;
@@ -3416,7 +3418,6 @@ namespace esriUtil
                     minVl = byte.MaxValue;
                     break;
                 case rstPixelType.PT_U2:
-
                     minVl = Math.Pow(2,2)-1;
                     break;
                 case rstPixelType.PT_U4:
@@ -3426,7 +3427,7 @@ namespace esriUtil
                     minVl = char.MinValue;
                     break;
                 case rstPixelType.PT_ULONG:
-                    minVl = ulong.MaxValue;
+                    minVl = UInt32.MaxValue;
                     break;
                 case rstPixelType.PT_USHORT:
                     minVl = ushort.MaxValue;
@@ -3502,125 +3503,314 @@ namespace esriUtil
             //remap dictionary newvalue by list of old values remap dictionary will remap all old values to the new values
             Dictionary<int, int> reMapDic = new Dictionary<int, int>();
             Dictionary<int, int> reMapDicNull = null;
-            int counter = noDataVl2+1;
-            if (noDataVl2 > 0)
+            int counter = Int32.MinValue;
+            //Console.WriteLine("no DataVl2 = " + noDataVl2.ToString());
+            if (noDataVl2 >= 0)
             {
-                counter = counter*-1;
+
+                counter = Int32.MinValue + 2;
+            }
+            else
+            {
+                //Console.WriteLine("Changing counter " + (Int32.MinValue+2).ToString());
+                counter = Int32.MinValue + 2;
             }
             //Console.WriteLine("counter starts at " + counter.ToString());
-            for (int cp = 0; cp < clms; cp += 511)
+            IRaster returnRs = null;
+            try
             {
-                for (int rp = 0; rp < rws; rp += 511)
+                for (int cp = 0; cp < clms; cp += 511)
                 {
-                    loc.SetCoords(cp, rp);
-                    inRs.Read(loc, pb);
-                    regRs.Read(loc, pb2);
-                    System.Array inArr = (System.Array)pb.get_SafeArray(0);
-                    System.Array outArr = (System.Array)pb2.get_SafeArray(0);
-                    int height = pb.Height;
-                    int width = pb.Width;
-                    //look at first column and row
-                    for (int r = 0; r < height; r++)
+                    for (int rp = 0; rp < rws; rp += 511)
                     {
-                        int inVl = System.Convert.ToInt32(inArr.GetValue(0, r));
-                        if (inVl == noDataVl)
+                        Console.WriteLine("Column Row = " + cp.ToString() + ":" + rp.ToString());
+                        loc.SetCoords(cp, rp);
+                        inRs.Read(loc, pb);
+                        regRs.Read(loc, pb2);
+                        System.Array inArr = (System.Array)pb.get_SafeArray(0);
+                        System.Array outArr = (System.Array)pb2.get_SafeArray(0);
+                        int height = pb.Height;
+                        int width = pb.Width;
+                        //look at first column and row
+                        Console.WriteLine("First Column");
+                        for (int r = 0; r < height; r++)
                         {
-                            continue;
-                        }
-                        int outVl32 = System.Convert.ToInt32(outArr.GetValue(0, r));
-                        if (outVl32 == noDataVl2)
-                        {
-                            outArr.SetValue(counter, 0, r);
-                            findRegion(inVl, counter, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDicNull);
-                            counter++;
-                        }
-                        else
-                        {
-                            if (reMapDic.ContainsKey(outVl32))
-                            {
-                                outVl32 = reMapDic[outVl32];
-                            }
-                            findRegion(inVl, outVl32, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDic);
-                        }
-                    }
-                    for (int c = 0; c < width; c++)
-                    {
-                        int inVl = System.Convert.ToInt32(inArr.GetValue(c, 0));
-                        if (inVl == noDataVl)
-                        {
-                            continue;
-                        }
-                        int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, 0));
-                        if (outVl32 == noDataVl2)
-                        {
-                            outArr.SetValue(counter, c, 0);
-                            findRegion(inVl, counter, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDicNull);
-                            counter++;
-                        }
-                        else
-                        {
-                            if (reMapDic.ContainsKey(outVl32))
-                            {
-                                outVl32 = reMapDic[outVl32];
-                            }
-                            findRegion(inVl, outVl32, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDic);
-                        }
-                    }
-                    //look inside first column and row
-                    for (int c = 1; c < width; c++)
-                    {
-                        for (int r = 1; r < height; r++)
-                        {
-                            int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
+                            int inVl = System.Convert.ToInt32(inArr.GetValue(0, r));
                             if (inVl == noDataVl)
                             {
                                 continue;
                             }
-                            int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, r));
+                            int outVl32 = System.Convert.ToInt32(outArr.GetValue(0, r));
                             if (outVl32 == noDataVl2)
                             {
-                                outArr.SetValue(counter, c, r); 
-                                findRegion(inVl, counter, noDataVl2, c, r, ref inArr, ref outArr, ref reMapDicNull);
+                                outArr.SetValue(counter, 0, r);
+                                List<string> cr = new List<string>();
+                                cr.Add("0:" + r.ToString());
+                                while (cr.Count > 0)
+                                {
+                                    //Console.WriteLine(cr.Count);
+                                    string[] crArr = cr[0].Split(new char[] { ':' });
+                                    //Console.WriteLine(cr[0]);
+                                    int cl = System.Convert.ToInt32(crArr[0]);
+                                    int rw = System.Convert.ToInt32(crArr[1]);
+                                    Console.WriteLine("CR Cnt 1 = " + cr.Count.ToString());
+                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
+                                }
+                                //findRegion(inVl, counter, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDicNull);
                                 counter++;
                             }
                             else
                             {
+                                if (reMapDic.ContainsKey(outVl32))
+                                {
+                                    outVl32 = reMapDic[outVl32];
+                                }
+                                List<string> cr = new List<string>();
+                                cr.Add("0:" + r.ToString());
+                                while (cr.Count > 0)
+                                {
+                                    //Console.WriteLine(cr.Count);
+                                    string[] crArr = cr[0].Split(new char[] { ':' });
+                                    //Console.WriteLine(cr[0]);
+                                    int cl = System.Convert.ToInt32(crArr[0]);
+                                    int rw = System.Convert.ToInt32(crArr[1]);
+                                    Console.WriteLine("CR Cnt 2 = " + cr.Count.ToString());
+                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDic, ref cr);
+                                }
+                                //findRegion(inVl, outVl32, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDic);
                             }
                         }
+                        Console.WriteLine("First Row");
+                        for (int c = 0; c < width; c++)
+                        {
+                            int inVl = System.Convert.ToInt32(inArr.GetValue(c, 0));
+                            if (inVl == noDataVl)
+                            {
+                                continue;
+                            }
+                            int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, 0));
+                            if (outVl32 == noDataVl2)
+                            {
+                                outArr.SetValue(counter, c, 0);
+                                List<string> cr = new List<string>();
+                                cr.Add(c.ToString() + ":0");
+                                while (cr.Count > 0)
+                                {
+                                    //Console.WriteLine(cr.Count);
+                                    string[] crArr = cr[0].Split(new char[] { ':' });
+                                    //Console.WriteLine(cr[0]);
+                                    int cl = System.Convert.ToInt32(crArr[0]);
+                                    int rw = System.Convert.ToInt32(crArr[1]);
+                                    Console.WriteLine("CR Cnt 3 = " + cr.Count.ToString());
+                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
+                                }
+                                //findRegion(inVl, counter, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDicNull);
+                                counter++;
+                            }
+                            else
+                            {
+                                if (reMapDic.ContainsKey(outVl32))
+                                {
+                                    outVl32 = reMapDic[outVl32];
+                                }
+                                List<string> cr = new List<string>();
+                                cr.Add(c.ToString()+":0:");
+                                string pcr = "";
+                                while (cr.Count > 0)
+                                {
+                                    Console.WriteLine(pcr);
+                                    Console.WriteLine(cr[0]);
+                                    if (pcr == cr[0])
+                                    {
+                                        break;
+                                    }
+                                    pcr = cr[0];
+                                    string[] crArr = cr[0].Split(new char[] { ':' });
+                                    //Console.WriteLine(cr[0]);
+                                    int cl = System.Convert.ToInt32(crArr[0]);
+                                    int rw = System.Convert.ToInt32(crArr[1]);
+                                    Console.WriteLine("CR Cnt 4 = " + cr.Count.ToString());
+                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDic, ref cr);
+                                }
+                                //findRegion(inVl, outVl32, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDic);
+                            }
+                        }
+                        //look inside first column and row
+                        for (int c = 1; c < width; c++)
+                        {
+                            for (int r = 1; r < height; r++)
+                            {
+                                int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
+                                if (inVl == noDataVl)
+                                {
+                                    continue;
+                                }
+                                int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, r));
+                                if (outVl32 == noDataVl2)
+                                {
+                                    outArr.SetValue(counter, c, r);
+                                    List<string> cr = new List<string>();
+                                    cr.Add(c.ToString()+":"+r.ToString());
+                                    while (cr.Count > 0)
+                                    {
+                                        //Console.WriteLine(cr.Count);
+                                        string[] crArr = cr[0].Split(new char[]{':'});
+                                        //Console.WriteLine(cr[0]);
+                                        int cl = System.Convert.ToInt32(crArr[0]);
+                                        int rw = System.Convert.ToInt32(crArr[1]);
+                                        Console.WriteLine("CR Cnt 5 = " + cr.Count.ToString());
+                                        findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
+                                    }
+                                    counter++;
+                                }
+                                else
+                                {
+                                }
+                            }
+                        }
+                        pb2.set_SafeArray(0, (System.Array)outArr);
+                        regRsE.Write(loc, pb2);
                     }
-                    pb2.set_SafeArray(0, (System.Array)outArr);
-                    regRsE.Write(loc, pb2);
                 }
-            }
-            //Console.WriteLine("Running remap");
-            if (reMapDic.Count > 0)
-            {
-                IRemapFilter flt = new RemapFilterClass();
-                foreach (KeyValuePair<int, int> Kvp in reMapDic)
+                Console.WriteLine("Running remap");
+                if (reMapDic.Count > 0)
                 {
-                    
-                    int k = Kvp.Key;
-                    int l = Kvp.Value;
-                    flt.AddClass(k, k + 1, l);
+                    IRemapFilter flt = new RemapFilterClass();
+                    foreach (KeyValuePair<int, int> Kvp in reMapDic)
+                    {
+
+                        int k = Kvp.Key;
+                        int l = Kvp.Value;
+                        flt.AddClass(k, k + 1, l);
+                    }
+                    regRs = convertToDifFormatFunction((calcRemapFunction(regRs, flt)), rstPixelType.PT_LONG);
+                    Console.WriteLine("Finished remap");
                 }
-                regRs = convertToDifFormatFunction((calcRemapFunction(regRs, flt)),rstPixelType.PT_LONG);
-                //Console.WriteLine("Finished remap");
+                Console.WriteLine("saving raster");
+                IRasterDataset rsDset = saveRasterToDataset(regRs, outName, wks);
+                returnRs = returnRaster(rsDset);
             }
-            //Console.WriteLine("saving raster");
-            IRasterDataset rsDset = saveRasterToDataset(regRs, outName, wks);
-            IRaster returnRs = returnRaster(rsDset);
-            try
+            catch
             {
-                //Console.WriteLine("Deleting temp directory");
-                System.IO.Directory.Delete(tmpWks, true);
             }
-            catch (Exception e)
+            finally
             {
-                Console.WriteLine(e.ToString());
+                try
+                {
+                    System.IO.Directory.Delete(tmpWks, true);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
             return returnRs;
         }
+        private void findRegion2(int inValue, int newValue, int noDataValue, int clm, int rw, ref System.Array inArr, ref System.Array outArr, ref Dictionary<int, int> remapdic, ref List<string> columnrow)
+        {
+            string ccr = clm.ToString() + ":" + rw.ToString();
+            if (columnrow == null)
+            {
+                columnrow = new List<string>();
+                columnrow.Add(ccr);
+            }
+            int maxCR = 511;
+            int minCR = 0;
+            
+            for (int i = 0; i < 4; i++)
+            {
+                int cPlus = clm;
+                int rPlus = rw;
+                switch (i)
+                {
+                    case 0:
+                        cPlus += 1;
+                        break;
+                    case 1:
+                        rPlus += 1;
+                        break;
+                    case 2:
+                        cPlus -= 1;
+                        break;
+                    default:
+                        rPlus -= 1;
+                        break;
+                }
+                if (cPlus > maxCR || rPlus > maxCR || cPlus < minCR || rPlus < minCR)
+                {
+                    continue;
+                }
+                try
+                {
+                    string cr = cPlus.ToString() + ":" + rPlus;
+                    //Console.WriteLine("getting " + cr); 
+                    int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus, rPlus));
+                    int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
+                    //Console.WriteLine("got " + cr + " values = cVL:" +  cVl.ToString() + " pVL:" + pVl.ToString());
+                    if (cVl == noDataValue)
+                    {
 
+                        if (pVl == inValue)
+                        {
+                            try
+                            {
+                                //Console.WriteLine("setting newValue = " + newValue.ToString());
+                                outArr.SetValue(newValue, cPlus, rPlus);
+                                if (!columnrow.Contains(cr))
+                                {
+                                    columnrow.Add(cr);
+                                }
+                                else
+                                {
+                                }
+
+                                //findRegion(inValue, newValue, noDataValue, cPlus, rPlus, ref inArr, ref outArr, ref remapdic);
+                            }
+                            catch
+                            {
+                                //Console.WriteLine("i = " + i.ToString() + "\n");
+                                //Console.WriteLine(e.ToString());
+                            }
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else if (remapdic != null && (rPlus == minCR || cPlus == minCR) && (pVl == inValue) && (cVl != newValue))
+                    {
+                        //Console.WriteLine("Cvl!=NoDataValue");
+                        try
+                        {
+                            remapdic[cVl] = newValue;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+                    }
+                    else
+                    {
+                        //Console.WriteLine("meets not criteria");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+
+            }
+            try
+            {
+                Console.WriteLine("Removing " + ccr);
+                columnrow.Remove(ccr);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                columnrow.Clear();
+            }
+
+        }
         private void findRegion(int inValue, int newValue, int noDataValue, int clm, int rw, ref System.Array inArr, ref System.Array outArr,ref Dictionary<int,int> remapdic)
         {
             int maxCR = 511;
@@ -3648,19 +3838,38 @@ namespace esriUtil
                 {
                     continue;
                 }
-                int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus,rPlus));
-                int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
-                if (cVl == noDataValue)
+                try
                 {
-                    if (pVl == inValue)
+                    int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus, rPlus));
+                    int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
+                    if (cVl == noDataValue)
                     {
-                        outArr.SetValue(newValue, cPlus, rPlus);
-                        findRegion(inValue, newValue, noDataValue, cPlus, rPlus, ref inArr, ref outArr,ref remapdic);
+                    
+                        if (pVl == inValue)
+                        {
+                            try
+                            {
+                                outArr.SetValue(newValue, cPlus, rPlus);
+                                findRegion(inValue, newValue, noDataValue, cPlus, rPlus, ref inArr, ref outArr, ref remapdic);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("i = " + i.ToString() + "\n");
+                                Console.WriteLine(e.ToString());
+                            }
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else if (remapdic!=null && (rPlus == minCR||cPlus==minCR) && (pVl == inValue) && (cVl != newValue))
+                    {
+                        remapdic[cVl] = newValue;
                     }
                 }
-                else if (remapdic!=null && (rPlus == minCR||cPlus==minCR) && (pVl == inValue) && (cVl != newValue))
+                catch (Exception e)
                 {
-                    remapdic[cVl] = newValue;
+                    Console.WriteLine(e.ToString());
                 }
                 
             }
@@ -4458,27 +4667,15 @@ namespace esriUtil
         }
         public static void cleanupTempDirectories()
         {
-            string func = esriUtil.Properties.Settings.Default.FuncDir;
-            string mos = esriUtil.Properties.Settings.Default.MosaicDir;
+            string func = System.Environment.GetEnvironmentVariable("temp") + "\\func";
+            string mos = System.Environment.GetEnvironmentVariable("temp") + "\\mosaic";
             string[] dirs = {func,mos};
             foreach (string s in dirs)
             {
                 try
                 {
-                    if (System.IO.Directory.Exists(s))
-                    {
-                        foreach (string d in System.IO.Directory.GetDirectories(s))
-                        {
-                            try
-                            {
-                                System.IO.Directory.Delete(s + "\\" + d, true);
-                            }
-                            catch
-                            {
-                            }
-
-                        }
-                    }
+                    System.IO.DirectoryInfo dInfo = new System.IO.DirectoryInfo(s);
+                    dInfo.Delete(true);
                 }
                 catch
                 {

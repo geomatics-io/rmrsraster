@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using ESRI.ArcGIS.ArcMapUI;
-using ESRI.ArcGIS.Carto;
-using ESRI.ArcGIS.Geodatabase;
-using ESRI.ArcGIS.Framework;
-using ESRI.ArcGIS.Geometry;
 
 namespace servicesToolBar
 {
@@ -16,16 +11,22 @@ namespace servicesToolBar
         {
 
         }
-
         protected override void OnStartup()
         {
-            //esriUtil.rasterUtil.cleanupTempDirectories();
         }
         protected override void OnShutdown()
         {
-            esriUtil.update up = new esriUtil.update(ThisAddIn.Version);
-            up.updateApp();
-            esriUtil.rasterUtil.cleanupTempDirectories();
+            try
+            {
+                esriUtil.rasterUtil.cleanupTempDirectories();
+                esriUtil.update up = new esriUtil.update(ThisAddIn.Version);
+                up.updateApp();
+                up.updateHelp();
+            }
+            catch
+            {
+            }
+            
         }
         
     }

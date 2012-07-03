@@ -41,6 +41,5 @@ namespace servicesToolBar
         {
            
         }
-        IMxDocument mxDoc = ArcMap.Document;
     }
 }
