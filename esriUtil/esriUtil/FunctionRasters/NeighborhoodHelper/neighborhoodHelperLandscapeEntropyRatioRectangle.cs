@@ -8,16 +8,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeEntropyRatioRectangle: neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(double[,] windowArr, double noDataValue)
+        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            Dictionary<int, int[]> uniqueDic = new Dictionary<int, int[]>();
-            findUniqueRegions fUnq = new findUniqueRegions();
-            fUnq.getUniqueRegions(windowArr, noDataValue, ref uniqueDic);
             double n = uniqueDic.Count;
             Dictionary<double,int> ratioDic = new Dictionary<double,int>();
             foreach (int[] cntArr in uniqueDic.Values)
             {
-                double ratio = cntArr[1]/cntArr[0];
+                double ratio = System.Convert.ToDouble(cntArr[1])/System.Convert.ToDouble(cntArr[0]);
                 int cnt;
                 if (ratioDic.TryGetValue(ratio, out cnt))
                 {

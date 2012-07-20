@@ -20,7 +20,7 @@ namespace servicesToolBar
             IMxDocument mxDoc = ArcMap.Document;
             IMap map = mxDoc.FocusMap;
             esriUtil.Forms.RasterAnalysis.frmSaveRaster frm = new esriUtil.Forms.RasterAnalysis.frmSaveRaster(map);
-            frm.Show();
+            System.Windows.Forms.Application.Run(frm);
         }
 
         protected override void OnUpdate()

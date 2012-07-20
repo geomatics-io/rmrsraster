@@ -142,8 +142,6 @@ namespace esriUtil
             IWorkspace wks = openRasterDatasetRec(rasterPath);
             string rstDir = wks.PathName;
             string rstName = rasterPath.Replace(rstDir, "").TrimStart(new char[]{'\\'});
-            Console.WriteLine("WKS dir = " + rstDir);
-            Console.WriteLine("Raster Name = " + rstName);
             string[] rstNameSplit = rstName.Split(new char[] { '\\' });
             string dataSet = "";
             string rsDset = "";
@@ -169,7 +167,6 @@ namespace esriUtil
             if (wks.Type == esriWorkspaceType.esriLocalDatabaseWorkspace || wks.Type == esriWorkspaceType.esriRemoteDatabaseWorkspace)
             {
                 IRasterWorkspaceEx rsWks = (IRasterWorkspaceEx)wks;
-                Console.WriteLine(rsDset); 
                 rstDset = rsWks.OpenRasterDataset(rsDset);
             }
             else
@@ -581,7 +578,8 @@ namespace esriUtil
         public IRaster glcmHomogeneity(object inRaster, int radius, bool horizontal)
         {
             List<double> krnLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius,out iterLst);
             int width = ((radius - 1) * 2) + 1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -724,7 +722,8 @@ namespace esriUtil
         public IRaster glcmDissimilarity(object inRaster, int radius, bool horizontal)
         {
             List<double> krnLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
             int width = ((radius - 1) * 2) + 1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -865,7 +864,8 @@ namespace esriUtil
         public IRaster glcmContrast(object inRaster, int radius, bool horizontal)
         {
             List<double> krnLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
             int width = ((radius-1)*2)+1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -1046,7 +1046,8 @@ namespace esriUtil
         {
             List<double> krnLst = new List<double>();
             List<double> sumLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
             int width = ((radius - 1) * 2) + 1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -1264,7 +1265,8 @@ namespace esriUtil
         public IRaster glcmVariance(object inRaster, int radius, bool horizontal)
         {
             List<double> krnLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
             int width = ((radius - 1) * 2) + 1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -1413,7 +1415,8 @@ namespace esriUtil
         public IRaster glcmMean(object inRaster, int radius, bool horizontal)
         {
             List<double> krnLst = new List<double>();
-            int[,] circleKrn = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
             int width = ((radius - 1) * 2) + 1;
             int height = width;
             for (int c = 0; c < width; c++)
@@ -1690,37 +1693,44 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster createNewRaster(IRaster templateRaster, IWorkspace outWks, string outRasterName, int numBands, rstPixelType pixelType)
         {
-            //deleteRasterDataset(outWks.PathName + "\\" + outRasterName);
             outRasterName = getSafeOutputName(outWks, outRasterName);
             IRasterProps rstProps = (IRasterProps)templateRaster;
-            IRasterDataset3 newRstDset = null;
+            IRasterDataset2 newRstDset = null;
             IRaster rs = null;
-            Console.WriteLine(outWks.Type);
             if (outWks.Type == esriWorkspaceType.esriFileSystemWorkspace)
             {
+                if (pixelType == rstPixelType.PT_DOUBLE) pixelType = rstPixelType.PT_FLOAT;
                 IPnt mPnt = rstProps.MeanCellSize();
                 double dX = mPnt.X;
                 double dY = mPnt.Y;
                 IRasterWorkspace2 rsWks = (IRasterWorkspace2)outWks;
-                newRstDset = (IRasterDataset3)rsWks.CreateRasterDataset(outRasterName, "GRID", (rstProps.Extent.Envelope.LowerLeft), rstProps.Width, rstProps.Height, dX, dY, numBands, pixelType, rstProps.SpatialReference, true);
+                newRstDset = (IRasterDataset2)rsWks.CreateRasterDataset(outRasterName, "GRID", (rstProps.Extent.Envelope.LowerLeft), rstProps.Width, rstProps.Height, dX, dY, numBands, pixelType, rstProps.SpatialReference, true);
                 rs = newRstDset.CreateFullRaster();
             }
             else
             {
                 IRasterWorkspaceEx rsWks = (IRasterWorkspaceEx)outWks;
+                IRemapFilter rFilt = new RemapFilterClass();
+                rFilt.AddClass(Double.MinValue,Double.MaxValue,getNoDataValue(rstPixelType.PT_DOUBLE));
+                IRaster nullRaster = calcRemapFunction(templateRaster, rFilt);
+                nullRaster = convertToDifFormatFunction(nullRaster, pixelType);
                 IRasterDef rsDef = new RasterDefClass();
-                IRasterStorageDef rsStDef = new RasterStorageDefClass();
-                rsStDef.Origin = rstProps.Extent.Envelope.LowerLeft;
+                IRasterStorageDef2 rsStDef = new RasterStorageDefClass();
+                rsStDef.Tiled = true;
                 rsStDef.TileHeight = 128;
                 rsStDef.TileWidth = 128;
                 rsStDef.CellSize = rstProps.MeanCellSize();
-                rsDef.SpatialReference = rstProps.SpatialReference;
-                newRstDset = (IRasterDataset3)rsWks.CreateRasterDataset(outRasterName, numBands, pixelType, rsStDef, null, rsDef, null);
+                newRstDset = (IRasterDataset2)rsWks.SaveAsRasterDataset(outRasterName, nullRaster, rsStDef, "", null, null);
+                IRasterDatasetEdit2 newRstDset3E = (IRasterDatasetEdit2)newRstDset;
+                try
+                {
+                    newRstDset3E.DeleteStats();
+                    newRstDset3E.DeleteAttributeTable();
+                }
+                catch
+                {
+                }
                 rs = newRstDset.CreateFullRaster();
-                IRasterProps rsPr = (IRasterProps)rs;
-                rsPr.Height = rstProps.Height;
-                rsPr.Width = rstProps.Width;
-                rsPr.Extent = rstProps.Extent;
             }
             return rs;
         }
@@ -1746,7 +1756,7 @@ namespace esriUtil
                 double dX = meanCellSize.X;
                 double dY = meanCellSize.Y;
                 IRasterWorkspace2 rsWks = (IRasterWorkspace2)outWks;
-                newRstDset = (IRasterDataset3)rsWks.CreateRasterDataset(outRasterName, "GRID", env.LowerLeft, System.Convert.ToInt32(env.Width/dX), System.Convert.ToInt32(env.Height/dY), dX, dY, numBands, pixelType,spRf, true);
+                newRstDset = (IRasterDataset3)rsWks.CreateRasterDataset(outRasterName, "IMAGINE Image", env.LowerLeft, System.Convert.ToInt32(env.Width / dX), System.Convert.ToInt32(env.Height / dY), dX, dY, numBands, pixelType, spRf, true);
                 rs = newRstDset.CreateFullRaster();
             }
             else
@@ -1774,19 +1784,19 @@ namespace esriUtil
         /// <param name="Width"></param>
         /// <param name="Height"></param>
         /// <returns></returns>
-        public int[,] createFocalWindowRectangle(int Width, int Height)
+        public int[,] createFocalWindowRectangle(int Width, int Height, out List<int[]> iter)
         {
-            return createFocalWindow(Width, Height, windowType.RECTANGLE);
+            return createFocalWindow(Width, Height, windowType.RECTANGLE, out iter);
         }
         /// <summary>
         /// creates a circle folcal window that can be used to lookup values
         /// </summary>
         /// <param name="Radius"></param>
         /// <returns></returns>
-        public int[,] createFocalWindowCircle(int Radius)
+        public int[,] createFocalWindowCircle(int Radius, out List<int[]> iter)
         {
             int Width = ((Radius - 1) * 2) + 1;
-            return createFocalWindow(Width, Width, windowType.CIRCLE);
+            return createFocalWindow(Width, Width, windowType.CIRCLE, out iter);
         }
         /// <summary>
         /// creates a focal window array of 0 and 1 that can represent a circle or rectangle
@@ -1795,8 +1805,9 @@ namespace esriUtil
         /// <param name="Height"></param>
         /// <param name="WindowType"></param>
         /// <returns></returns>
-        public static int[,] createFocalWidow(int Width, int Height, windowType WindowType)
+        public static int[,] createFocalWidow(int Width, int Height, windowType WindowType, out List<int[]> iter)
         {
+            iter = new List<int[]>();
             int[,] xAr = new int[Width, Height];
             int x = 0;
             int y = 0;
@@ -1804,14 +1815,15 @@ namespace esriUtil
             {
                 case windowType.CIRCLE:
                     int radius = ((Width - 1) / 2);
-                    for (x = 0; x < Width; x++)
+                    for (y = 0; y < Height; y++)
                     {
-                        for (y = 0; y < Height; y++)
+                        for (x = 0; x < Width; x++)
                         {
                             double cD = Math.Sqrt(Math.Pow((x - radius), 2) + Math.Pow((y - radius), 2));
                             if (cD <= (radius))
                             {
                                 xAr[x, y] = 1;
+                                iter.Add(new int[] { x, y });
                             }
                             else
                             {
@@ -1821,19 +1833,21 @@ namespace esriUtil
                     }
                     break;
                 default:
-                    for (x = 0; x < Width; x++)
+                    for (y = 0; y < Height; y++)
                     {
-                        for (y = 0; y < Height; y++)
+                        for (x = 0; x < Width; x++)
                         {
                             xAr[x, y] = 1;
+                            iter.Add(new int[] { x, y });
                         }
                     }
                     break;
             }
             return xAr;
         }
-        private int[,] createFocalWindow(int Width, int Height, windowType WindowType)
+        private int[,] createFocalWindow(int Width, int Height, windowType WindowType,out List<int[]> iter)
         {
+            iter = new List<int[]>();
             int[,] xAr = new int[Width, Height];
             int x = 0;
             int y = 0;
@@ -1841,14 +1855,15 @@ namespace esriUtil
             {
                 case windowType.CIRCLE:
                     int radius = ((Width - 1) / 2);
-                    for (x = 0; x < Width; x++)
+                    for (y = 0; y < Height; y++)
                     {
-                        for (y = 0; y < Height; y++)
+                        for (x = 0; x < Width; x++)
                         {
                             double cD = Math.Sqrt(Math.Pow((x - radius), 2) + Math.Pow((y - radius), 2));
                             if (cD <= (radius))
                             {
                                 xAr[x, y] = 1;
+                                iter.Add(new int[] { x, y });
                             }
                             else
                             {
@@ -1858,11 +1873,12 @@ namespace esriUtil
                     }
                     break;
                 default:
-                    for (x = 0; x < Width; x++)
+                    for (y = 0; y < Height; y++)
                     {
-                        for (y = 0; y < Height; y++)
+                        for (x = 0; x < Width; x++)
                         {
                             xAr[x, y] = 1;
+                            iter.Add(new int[] { x, y });
                         }
                     }
                     break;
@@ -1992,6 +2008,10 @@ namespace esriUtil
                 if (outName.Length > 12)
                 {
                     outName.Substring(12);
+                }
+                if ((rastertype==rasterType.GRID)&&(((IRasterProps)inRaster).PixelType == rstPixelType.PT_DOUBLE))
+                {
+                    inRaster = convertToDifFormatFunction(inRaster, rstPixelType.PT_FLOAT);
                 }
             }
             else
@@ -2177,11 +2197,47 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new FunctionRasters.focalFunctionDataset();
+            IRasterFunction rsFunc = null;
+            switch (statType)
+            {
+                case focalType.MIN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMin();
+                    break;
+                case focalType.SUM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperSum();
+                    break;
+                case focalType.MEAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMean();
+                    break;
+                case focalType.MODE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMode();
+                    break;
+                case focalType.MEDIAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMedian();
+                    break;
+                case focalType.VARIANCE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperVariance();
+                    break;
+                case focalType.STANDARD_DEVIATION:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperStd();
+                    break;
+                case focalType.UNIQUE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperUnique();
+                    break;
+                case focalType.ENTROPY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperEntropy();
+                    break;
+                case focalType.PROBABILITY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperProbability();
+                    break;
+                default:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMax();
+                    break;
+            }
             FunctionRasters.FocalFunctionArguments args = new FunctionRasters.FocalFunctionArguments(this);
-            args.WindowType = windowType.RECTANGLE;
             args.Rows = rws;
             args.Columns = clm;
+            //args.WindowType = windowType.RECTANGLE;
             args.InRaster = iR1;
             args.Operation = statType;
             frDset.Init(rsFunc, args);
@@ -2205,12 +2261,48 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new FunctionRasters.focalFunctionDataset();
+            IRasterFunction rsFunc = null;
+            switch (statType)
+            {
+                case focalType.MIN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMin();
+                    break;
+                case focalType.SUM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperSum();
+                    break;
+                case focalType.MEAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMean();
+                    break;
+                case focalType.MODE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMode();
+                    break;
+                case focalType.MEDIAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMedian();
+                    break;
+                case focalType.VARIANCE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperVariance();
+                    break;
+                case focalType.STANDARD_DEVIATION:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperStd();
+                    break;
+                case focalType.UNIQUE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperUnique();
+                    break;
+                case focalType.ENTROPY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperEntropy();
+                    break;
+                case focalType.PROBABILITY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperProbability();
+                    break;
+                default:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMax();
+                    break;
+            }
             rsFunc.PixelType = rstPixelType.PT_FLOAT;
             FunctionRasters.FocalFunctionArguments args = new FunctionRasters.FocalFunctionArguments(this);
-            args.WindowType = windowType.RECTANGLE;
             args.Radius = radius;
             args.InRaster = iR1;
+            //args.WindowType = windowType.CIRCLE;
             args.Operation = statType;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
@@ -2221,7 +2313,8 @@ namespace esriUtil
         private double getNFromCircle(int radius)
         {
             int n = 0;
-            int[,] kern = createFocalWindowCircle(radius);
+            List<int[]> iterLst = new List<int[]>();
+            int[,] kern = createFocalWindowCircle(radius, out iterLst);
             for (int i = 0; i <= kern.GetUpperBound(0); i++)
             {
                 for (int j = 0; j <= kern.GetUpperBound(1); j++)
@@ -2279,7 +2372,7 @@ namespace esriUtil
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new FunctionRasters.landscapeFunctionDataset();
             FunctionRasters.LandscapeFunctionArguments args = new FunctionRasters.LandscapeFunctionArguments(this);
-            args.WindowType = windowType.RECTANGLE;
+            args.WindowType = windowType.CIRCLE;
             args.Radius = radius;
             args.InRaster = iR1;
             args.Operation = statType;
@@ -3392,6 +3485,26 @@ namespace esriUtil
             functionModel.estimateStatistics(fRs, pType);
             return fRs;
         }
+        public IRaster setValueRangeToNodata(object inRaster,List<double[]>minMaxList)
+        {
+            IRaster rs = returnRaster(inRaster);
+            IRasterProps rsProps = (IRasterProps)rs;
+            double noData = System.Convert.ToDouble(((System.Array)rsProps.NoDataValue).GetValue(0));
+            IRemapFilter rFilt = new RemapFilterClass();
+            foreach (double[] d in minMaxList)
+            {
+                rFilt.AddClass(d[0], d[1], noData);
+            }
+            IRaster rs2 = calcRemapFunction(rs,rFilt);
+            if (rsProps.PixelType != rstPixelType.PT_DOUBLE)
+            {
+                return convertToDifFormatFunction(rs2, rsProps.PixelType);
+            }
+            else
+            {
+                return rs;
+            }
+        }
         /// <summary>
         /// retrieves the appropriate no data value for a given rstPixeltype
         /// </summary>
@@ -3441,14 +3554,14 @@ namespace esriUtil
         /// builds a vat table for a raster
         /// </summary>
         /// <param name="inRaster"></param>
-        public IRaster buildVat(object inRaster)
+        public ITable buildVat(object inRaster)
         {
             IRaster2 rs = (IRaster2)returnRaster(inRaster);
             IRasterProps prop = (IRasterProps)rs;
             rstPixelType rsType = prop.PixelType;
             if (rsType == rstPixelType.PT_FLOAT || rsType == rstPixelType.PT_DOUBLE)
             {
-                return (IRaster)rs;
+                return null;
             }
             IRasterDataset rsDset = rs.RasterDataset;
             IRasterDatasetEdit2 rsDsetE = (IRasterDatasetEdit2)rsDset;
@@ -3457,7 +3570,8 @@ namespace esriUtil
                 rsDsetE.DeleteAttributeTable();
             }
             rsDsetE.BuildAttributeTable();
-            return (IRaster)rs;
+            rs = (IRaster2)((IRasterDataset2)rsDset).CreateFullRaster();
+            return rs.AttributeTable;
         }
         /// <summary>
         /// defines unique regions using a 4 neighbor window
@@ -3468,246 +3582,298 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster regionGroup(object inRaster, IWorkspace wks, string outName)
         {
-            string tmpWks = System.Environment.GetEnvironmentVariable("temp") + "\\regionTemp";
-            geoUtil.check_dir(tmpWks);
-            IWorkspace wks2 = geoUtil.OpenRasterWorkspace(tmpWks);
-            IRaster inRs = (IRaster)returnRaster(inRaster);
-            IRasterProps rsProp = (IRasterProps)inRs;
-            string temprs = null;
-            string temprg = "rg";
-            if (rsProp.PixelType == rstPixelType.PT_DOUBLE || rsProp.PixelType == rstPixelType.PT_FLOAT)
-            {
-                inRs = convertToDifFormatFunction(inRs, rstPixelType.PT_LONG);
-                temprs = getSafeOutputName(wks2, "rs");
-                inRs = returnRaster(saveRasterToDataset(inRs, temprs, wks2));
-                rsProp = (IRasterProps)inRs;
-            }
-            System.Array noDataValues = (System.Array)rsProp.NoDataValue;
-            int noDataVl = System.Convert.ToInt32(noDataValues.GetValue(0));
-            temprg = getSafeOutputName(wks2, temprg);
-            IRaster regRs = createNewRaster(inRs, wks2, temprg, 1, rstPixelType.PT_LONG);
-            IRasterProps rsProps2 = (IRasterProps)regRs;
-            System.Array noDataValues2 = (System.Array)rsProps2.NoDataValue;
-            //noDataValues2.SetValue(noDataVl, 0);
-            //rsProps2.NoDataValue = noDataValues2;
-            int noDataVl2 = System.Convert.ToInt32(noDataValues2.GetValue(0));
-            //Console.WriteLine("NodataValue = " + noDataVl2.ToString());
-            int rws = rsProp.Height;
-            int clms = rsProp.Width;
+            FunctionRasters.NeighborhoodHelper.regionGroup rg = new FunctionRasters.NeighborhoodHelper.regionGroup();
+            rg.InRaster = inRaster;
+            rg.OutWorkspace = wks;
+            rg.OutRasterName = outName;
+            rg.PixelBlockHeight = 512;
+            rg.PixelBlockWidth = 512;
+            rg.executeRegionGroup();
+            return rg.OutRaster;
+            //#region create new raster
+            //IRaster inRs = (IRaster)returnRaster(inRaster);
+            //IRasterProps rsProp = (IRasterProps)inRs;
+            //if (rsProp.PixelType == rstPixelType.PT_DOUBLE || rsProp.PixelType == rstPixelType.PT_FLOAT)
+            //{
+            //    inRs = convertToDifFormatFunction(inRs, rstPixelType.PT_LONG);
+                
+            //    rsProp = (IRasterProps)inRs;
+            //}
+            //IWorkspace vWks = geoUtil.OpenWorkSpace(wks.PathName);
+            //System.Array noDataValues = (System.Array)rsProp.NoDataValue;
+            //int noDataVl = System.Convert.ToInt32(noDataValues.GetValue(0));
+            //outName = getSafeOutputName(wks, outName);
+            //IRaster regRs = createNewRaster(inRs, wks, outName, 1, rstPixelType.PT_LONG);
+            //#endregion
+            //#region set unique raster values
+            //IRasterProps rsProps2 = (IRasterProps)regRs;
+            //System.Array noDataValues2 = (System.Array)rsProps2.NoDataValue;
+            //int noDataVl2 = System.Convert.ToInt32(noDataValues2.GetValue(0));
+            ////Console.WriteLine("noDataVl2 = " + noDataVl2.ToString());
+            ////Console.WriteLine("noDataVl = " + noDataVl.ToString());
+            //int rws = rsProp.Height;
+            //int clms = rsProp.Width;
+            //#region create VAT Table
+            //IFields flds = new FieldsClass();
+            //IField fld = new FieldClass();
+            //IFieldsEdit fldsE = (IFieldsEdit)flds;
+            //IFieldEdit fldE = (IFieldEdit)fld;
+            //fldE.Name_2 = "Value";
+            //fldE.Type_2 = esriFieldType.esriFieldTypeInteger;
+            //fldE.Precision_2 = 50;
+            //fldsE.AddField(fld);
+            //IField fld2 = new FieldClass();
+            //IFieldEdit fld2E = (IFieldEdit)fld2;
+            //fld2E.Name_2 = "Count";
+            //fld2E.Type_2 = esriFieldType.esriFieldTypeInteger;
+            //fldE.Precision_2 = 50;
+            //fldsE.AddField(fld2);
+            //IField fld3 = new FieldClass();
+            //IFieldEdit fld3E = (IFieldEdit)fld3;
+            //fld3E.Name_2 = "Perimeter";
+            //fld3E.Type_2 = esriFieldType.esriFieldTypeInteger;
+            //fld3E.Precision_2 = 50;
+            //fldsE.AddField(fld3);
+            //ITable vatTable = geoUtil.createTable(vWks, outName + "_vat", flds);
+            //#endregion
+            //IWorkspaceEdit wksE = (IWorkspaceEdit)vWks;
+            //bool weEdit = true;
+            //if (wksE.IsBeingEdited())
+            //{
+            //    weEdit = false;
+            //}
+            //else
+            //{
+            //    wksE.StartEditing(false);
+            //}
+            //wksE.StartEditOperation();
+            //int counter = Int32.MinValue;
+            //if (noDataVl2 >= 0)
+            //{
+
+            //    counter = Int32.MinValue + 2;
+            //}
+            //else
+            //{
+            //    counter = Int32.MinValue + 2;
+            //}
+            ////Console.WriteLine("Counter = " + counter.ToString());
+            //IPnt loc = new PntClass();
+            //try
+            //{
+            //    for (int rp = 0; rp < rws; rp += 511)//rws
+            //    {
+            //        for (int cp = 0; cp < clms; cp += 511)//clms
+            //        {
+            //            Console.WriteLine("Column Row = " + cp.ToString() + ":" + rp.ToString());
+            //            Console.WriteLine("nodata = " + noDataVl.ToString());
+            //            Console.WriteLine("nodata2 = " + noDataVl2.ToString());
+            //            loc.SetCoords(cp, rp);
+                        
+            //            middleRowColumn(inRs, regRs, vatTable, loc, counter, noDataVl, noDataVl2, 1, 1,0,0);
+            //        }
+            //    }
+            //    #endregion
+            //    #region update vat
+            //    wksE.StopEditOperation();
+            //    if (weEdit) wksE.StopEditing(true);
+            //    //wksE.StartEditing(false);
+            //    //wksE.StartEditOperation();
+            //    //Console.WriteLine("Updating Vat Table");
+            //    //updateKeyTable(ref keysTable, ref remapRegionTable);
+            //    //wksE.StopEditOperation();
+            //    //if (weEdit) wksE.StopEditing(true);
+            //    //IRaster2 rs2 = (IRaster2)regRs;
+            //    //IRasterDataset rsDset = rs2.RasterDataset;
+            //    //IRasterDatasetEdit2 rsDsetE = (IRasterDatasetEdit2)rsDset;
+            //    //rsDsetE.AlterAttributeTable(keysTable);
+            //    //wksE.StopEditOperation();
+            //    //wksE.StopEditing(true);
+            //    #endregion
+            //}
+            //catch(Exception e)
+            //{
+            //    Console.WriteLine(e.ToString());
+            //}
+            //finally
+            //{
+            //}
+            //return regRs;
+        }
+
+        
+
+        private void middleRowColumn(IRaster inRs, IRaster regRs, ITable vatTable, IPnt loc, int counter, int noDataVl, int noDataVl2, int startRow, int startColumn, int rCnt, int rPerm)
+        {
             IRasterEdit regRsE = (IRasterEdit)regRs;
             IPnt pnt = new PntClass();
             pnt.SetCoords(512, 512);
-            IPnt loc = new PntClass();
             IPixelBlock pb = inRs.CreatePixelBlock(pnt);
             IPixelBlock pb2 = regRs.CreatePixelBlock(pnt);
-            //remap dictionary newvalue by list of old values remap dictionary will remap all old values to the new values
-            Dictionary<int, int> reMapDic = new Dictionary<int, int>();
-            Dictionary<int, int> reMapDicNull = null;
-            int counter = Int32.MinValue;
-            //Console.WriteLine("no DataVl2 = " + noDataVl2.ToString());
-            if (noDataVl2 >= 0)
+            inRs.Read(loc, pb);
+            regRs.Read(loc, pb2);
+            System.Array inArr = (System.Array)pb.get_SafeArray(0);
+            System.Array outArr = (System.Array)pb2.get_SafeArray(0);
+            int height = pb.Height;
+            int width = pb.Width;
+            int valueIndex = vatTable.FindField("Value");
+            int countIndex = vatTable.FindField("Count");
+            int permIndex = vatTable.FindField("Perimeter");
+            for (int c = startRow; c < width; c++)
             {
-
-                counter = Int32.MinValue + 2;
-            }
-            else
-            {
-                //Console.WriteLine("Changing counter " + (Int32.MinValue+2).ToString());
-                counter = Int32.MinValue + 2;
-            }
-            //Console.WriteLine("counter starts at " + counter.ToString());
-            IRaster returnRs = null;
-            try
-            {
-                for (int cp = 0; cp < clms; cp += 511)
+                for (int r = startColumn; r < height; r++)
                 {
-                    for (int rp = 0; rp < rws; rp += 511)
+                    List<string> cr = new List<string>();
+                    cr.Add(c.ToString() + ":" + r.ToString());
+                    //Console.WriteLine(cr[0]);
+                    int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
+                    if (inVl == noDataVl)
                     {
-                        Console.WriteLine("Column Row = " + cp.ToString() + ":" + rp.ToString());
-                        loc.SetCoords(cp, rp);
-                        inRs.Read(loc, pb);
-                        regRs.Read(loc, pb2);
-                        System.Array inArr = (System.Array)pb.get_SafeArray(0);
-                        System.Array outArr = (System.Array)pb2.get_SafeArray(0);
-                        int height = pb.Height;
-                        int width = pb.Width;
-                        //look at first column and row
-                        Console.WriteLine("First Column");
-                        for (int r = 0; r < height; r++)
+                        continue;
+                    }
+                    else
+                    {
+                        int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, r));
+                        if (startRow != 1 || startColumn != 1)
                         {
-                            int inVl = System.Convert.ToInt32(inArr.GetValue(0, r));
-                            if (inVl == noDataVl)
+                            string[] nextArray = { "", "", "", "" };//determines if the next pixel block must be queried {left,top,right,bottom}
+                            while (cr.Count > 0)
                             {
-                                continue;
+                                rCnt++;
+                                //Console.WriteLine(cr.Count);
+                                string[] crArr = cr[0].Split(new char[] { ':' });
+                                int cl = System.Convert.ToInt32(crArr[0]);
+                                int rw = System.Convert.ToInt32(crArr[1]);
+                                rPerm += findRegion(inVl, counter, noDataVl2, cl, rw, inArr, outArr, cr, nextArray);
                             }
-                            int outVl32 = System.Convert.ToInt32(outArr.GetValue(0, r));
-                            if (outVl32 == noDataVl2)
+                            Console.WriteLine("Cells area = " + rCnt.ToString());
+                            Console.WriteLine("Cells perm = " + rPerm.ToString());
+                            pb2.set_SafeArray(0, (System.Array)outArr);
+                            regRsE.Write(loc, pb2);
+                            for (int i = 0; i < nextArray.Length; i++)
                             {
-                                outArr.SetValue(counter, 0, r);
-                                List<string> cr = new List<string>();
-                                cr.Add("0:" + r.ToString());
-                                while (cr.Count > 0)
+                                string s = nextArray[i];
+                                if (s != "")
                                 {
-                                    //Console.WriteLine(cr.Count);
-                                    string[] crArr = cr[0].Split(new char[] { ':' });
-                                    //Console.WriteLine(cr[0]);
+                                    Console.WriteLine("previous location  = " + s);
+                                    string[] crArr = s.Split(new char[] { ':' });
                                     int cl = System.Convert.ToInt32(crArr[0]);
                                     int rw = System.Convert.ToInt32(crArr[1]);
-                                    Console.WriteLine("CR Cnt 1 = " + cr.Count.ToString());
-                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
-                                }
-                                //findRegion(inVl, counter, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDicNull);
-                                counter++;
-                            }
-                            else
-                            {
-                                if (reMapDic.ContainsKey(outVl32))
-                                {
-                                    outVl32 = reMapDic[outVl32];
-                                }
-                                List<string> cr = new List<string>();
-                                cr.Add("0:" + r.ToString());
-                                while (cr.Count > 0)
-                                {
-                                    //Console.WriteLine(cr.Count);
-                                    string[] crArr = cr[0].Split(new char[] { ':' });
-                                    //Console.WriteLine(cr[0]);
-                                    int cl = System.Convert.ToInt32(crArr[0]);
-                                    int rw = System.Convert.ToInt32(crArr[1]);
-                                    Console.WriteLine("CR Cnt 2 = " + cr.Count.ToString());
-                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDic, ref cr);
-                                }
-                                //findRegion(inVl, outVl32, noDataVl2, 0, r, ref inArr, ref outArr, ref reMapDic);
-                            }
-                        }
-                        Console.WriteLine("First Row");
-                        for (int c = 0; c < width; c++)
-                        {
-                            int inVl = System.Convert.ToInt32(inArr.GetValue(c, 0));
-                            if (inVl == noDataVl)
-                            {
-                                continue;
-                            }
-                            int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, 0));
-                            if (outVl32 == noDataVl2)
-                            {
-                                outArr.SetValue(counter, c, 0);
-                                List<string> cr = new List<string>();
-                                cr.Add(c.ToString() + ":0");
-                                while (cr.Count > 0)
-                                {
-                                    //Console.WriteLine(cr.Count);
-                                    string[] crArr = cr[0].Split(new char[] { ':' });
-                                    //Console.WriteLine(cr[0]);
-                                    int cl = System.Convert.ToInt32(crArr[0]);
-                                    int rw = System.Convert.ToInt32(crArr[1]);
-                                    Console.WriteLine("CR Cnt 3 = " + cr.Count.ToString());
-                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
-                                }
-                                //findRegion(inVl, counter, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDicNull);
-                                counter++;
-                            }
-                            else
-                            {
-                                if (reMapDic.ContainsKey(outVl32))
-                                {
-                                    outVl32 = reMapDic[outVl32];
-                                }
-                                List<string> cr = new List<string>();
-                                cr.Add(c.ToString()+":0:");
-                                string pcr = "";
-                                while (cr.Count > 0)
-                                {
-                                    Console.WriteLine(pcr);
-                                    Console.WriteLine(cr[0]);
-                                    if (pcr == cr[0])
+                                    IPnt newLoc = new PntClass();
+                                    double nClP = loc.X;
+                                    double nRwP = loc.Y;
+                                    IRasterProps rsProps = (IRasterProps)inRs;
+                                    switch (i)
                                     {
-                                        break;
+                                        case 0:
+                                            nClP = nClP - 511;
+                                            cl = 511;
+                                            break;
+                                        case 1:
+                                            nRwP = nRwP - 511;
+                                            rw = 511;
+                                            break;
+                                        case 2:
+                                            nClP = nClP + 511;
+                                            cl = 0;
+                                            break;
+                                        default:
+                                            nRwP = nRwP + 511;
+                                            rw = 0;
+                                            break;
                                     }
-                                    pcr = cr[0];
-                                    string[] crArr = cr[0].Split(new char[] { ':' });
-                                    //Console.WriteLine(cr[0]);
+                                    if ((nClP >= 0 && nRwP >= 0 & nClP <= rsProps.Width && nRwP <= rsProps.Height))
+                                    {
+                                        Console.WriteLine("new location = " + nClP.ToString() + ":" + nRwP.ToString());
+                                        pb2.set_SafeArray(0, (System.Array)outArr);
+                                        regRsE.Write(loc, pb2);
+                                        newLoc.SetCoords(nClP, nRwP);
+                                        middleRowColumn(inRs, regRs, vatTable, newLoc, counter, noDataVl, noDataVl2, rw, cl, rCnt, rPerm);
+                                    }
+                                }
+                            }
+                            return;
+                        }
+                        else if (outVl32 == noDataVl2)
+                        {
+                            rCnt = 0;
+                            rPerm = 0;
+                            outArr.SetValue(counter, c, r);
+                            string[] nextArray = { "", "", "", "" };//determines if the next pixel block must be queried {left,top,right,bottom}
+                            while (cr.Count > 0)
+                            {
+                                rCnt++;
+                                string[] crArr = cr[0].Split(new char[] { ':' });
+                                int cl = System.Convert.ToInt32(crArr[0]);
+                                int rw = System.Convert.ToInt32(crArr[1]);
+                                rPerm += findRegion(inVl, counter, noDataVl2, cl, rw, inArr, outArr, cr, nextArray);
+                            }
+                            pb2.set_SafeArray(0, (System.Array)outArr);
+                            regRsE.Write(loc, pb2);
+                            for (int i = 0; i < nextArray.Length; i++)
+                            {
+                                string s = nextArray[i];
+                                if (s != "")
+                                {
+                                    Console.WriteLine("previous location  = " + s);
+                                    string[] crArr = s.Split(new char[] { ':' });
                                     int cl = System.Convert.ToInt32(crArr[0]);
                                     int rw = System.Convert.ToInt32(crArr[1]);
-                                    Console.WriteLine("CR Cnt 4 = " + cr.Count.ToString());
-                                    findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDic, ref cr);
-                                }
-                                //findRegion(inVl, outVl32, noDataVl2, c, 0, ref inArr, ref outArr, ref reMapDic);
-                            }
-                        }
-                        //look inside first column and row
-                        for (int c = 1; c < width; c++)
-                        {
-                            for (int r = 1; r < height; r++)
-                            {
-                                int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                                if (inVl == noDataVl)
-                                {
-                                    continue;
-                                }
-                                int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, r));
-                                if (outVl32 == noDataVl2)
-                                {
-                                    outArr.SetValue(counter, c, r);
-                                    List<string> cr = new List<string>();
-                                    cr.Add(c.ToString()+":"+r.ToString());
-                                    while (cr.Count > 0)
+                                    IPnt newLoc = new PntClass();
+                                    double nClP = loc.X;
+                                    double nRwP = loc.Y;
+                                    IRasterProps rsProps = (IRasterProps)inRs;
+                                    switch (i)
                                     {
-                                        //Console.WriteLine(cr.Count);
-                                        string[] crArr = cr[0].Split(new char[]{':'});
-                                        //Console.WriteLine(cr[0]);
-                                        int cl = System.Convert.ToInt32(crArr[0]);
-                                        int rw = System.Convert.ToInt32(crArr[1]);
-                                        Console.WriteLine("CR Cnt 5 = " + cr.Count.ToString());
-                                        findRegion2(inVl, counter, noDataVl2, cl, rw, ref inArr, ref outArr, ref reMapDicNull, ref cr);
+                                        case 0:
+                                            nClP = nClP - 511;
+                                            cl = 511;
+                                            break;
+                                        case 1:
+                                            nRwP = nRwP - 511;
+                                            rw = 511;
+                                            break;
+                                        case 2:
+                                            nClP = nClP + 511;
+                                            cl = 0;
+                                            break;
+                                        default:
+                                            nRwP = nRwP + 511;
+                                            rw = 0;
+                                            break;
                                     }
-                                    counter++;
-                                }
-                                else
-                                {
+                                    if ((nClP >= 0 && nRwP >= 0 & nClP <= rsProps.Width && nRwP <= rsProps.Height))
+                                    {
+                                        Console.WriteLine("new location = " + nClP.ToString() + ":" + nRwP.ToString());
+                                        pb2.set_SafeArray(0, (System.Array)outArr);
+                                        regRsE.Write(loc, pb2);
+                                        newLoc.SetCoords(nClP, nRwP);
+                                        Console.WriteLine("calling middleRow for pbStartLoc (C:R) = " + nClP.ToString() + ":" + nRwP.ToString() + " start locations = " + cl.ToString() + ":" + rw.ToString());
+                                        middleRowColumn(inRs, regRs, vatTable, newLoc, counter, noDataVl, noDataVl2, rw, cl, rCnt, rPerm);
+                                    }
                                 }
                             }
+                            regRs.Read(loc, pb2);
+                            outArr = (System.Array)pb2.get_SafeArray(0);
+                            IRow row = vatTable.CreateRow();
+                            row.set_Value(valueIndex, counter);
+                            row.set_Value(countIndex, rCnt);
+                            row.set_Value(permIndex, rPerm);
+                            row.Store();
+                            counter++;
                         }
-                        pb2.set_SafeArray(0, (System.Array)outArr);
-                        regRsE.Write(loc, pb2);
+                        else
+                        {
+                        }
                     }
                 }
-                Console.WriteLine("Running remap");
-                if (reMapDic.Count > 0)
-                {
-                    IRemapFilter flt = new RemapFilterClass();
-                    foreach (KeyValuePair<int, int> Kvp in reMapDic)
-                    {
-
-                        int k = Kvp.Key;
-                        int l = Kvp.Value;
-                        flt.AddClass(k, k + 1, l);
-                    }
-                    regRs = convertToDifFormatFunction((calcRemapFunction(regRs, flt)), rstPixelType.PT_LONG);
-                    Console.WriteLine("Finished remap");
-                }
-                Console.WriteLine("saving raster");
-                IRasterDataset rsDset = saveRasterToDataset(regRs, outName, wks);
-                returnRs = returnRaster(rsDset);
             }
-            catch
-            {
-            }
-            finally
-            {
-                try
-                {
-                    System.IO.Directory.Delete(tmpWks, true);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-            }
-            return returnRs;
+            pb2.set_SafeArray(0, (System.Array)outArr);
+            regRsE.Write(loc, pb2);
         }
-        private void findRegion2(int inValue, int newValue, int noDataValue, int clm, int rw, ref System.Array inArr, ref System.Array outArr, ref Dictionary<int, int> remapdic, ref List<string> columnrow)
+        private int findRegion(int inValue, int newValue, int noDataValue, int clm, int rw, System.Array inArr, System.Array outArr, List<string> columnrow, string[] nextArray)
         {
+            int permEdges = 0;
             string ccr = clm.ToString() + ":" + rw.ToString();
             if (columnrow == null)
             {
@@ -3716,7 +3882,6 @@ namespace esriUtil
             }
             int maxCR = 511;
             int minCR = 0;
-            
             for (int i = 0; i < 4; i++)
             {
                 int cPlus = clm;
@@ -3742,11 +3907,9 @@ namespace esriUtil
                 }
                 try
                 {
-                    string cr = cPlus.ToString() + ":" + rPlus;
-                    //Console.WriteLine("getting " + cr); 
+                    string cr = cPlus.ToString() + ":" + rPlus.ToString();
                     int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus, rPlus));
                     int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
-                    //Console.WriteLine("got " + cr + " values = cVL:" +  cVl.ToString() + " pVL:" + pVl.ToString());
                     if (cVl == noDataValue)
                     {
 
@@ -3754,43 +3917,60 @@ namespace esriUtil
                         {
                             try
                             {
-                                //Console.WriteLine("setting newValue = " + newValue.ToString());
                                 outArr.SetValue(newValue, cPlus, rPlus);
                                 if (!columnrow.Contains(cr))
                                 {
                                     columnrow.Add(cr);
                                 }
-                                else
+                                List<int> nPbLst = new List<int>();
+                                bool rPlusMinCheck = (rPlus == minCR);
+                                bool rPlusMaxCheck = (rPlus == maxCR);
+                                bool cPlusMinCheck = (cPlus == minCR);
+                                bool cPlusMaxCheck = (cPlus == maxCR);
+                                if (rPlusMinCheck || rPlusMaxCheck || cPlusMinCheck || cPlusMaxCheck)
                                 {
+                                    string nArrVl = cPlus.ToString() + ":" + rPlus.ToString();
+                                    if (rPlusMinCheck)
+                                    {
+                                        rPlus = maxCR;
+                                        //nPbLst.Add(0);
+                                        nextArray[0] = nArrVl;
+                                    }
+                                    if (rPlusMaxCheck)
+                                    {
+                                        rPlus = minCR;
+                                        //nPbLst.Add(1);
+                                        nextArray[1] = nArrVl;
+                                    }
+                                    if (cPlusMinCheck)
+                                    {
+                                        cPlus = maxCR;
+                                        //nPbLst.Add(2);
+                                        nextArray[2] = nArrVl;
+                                    }
+                                    if(cPlusMaxCheck)
+                                    {
+                                        cPlus = minCR;
+                                        //nPbLst.Add(3);
+                                        nextArray[3] = nArrVl;
+                                    }                                    
                                 }
-
-                                //findRegion(inValue, newValue, noDataValue, cPlus, rPlus, ref inArr, ref outArr, ref remapdic);
+                                //foreach (int j in nPbLst)
+                                //{
+                                //    nextArray[j] = cPlus.ToString() + ":" + rPlus.ToString();
+                                //}
                             }
                             catch
                             {
-                                //Console.WriteLine("i = " + i.ToString() + "\n");
-                                //Console.WriteLine(e.ToString());
                             }
                         }
                         else
                         {
-                        }
-                    }
-                    else if (remapdic != null && (rPlus == minCR || cPlus == minCR) && (pVl == inValue) && (cVl != newValue))
-                    {
-                        //Console.WriteLine("Cvl!=NoDataValue");
-                        try
-                        {
-                            remapdic[cVl] = newValue;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
+                            permEdges++;
                         }
                     }
                     else
                     {
-                        //Console.WriteLine("meets not criteria");
                     }
                 }
                 catch (Exception e)
@@ -3801,7 +3981,6 @@ namespace esriUtil
             }
             try
             {
-                Console.WriteLine("Removing " + ccr);
                 columnrow.Remove(ccr);
             }
             catch(Exception e)
@@ -3809,71 +3988,10 @@ namespace esriUtil
                 Console.WriteLine(e.ToString());
                 columnrow.Clear();
             }
+            return permEdges;
 
         }
-        private void findRegion(int inValue, int newValue, int noDataValue, int clm, int rw, ref System.Array inArr, ref System.Array outArr,ref Dictionary<int,int> remapdic)
-        {
-            int maxCR = 511;
-            int minCR = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                int cPlus = clm;
-                int rPlus = rw;
-                switch (i)
-                {
-                    case 0:
-                        cPlus += 1;
-                        break;
-                    case 1:
-                        rPlus += 1;
-                        break;
-                    case 2:
-                        cPlus -= 1;
-                        break;
-                    default:
-                        rPlus -= 1;
-                        break;
-                }
-                if(cPlus>maxCR||rPlus>maxCR||cPlus<minCR||rPlus<minCR)
-                {
-                    continue;
-                }
-                try
-                {
-                    int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus, rPlus));
-                    int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
-                    if (cVl == noDataValue)
-                    {
-                    
-                        if (pVl == inValue)
-                        {
-                            try
-                            {
-                                outArr.SetValue(newValue, cPlus, rPlus);
-                                findRegion(inValue, newValue, noDataValue, cPlus, rPlus, ref inArr, ref outArr, ref remapdic);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("i = " + i.ToString() + "\n");
-                                Console.WriteLine(e.ToString());
-                            }
-                        }
-                        else
-                        {
-                        }
-                    }
-                    else if (remapdic!=null && (rPlus == minCR||cPlus==minCR) && (pVl == inValue) && (cVl != newValue))
-                    {
-                        remapdic[cVl] = newValue;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-                
-            }
-        }
+
         /// <summary>
         /// eliminates slivers within a raster
         /// </summary>
@@ -4354,20 +4472,24 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster blockSum(IRaster inRaster, IWorkspace outWks, string outRsName, int numCells)
         {
+            IRasterProps rsProps = (IRasterProps)inRaster;
+            return blockSum(inRaster, outWks, outRsName, numCells, rsProps.PixelType);
+        }
+        public IRaster blockSum(IRaster inRaster, IWorkspace outWks, string outRsName, int numCells, rstPixelType pType)
+        {
             IPnt meanCellSize = new PntClass();
             IRasterProps rsProps = (IRasterProps)inRaster;
             double noDataVl = System.Convert.ToDouble(((System.Array)rsProps.NoDataValue).GetValue(0));
-            //Console.WriteLine(noDataVl.ToString());
             IPnt inRasterCellSize = rsProps.MeanCellSize();
             meanCellSize.X = inRasterCellSize.X*numCells;
             meanCellSize.Y = inRasterCellSize.Y*numCells;
-            IRaster rs = createNewRaster(rsProps.Extent, meanCellSize, outWks, outRsName, 1, rsProps.PixelType, ((IGeoDataset)inRaster).SpatialReference);
+            IRaster rs = createNewRaster(rsProps.Extent, meanCellSize, outWks, outRsName, 1, pType, ((IGeoDataset)inRaster).SpatialReference);
             IRasterEdit rsE = (IRasterEdit)rs;
             IRasterProps rsProps2 = (IRasterProps)rs;
             double noDataVl2 = System.Convert.ToDouble(((System.Array)rsProps2.NoDataValue).GetValue(0));
             IPnt pbBlockSizeIn = new PntClass();
             IPnt pbBlockSizeOut = new PntClass();
-            int bigXCells = System.Convert.ToInt32((512d / numCells) + 0.5);
+            int bigXCells = 512;
             int bigYCells = bigXCells;
             int xCells = bigXCells*numCells;
             int yCells = bigYCells*numCells;
@@ -4382,73 +4504,19 @@ namespace esriUtil
                 IPixelBlock pbOut = rsCurOut.PixelBlock;
                 System.Array inArr = (System.Array)pbIn.get_SafeArray(0);
                 System.Array outArr = (System.Array)pbOut.get_SafeArray(0);
-                int inWd = pbIn.Width;
-                int inHt = pbIn.Height;
-                for (int c = 0; c < inWd; c++)
+                int inWd = pbOut.Width;
+                int inHt = pbOut.Height;
+                for (int r = 0; r < inHt; r++)
                 {
-                    int nc = c / numCells;
-                    for (int r = 0; r < inHt; r++)
+                    for (int c = 0; c < inWd; c++)
                     {
-                        double inVl = System.Convert.ToDouble(inArr.GetValue(c, r));
-                        if (inVl == noDataVl)
-                        {
-                            continue;
-                        }
-                        int nr = r / numCells;
-                        double bVl = System.Convert.ToDouble(outArr.GetValue(nc,nr));
-                        if(bVl==noDataVl2)
+                        double bVl = FunctionRasters.NeighborhoodHelper.blockHelperValue.getBlockSum(inArr, c, r, numCells,noDataVl);    
+                        if (bVl == noDataVl2)
                         {
                             bVl = 0;
                         }
-                        bVl = inVl+bVl;
-                        switch (rsProps2.PixelType)
-                        {
-                            case rstPixelType.PT_CSHORT:
-                                outArr.SetValue(System.Convert.ToInt16(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_CHAR:
-                                outArr.SetValue(System.Convert.ToSByte(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_CLONG:
-                                outArr.SetValue(System.Convert.ToInt32(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_DOUBLE:
-                                outArr.SetValue(bVl, nc, nr);
-                                break;
-                            case rstPixelType.PT_FLOAT:
-                                outArr.SetValue(System.Convert.ToSingle(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_LONG:
-                                outArr.SetValue(System.Convert.ToInt32(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_SHORT:
-                                outArr.SetValue(System.Convert.ToInt16(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_U1:
-                                outArr.SetValue(System.Convert.ToByte(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_U2:
-                                outArr.SetValue(System.Convert.ToByte(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_U4:
-                                outArr.SetValue(System.Convert.ToByte(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_UCHAR:
-                                outArr.SetValue(System.Convert.ToByte(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_ULONG:
-                                outArr.SetValue(System.Convert.ToUInt32(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_UNKNOWN:
-                                outArr.SetValue(System.Convert.ToDouble(bVl), nc, nr);
-                                break;
-                            case rstPixelType.PT_USHORT:
-                                outArr.SetValue(System.Convert.ToUInt16(bVl), nc, nr);
-                                break;
-                            default:
-                                outArr.SetValue(bVl, nc, nr);
-                                break;
-                        }    
+                        object uVl = getSafeValue(bVl, rsProps2.PixelType);
+                        outArr.SetValue(uVl, c, r);
                     }
                 }
                 pbOut.set_SafeArray(0, outArr);

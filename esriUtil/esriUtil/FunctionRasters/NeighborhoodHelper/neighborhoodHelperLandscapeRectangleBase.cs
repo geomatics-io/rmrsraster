@@ -26,47 +26,34 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                         IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                         IPnt pbBigSize = new PntClass();
                         IPnt pbBigLoc = new PntClass();
-                        int pbBigWd = pBWidth + clms - 1;
-                        int pbBigHt = pBHeight + rws - 1;
                         int l, t;
                         l = clms / 2;
                         t = rws / 2;
+                        int pbBigWd = pBWidth + clms;// -1;
+                        int pbBigHt = pBHeight + rws;// -1;
                         pbBigLoc.SetCoords((pTlc.X - l), (pTlc.Y - t));
                         pbBigSize.SetCoords(pbBigWd, pbBigHt);
                         IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
                         orig.Read(pbBigLoc, (IPixelBlock)pbBig);
+                        
                         object[,] clmsValues = new object[pBWidth, pBHeight];
                         for (int nBand = 0; nBand < pbBig.Planes; nBand++)
                         {
                             double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
                             System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                             System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
-                            for (int r = rws; r < pbBigHt; r++)
+                            for (int r = 0; r < pBHeight; r++)//coordinates in terms of the small pixel block
                             {
-                                int nr = r - rws;
-                                for (int c = clms; c < pbBigWd; c++)
+                                int er = r + rws;
+                                for (int c = 0; c < pBWidth; c++)
                                 {
-                                    int nc = c - clms;
-                                    double[,] windowArr = new double[clms, rws];
-                                    for (int c2 = 0; c2 < clms; c2++)
-                                    {
-                                        int c2p = nc + c2;
-                                        for (int r2 = 0; r2 < rws; r2++)
-                                        {
-                                            int r2p = nr + r2;
-                                            double inVl = System.Convert.ToDouble(pixelValuesBig.GetValue(c2p, r2p));
-                                            if (Double.IsInfinity(inVl) || Double.IsNaN(inVl) || inVl == noDataValue)
-                                            {
-                                                continue;
-                                            }
-                                            else
-                                            {
-                                                windowArr[c2, r2] = inVl;
-                                            }
-                                        }
-                                    }
-                                    double uniqueMax = findUniqueRegionsValue(windowArr, noDataValue);
-                                    pixelValues.SetValue(uniqueMax, nc, nr);
+                                    int ec = c + clms;
+                                    
+                                    Dictionary<int, int[]> uDic = findUniqueRegions.getUniqueRegions(pixelValuesBig, ec,er,clms,rws,c,r, noDataValue); //key(int) = cell value value(int[2] = number of cells and number of edges)  
+                                   
+                                    double uniqueMax = findUniqueRegionsValue(uDic);
+                                    
+                                    pixelValues.SetValue(uniqueMax, c, r);
                                 }
                             }
                             try
@@ -87,17 +74,19 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 }
                 else
                 {
+                   
                     try
                     {
-                        int[,] circleWindow = rasterUtil.createFocalWidow(clms, clms, wd);
+                        List<int[]> iter = new List<int[]>();
+                        int[,] circleWindow = rasterUtil.createFocalWidow(clms, clms, wd,out iter);
                         System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                         int pBHeight = pPixelBlock.Height;
                         int pBWidth = pPixelBlock.Width;
                         IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                         IPnt pbBigSize = new PntClass();
                         IPnt pbBigLoc = new PntClass();
-                        int pbBigWd = pBWidth + clms - 1;
-                        int pbBigHt = pBHeight + rws - 1;
+                        int pbBigWd = pBWidth + clms;
+                        int pbBigHt = pBHeight + rws;
                         int l, t;
                         l = clms / 2;
                         t = rws / 2;
@@ -111,47 +100,24 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                             double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
                             System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                             System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
-                            for (int r = rws; r < pbBigHt; r++)
+                            for (int r = 0; r < pBHeight; r++)
                             {
-                                int nr = r - rws;
-                                for (int c = clms; c < pbBigWd; c++)
+                                int er = r + rws;
+                                for (int c = 0; c < pBWidth; c++)
                                 {
-                                    int nc = c - clms;
-                                    double[,] windowArr = new double[clms, rws];
-                                    for (int c2 = 0; c2 < clms; c2++)
-                                    {
-                                        int c2p = nc + c2;
-                                        for (int r2 = 0; r2 < rws; r2++)
-                                        {
-                                            int r2p = nr + r2;
-                                            int cVl = circleWindow[c2, r2];
-                                            if (cVl == 0)
-                                            {
-                                                windowArr[c2, r2] = noDataValue;
-                                            }
-                                            else
-                                            {
-                                                double inVl = System.Convert.ToDouble(pixelValuesBig.GetValue(c2p, r2p));
-                                                if (Double.IsInfinity(inVl) || Double.IsNaN(inVl)||inVl==noDataValue)
-                                                {
-                                                    continue;
-                                                }
-                                                else
-                                                {
-                                                    windowArr[c2, r2] = inVl;
-                                                }
-                                                windowArr[c2, r2] = inVl;
-                                            }
-                                        }
-                                    }
-                                    double uniqueMax = findUniqueRegionsValue(windowArr, noDataValue);
+                                    int ec = c + clms;
+                                    
+                                    Dictionary<int, int[]> uDic = findUniqueRegions.getUniqueRegions(pixelValuesBig, ec, er,clms,rws,c,r, noDataValue, circleWindow); //key(int) = cell value value(int[2] = number of cells and number of edges)  
+                                    double uniqueMax = findUniqueRegionsValue(uDic);
+
+                                    
                                     try
                                     {
-                                        pixelValues.SetValue(uniqueMax, nc, nr);
+                                        pixelValues.SetValue(uniqueMax, c, r);
                                     }
                                     catch
                                     {
-                                        pixelValues.SetValue(noDataValue, nc, nr);
+                                        pixelValues.SetValue(noDataValue, c, r);
                                     }
                                 }
                             }
@@ -171,7 +137,6 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 throw myExc;
             }
         }
-
-        public abstract double findUniqueRegionsValue(double[,] windowArr, double noDataValue);
+        public abstract double findUniqueRegionsValue(Dictionary<int,int[]> uniqueDic);
     }
 }

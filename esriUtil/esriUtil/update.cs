@@ -50,7 +50,7 @@ namespace esriUtil
             }
             else if (currentHelpVersion != serverHelpVersion)
             {
-                if (System.Windows.Forms.MessageBox.Show("Found a new version of help on the server. Do you want to download the help?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility help on the server. Do you want to download the help?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
                 {
                     copyFileFromServer(HelpFileName);
                     if (HelpFileName != null)

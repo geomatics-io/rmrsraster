@@ -27,7 +27,10 @@
         <p>
             <span class="style1"> This form is used to summarize biomass estimates 
             (<a href="http://www.fs.fed.us/pnw_rp584.pdf">Jenkins et. al., 2004</a>) by 
-            plot/subplot given a series of sample locations and a FIA access database.</span></p>
+            plot/subplot given a series of sample locations and an access database that has 
+            plot information stored in
+            <a href="http://fia.fs.fed.us/library/database-documentation/">FIA database 
+            format</a>.</span></p>
         <p>
             <span class="style1"><strong><em>Sample locations dropdown and open button:</em></strong> 
             Allows users to select the point feature class that represents the sample 
@@ -46,14 +49,14 @@
             Allows users to select 
             which values will be summarized. For each species found within all the samples, 
             checked items will be added to the sample feature class as a field, named 
-            according to the checked item followed by a &quot;_&quot; and FIA species coded 
-            value. 
+            according to the checked item followed by a &quot;_&quot; and FIA species code 
+            value (000-999). 
             </span><br 
                 class="style1" />
             <span class="style1"><strong><em>Execute button:</em></strong> Executes the 
-            summarization routine. Summarized values for each item tree species combo are 
-            populated based on the species found at each plot/subplot and represent mean per acre 
-            values.</span><br 
+            summarization routine. Summarized values for each item selected within the AGB 
+            types check list box by tree species found at each plot/subplot (represent mean per acre 
+            values).</span><br 
                 class="style1" />
         </p>
         <p class="style3">

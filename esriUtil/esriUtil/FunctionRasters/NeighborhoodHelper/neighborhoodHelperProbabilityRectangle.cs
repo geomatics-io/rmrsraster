@@ -190,7 +190,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             double tProb = 0;
             foreach (int kCnt in clmsDic.Values)
             {
-                double prob = System.Convert.ToDouble(kCnt) / n;
+                double prob = Math.Pow(System.Convert.ToDouble(kCnt) / n,2);
                 tProb += prob;
             }
             return tProb;

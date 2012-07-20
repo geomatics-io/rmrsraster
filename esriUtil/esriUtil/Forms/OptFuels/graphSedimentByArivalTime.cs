@@ -71,7 +71,14 @@ namespace esriUtil.Forms.OptFuels
             {
                 resultsDir = value;
                 graphDir = resultsDir + "\\graph";
-                if (System.IO.Directory.Exists(graphDir)) System.IO.Directory.Delete(graphDir, true);
+                try
+                {
+                    if (System.IO.Directory.Exists(graphDir)) System.IO.Directory.Delete(graphDir, true);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Error in deleting graph directory here is the error:" + e.ToString());
+                }
                 geoUtil.check_dir(graphDir);
                 wks = geoUtil.OpenRasterWorkspace(graphDir);
                 setRasterType();
@@ -111,11 +118,11 @@ namespace esriUtil.Forms.OptFuels
         private void createPeriodRasters(int iterationNumber)
         {
             string rpFile = resultsDir + "\\Out_Int_RP_" + iterationNumber.ToString() + ".txt";
-            List<List<int>> pLst = new List<List<int>>();
+            List<HashSet<int>> pLst = new List<HashSet<int>>();
             List<IRemapFilter> remapFiltLst = new List<IRemapFilter>();
             for (int i = 1; i <= numPer; i++)
             {
-                pLst.Add(new List<int>());
+                pLst.Add(new HashSet<int>());
                 IRemapFilter flt = new RemapFilterClass();
                 remapFiltLst.Add(flt);
             }
@@ -130,7 +137,7 @@ namespace esriUtil.Forms.OptFuels
                     int id = System.Convert.ToInt32(lnArr[0]);
                     if (period > 0)
                     {
-                        List<int> oLst = pLst[period-1];
+                        HashSet<int> oLst = pLst[period-1];
                         oLst.Add(id);
                         pLst[period-1] = oLst;
                     }
@@ -139,12 +146,16 @@ namespace esriUtil.Forms.OptFuels
             }
             IRaster2 rs2 = (IRaster2)treatGrid;
             ITable rsVat = rs2.AttributeTable;
-            if (rsVat == null)
+            ICursor cur = null;
+            try
             {
-                ((IRasterDatasetEdit2)rs2.RasterDataset).BuildAttributeTable();
-                rsVat = rs2.AttributeTable;
+                cur = rsVat.Search(null, false);
             }
-            ICursor cur = rsVat.Search(null,false);
+            catch
+            {
+                rsVat = rsUtil.buildVat(treatGrid);
+                cur = rsVat.Search(null, false);
+            }
             int valueIndex = cur.FindField("Value");
             IRow rw = cur.NextRow();
             while (rw != null)
@@ -153,13 +164,15 @@ namespace esriUtil.Forms.OptFuels
                 for (int i = 1; i <= numPer; i++)
                 {
                     IRemapFilter fl = remapFiltLst[i-1];
-                    List<int> lst = pLst[i-1];
+                    HashSet<int> lst = pLst[i-1];
                     int nVl = 0;
                     if (lst.Contains(vl))
                     {
                         nVl = 1;
+                        //Console.WriteLine("Add Value Remap Class = " + vl.ToString() + " to " + nVl.ToString());
                     }
-                    fl.AddClass(vl, vl + 1, nVl);
+                    
+                    fl.AddClass(vl, vl + 0.000001, nVl);
                 }
                 rw = cur.NextRow();
             }
@@ -167,10 +180,11 @@ namespace esriUtil.Forms.OptFuels
             for (int i = 1; i <= numPer; i++)
             {
                 IRemapFilter flt = remapFiltLst[i-1];
+                
                 IRaster oRs = rsUtil.calcRemapFunction(treatGrid, flt);// reSampleRasterGrid(rsUtil.calcRemapFunction(treatGrid, flt));
                 if (createinter)
                 {
-                    rsUtil.saveRasterToDataset(oRs, "Treat_" + iterationNumber.ToString() + i.ToString(), wks);
+                    rsUtil.saveRasterToDataset(oRs, "Treat_" + iterationNumber.ToString() + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
                 }
                 periodRasterLst.Add(oRs);
             }    
@@ -269,12 +283,12 @@ namespace esriUtil.Forms.OptFuels
                                 rshsf50 = rsUtil.returnRaster(sedDir + "\\h50");
                                 if (createinter)
                                 {
-                                    rsUtil.saveRasterToDataset(rsfine10, "n10", wks);
-                                    rsUtil.saveRasterToDataset(rsfine50, "n50", wks);
-                                    rsUtil.saveRasterToDataset(rst1Fine10, "t10", wks);
-                                    rsUtil.saveRasterToDataset(rst1Fine50, "t50", wks);
-                                    rsUtil.saveRasterToDataset(rshsf10, "h10", wks);
-                                    rsUtil.saveRasterToDataset(rshsf50, "h50", wks);
+                                    rsUtil.saveRasterToDataset(rsfine10, "n10", wks,rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsfine50, "n50", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rst1Fine10, "t10", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rst1Fine50, "t50", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rshsf10, "h10", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rshsf50, "h50", wks, rasterUtil.rasterType.IMAGINE);
                                 }
                             }
                         }
@@ -330,14 +344,14 @@ namespace esriUtil.Forms.OptFuels
             while (ftr != null)
             {
                 //need to set up remap filters for each raster and create a new raster for each sediment value
-                double oid = System.Convert.ToDouble(ftr.OID);
+                double oid = System.Convert.ToInt32(ftr.OID);
                 cnt = 0;
                 foreach (IRemapFilter remap in remapArr)
                 {
                     int indexVl = fldArr[cnt];
                     double vl = System.Convert.ToDouble(ftr.get_Value(indexVl)) * (Math.Pow((cellSize * 3.2808399), 2) / 43560);
-                    remap.AddClass(oid, oid + 1, vl);
-                    //Console.WriteLine(vl);
+                    remap.AddClass(oid, oid + 0.00001, vl);
+                    // Console.WriteLine("Converting oid " + oid.ToString() + " to " + vl.ToString() );
                     cnt++;
                 }
                 ftr = ftrCur.NextFeature();
@@ -352,37 +366,37 @@ namespace esriUtil.Forms.OptFuels
                 {
                     case 1:
                         rsfine10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rsfine10 = rsUtil.blockSum(rsfine10, sedWks,"n10",numCells);
+                        rsfine10 = rsUtil.blockSum(rsfine10, sedWks,"n10",numCells,rstPixelType.PT_FLOAT);
                         rs = rsfine10;
                         rsNm = "n10";
                         break;
                     case 2:
                         rsfine50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rsfine50 = rsUtil.blockSum(rsfine50, sedWks, "n50", numCells);
+                        rsfine50 = rsUtil.blockSum(rsfine50, sedWks, "n50", numCells, rstPixelType.PT_FLOAT);
                         rs = rsfine50;
                         rsNm = "n50";
                         break;
                     case 3:
                         rst1Fine10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rst1Fine10 = rsUtil.blockSum(rst1Fine10, sedWks, "t10", numCells);
+                        rst1Fine10 = rsUtil.blockSum(rst1Fine10, sedWks, "t10", numCells, rstPixelType.PT_FLOAT);
                         rs = rst1Fine10;
                         rsNm = "t10";
                         break;
                     case 4:
                         rst1Fine50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rst1Fine50 = rsUtil.blockSum(rst1Fine50, sedWks, "t50", numCells);
+                        rst1Fine50 = rsUtil.blockSum(rst1Fine50, sedWks, "t50", numCells, rstPixelType.PT_FLOAT);
                         rs = rst1Fine50;
                         rsNm = "t50";
                         break;
                     case 5:
                         rshsf10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rshsf10 = rsUtil.blockSum(rshsf10, sedWks, "h10", numCells);
+                        rshsf10 = rsUtil.blockSum(rshsf10, sedWks, "h10", numCells, rstPixelType.PT_FLOAT);
                         rs = rshsf10;
                         rsNm = "h10";
                         break;
                     case 6:
                         rshsf50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rshsf50 = rsUtil.blockSum(rshsf50, sedWks, "h50", numCells);
+                        rshsf50 = rsUtil.blockSum(rshsf50, sedWks, "h50", numCells, rstPixelType.PT_FLOAT);
                         rs = rshsf50;
                         rsNm = "h50";
                         break;
@@ -458,6 +472,7 @@ namespace esriUtil.Forms.OptFuels
                 swr.WriteLine(ln);
                 if (iterLst.Count < 2)
                 {
+                    Console.WriteLine("copying files over");
                     copyNaToResults(ref iterLst);
                 }
                 int iterCnt = 0;
@@ -535,17 +550,17 @@ namespace esriUtil.Forms.OptFuels
                                 {
                                     Console.WriteLine(strln);
                                 }
-                                rsUtil.saveRasterToDataset(noActionPeriod, "noAct_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(t10, "t10_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(f10, "na10_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(t50, "t50_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(f50, "na50_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(sum10, "s10_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(sum50, "s50_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(flmBool, "flm_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks);
-                                rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks);
+                                rsUtil.saveRasterToDataset(noActionPeriod, "noAct_" + iter.ToString() + f + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(t10, "t10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(f10, "na10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(t50, "t50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(f50, "na50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(sum10, "s10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(sum50, "s50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(flmBool, "flm_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
                             }
                             if (createcore)
                             {
@@ -562,9 +577,9 @@ namespace esriUtil.Forms.OptFuels
                                     {
                                         Console.WriteLine(strln);
                                     }
-                                    rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks);
-                                    rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks);
-                                    rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks);
+                                    rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
                                 }
                             }
                             if(!createcore&&!createinter)
@@ -601,16 +616,19 @@ namespace esriUtil.Forms.OptFuels
             foreach (System.IO.DirectoryInfo d in dInfo.GetDirectories())
             {
                 string rPath = d.FullName + "\\RESULTS";
+                //Console.WriteLine(rPath);
                 if (d.Name.EndsWith("S1_NA"))
                 {
                     if (System.IO.Directory.Exists(rPath))
                     {
+                        //Console.WriteLine("getting files");
                         rInfo = new System.IO.DirectoryInfo(rPath);
                         fInfos = rInfo.GetFiles("arrivaltime0*.txt");
                         foreach (System.IO.FileInfo fInfo in fInfos)
                         {
                             string fNm = fInfo.Name;
-                            fNm.Replace("arrivaltime0", "arrivaltime" + nIncNum);
+                            fNm = fNm.Replace("arrivaltime0", "arrivaltime" + nIncNum);
+                            //Console.WriteLine("\tcopying " + fInfo.Name + " to " + resultsDir + "\\"+ fNm);
                             fInfo.CopyTo(resultsDir + "\\" + fNm, true);
                             checkfls = true;
                         }
@@ -618,13 +636,15 @@ namespace esriUtil.Forms.OptFuels
                         foreach (System.IO.FileInfo fInfo in fInfos)
                         {
                             string fNm = fInfo.Name;
-                            fNm.Replace("nodeflamelenght0", "nodeflamelength" + nIncNum);
+                            fNm = fNm.Replace("nodeflamelength0", "nodeflamelength" + nIncNum);
+                            //Console.WriteLine("\tcopying " + fInfo.Name + " to " + resultsDir + "\\" + fNm);
                             fInfo.CopyTo(resultsDir + "\\" + fNm, true);
                         }
                         fInfos = rInfo.GetFiles("Out_Int_RP_0.txt");
                         foreach (System.IO.FileInfo fInfo in fInfos)
                         {
                             string fNm = "Out_Int_RP_" + nIncNum +".txt";
+                            //Console.WriteLine("\tcopying " + fInfo.Name + " to " + fNm);
                             fInfo.CopyTo(resultsDir + "\\" + fNm, true);
                         }
                         if (checkfls)
@@ -657,7 +677,7 @@ namespace esriUtil.Forms.OptFuels
                             string fNm = fInfo.Name;
                             string[] itVlArr = fNm.Split(new char[] { '_' });
                             int vl = System.Convert.ToInt32(itVlArr[0].Replace("arrivaltime", ""));
-                            fNm.Replace("arrivaltime0", "arrivaltime" + nIncNum);
+                            fNm = fNm.Replace("arrivaltime0", "arrivaltime" + nIncNum);
                             fInfo.CopyTo(resultsDir + "\\" + fNm, true);
                             checkfls = true;
                         }
@@ -665,7 +685,7 @@ namespace esriUtil.Forms.OptFuels
                         foreach (System.IO.FileInfo fInfo in fInfos)
                         {
                             string fNm = fInfo.Name;
-                            fNm.Replace("nodeflamelenght0", "nodeflamelength" + nIncNum);
+                            fNm = fNm.Replace("nodeflamelength0", "nodeflamelength" + nIncNum);
                             fInfo.CopyTo(resultsDir + "\\" + fNm, true);
                         }
                         fInfos = rInfo.GetFiles("Out_Int_RP_0.txt");

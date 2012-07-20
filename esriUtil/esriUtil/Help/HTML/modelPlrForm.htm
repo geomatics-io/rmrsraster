@@ -42,7 +42,7 @@
             Polytomous Logistic Regression</a> Models. Currently this tool requires SAS to 
             generate the PLR model. After the model has been created it can be used along 
             with the <a href="runPlrClassification.htm">Run PLR Classification</a> tool to 
-            create a MCL and Probabilistic raster datasets.</span></p>
+            create a MLC and Probabilistic raster datasets.</span></p>
         <p>
             <span class="style1"><strong><em>Training Dataset and open button:</em></strong> 
             Allows users to select the training feature class that represents the sample 
@@ -89,7 +89,7 @@
             <span class="style1"><strong><em>View Results checkbox: </em></strong>When 
             checked SAS results will be shown after the process has completed.</span><br 
                 class="style1" />
-                <span class="style1"><strong><em>Edit Sas checkbox: </em></strong>When checked the 
+                <span class="style1"><strong><em>Edit SAS checkbox: </em></strong>When checked the 
             prc.sas file will be opened for editing.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Execute button: </em></strong>Executes the PLR 
@@ -117,7 +117,8 @@
                 produced from running the SAS procedure file.</li>
             <li class="style1">A SAS results file named prc.lst. This file provides all the results produced 
                 from running the SAS procedure file.</li>
-            <li class="style1">A SAS procedure file named prc.sas. This file contains the SAS code that is submitted to SAS in the batch process. You can open this file and modify the SAS procedure to produce different outputs. Please note that outputs from export statements are used by other tools.</li>
+            <li class="style1">A SAS procedure file named prc.sas. This file contains the SAS code that is submitted to SAS in the batch process. You can open this file and modify the SAS procedure to produce different outputs. Please note that outputs from export statements are used by other tools 
+                and these tools may not work properly if default names and locations are changed.</li>
 
         </ol>
            

@@ -67,7 +67,7 @@ namespace esriUtil.FunctionRasters
             {
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                if (inWindow == rasterUtil.windowType.RECTANGLE)
+                if (inWindow == rasterUtil.windowType.RECTANGLE&&!(inop == rasterUtil.focalType.VARIANCE||inop==rasterUtil.focalType.STANDARD_DEVIATION))
                 {
                     switch (inop)
                     {
@@ -209,6 +209,9 @@ namespace esriUtil.FunctionRasters
                                         break;
                                     case rasterUtil.focalType.ENTROPY:
                                         pixelValue = nHelp.WindowEntropyValues;
+                                        break;
+                                    case rasterUtil.focalType.PROBABILITY:
+                                        pixelValue = nHelp.WindowProbability;
                                         break;
                                     default:
                                         pixelValue = nHelp.WindowMax;

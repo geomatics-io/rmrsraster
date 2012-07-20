@@ -160,7 +160,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmSummarizeRaster";
-            this.Text = "Local Rasters Function";
+            this.Text = "Local Stats Analysis";
             this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -8,11 +8,8 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeStdAreaRectangle: neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(double[,] windowArr, double noDataValue)
+        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            Dictionary<int, int[]> uniqueDic = new Dictionary<int, int[]>();
-            findUniqueRegions fUnq = new findUniqueRegions();
-            fUnq.getUniqueRegions(windowArr, noDataValue, ref uniqueDic);
             double n = uniqueDic.Count;
             double sum = 0;
             double sum2 = 0;
@@ -20,9 +17,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             {
                 double vl = cntArr[0];
                 sum += vl;
-                sum2 += (vl*vl);
+                sum2 += (vl * vl);
             }
-            sum = (sum * sum)/n;
+            sum = (sum * sum) / n;
             double var = (sum2 - sum) / n;
             double std = Math.Sqrt(var);
             return std;

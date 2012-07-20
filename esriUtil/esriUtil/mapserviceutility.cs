@@ -1015,8 +1015,9 @@ namespace esriUtil
         public string fillDbFtrClasses(ISpatialFilter sFlt, string serviceConnection, string service, Dictionary<string,int> lyrID)
         {
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rpd = new esriUtil.Forms.RunningProcess.frmRunningProcessDialog(true);
+            rpd.showInSepperateProcess();
             rpd.Show();
-            rpd.addMessage("Downloading data for " + service + " Map Service");
+            //rpd.addMessage("Downloading data for " + service + " Map Service");
             bool lyrTblNeedsUpdating = false;
             StringBuilder msg = new StringBuilder();
             IWorkspace2 wks2 = (IWorkspace2)servWks;
@@ -1043,6 +1044,7 @@ namespace esriUtil
                 weEdit = true;
             }
             wksE.StartEditOperation();
+            IFeatureClass ftrCls;
             try
             {
                 int stp = 100 / lyrID.Count;
@@ -1067,7 +1069,7 @@ namespace esriUtil
                     string ftrClassName = lyrName + "_" + svID + "_" + lyrId.ToString();
                     string fFtrClassName = geoDatabaseUtility.parsName(ftrClassName);
                     
-                    IFeatureClass ftrCls;
+                    
                     int drcd = 1;
                     bool ftrExists = wks2.get_NameExists(esriDatasetType.esriDTFeatureClass, fFtrClassName);
                     if (!ftrExists)
@@ -1094,10 +1096,21 @@ namespace esriUtil
                     {
                         ftrCls = fWks.OpenFeatureClass(fFtrClassName);
                     }
+                    IGeoDataset geoDSet = (IGeoDataset)ftrCls;
+                    ISpatialReference spRf = geoDSet.SpatialReference;
+                    ISpatialReference filtSpRf = sFlt.Geometry.SpatialReference;
+                    if (spRf.FactoryCode != filtSpRf.FactoryCode)
+                    {
+                        rpd.addMessage("Transforming extent from " + filtSpRf.Name + " to " + spRf.Name);
+                        sFlt = transformCoordinates(sFlt, spRf);
+                    }
+                    
                     string oidName = ftrCls.OIDFieldName;
                     int maxRecords = getMaxRecords(ms2);
                     List<string> fIdLst = new List<string>();
                     IFIDSet2 idSet = (IFIDSet2)ms2.QueryFeatureIDs(mName, lyrId, sFlt);
+                    rpd.addMessage("Attempting to download " + idSet.Count().ToString() + " records...");
+                    rpd.Refresh();
                     idSet.Reset();
                     IFeatureCursor fCur = ftrCls.Search(sFlt, false);
                     IFeature ftr = fCur.NextFeature();
@@ -1222,6 +1235,20 @@ namespace esriUtil
             return msg.ToString();
 
         }
+
+        private ISpatialFilter transformCoordinates(ISpatialFilter inSpatialFilter, ISpatialReference toSpatialReference)
+        {
+            ISpatialFilter spOut = new SpatialFilterClass();
+            spOut.WhereClause = inSpatialFilter.WhereClause;
+            spOut.SubFields = inSpatialFilter.SubFields;
+            spOut.SpatialRelDescription = inSpatialFilter.SpatialRelDescription;
+            spOut.SpatialRel = inSpatialFilter.SpatialRel;
+            spOut.SearchOrder = inSpatialFilter.SearchOrder;
+            IEnvelope env = inSpatialFilter.Geometry.Envelope;
+            env.Project(toSpatialReference);
+            spOut.Geometry = (IGeometry)env;
+            return spOut;
+        }
         /// <summary>
         /// fills in the rasters within a database given the layer and and extent
         /// </summary>
@@ -1246,6 +1273,10 @@ namespace esriUtil
         }
         public string fillDbRaster(IImageServerLayer imSvLyr, IWorkspace wks,ESRI.ArcGIS.Geometry.IEnvelope ext,ISpatialReference sr, out IRaster outrs)
         {
+            if (ext.SpatialReference.FactoryCode != sr.FactoryCode)
+            {
+                ext.Project(sr);
+            }
             StringBuilder msg = new StringBuilder();
             if (wks == null)
             {
@@ -1255,6 +1286,7 @@ namespace esriUtil
             Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
             rp.addMessage("Downloading images please be patient...");
             rp.Show();
+            //rp.showInSepperateProcess();
             rp.TopMost = true;
             rp.stepPGBar(10);
             rp.Refresh();
@@ -1266,6 +1298,8 @@ namespace esriUtil
                 int maxX = System.Convert.ToInt32(ext.XMax);
                 int minY = System.Convert.ToInt32(ext.YMin);
                 int maxY = System.Convert.ToInt32(ext.YMax);
+                int xDiff = System.Convert.ToInt32(ext.Width);
+                int yDiff = System.Convert.ToInt32(ext.Height);
                 int tile = 1;
                 IRaster rast = imSvLyr.Raster;
                 ISaveAs saveas = (ISaveAs)rast;
@@ -1276,6 +1310,8 @@ namespace esriUtil
                 string rNm = nm;
                 int mCols = System.Convert.ToInt32(imSvLyr.ServiceInfo.MaxNCols * .90);
                 int mRows = System.Convert.ToInt32(imSvLyr.ServiceInfo.MaxNRows * .90);
+                if (xDiff < mCols) mCols = xDiff;
+                if (yDiff < mRows) mRows = yDiff;
                 List<IRaster> tileLst = new List<IRaster>();
                 for (int i = minX; i < maxX; i += mRows)
                 {
@@ -1293,7 +1329,7 @@ namespace esriUtil
                         {
                             rp.addMessage("Too many tiles. Ending at Tile: " + tile);
                             msg.AppendLine("Too many tiles. Ending at Tile: " + tile);
-                            outrs = rsUtil.mergeRasterFunction(tileLst.ToArray(), rstMosaicOperatorType.MT_FIRST, svImgNm);
+                            //outrs = rsUtil.mosaicRastersFunction(wks, rNm, tileLst.ToArray(),esriMosaicMethod.esriMosaicNone,rstMosaicOperatorType.MT_FIRST,true,true,false,true);
                             return msg.ToString();
                         }
                         if (((IWorkspace2)wks).get_NameExists(esriDatasetType.esriDTRasterDataset, r))
@@ -1313,7 +1349,7 @@ namespace esriUtil
                 }
                 rp.addMessage("Merging rasters...");
                 rp.Refresh();
-                outrs = rsUtil.mergeRasterFunction(tileLst.ToArray(), rstMosaicOperatorType.MT_FIRST, svImgNm);
+                //outrs = rsUtil.mosaicRastersFunction(wks, rNm, tileLst.ToArray(), esriMosaicMethod.esriMosaicNone, rstMosaicOperatorType.MT_FIRST, true, true, false, true);
             }
             catch (Exception e)
             {
@@ -1449,7 +1485,7 @@ namespace esriUtil
                 try
                 {
                     System.Net.NetworkInformation.Ping png = new System.Net.NetworkInformation.Ping();
-                    System.Net.NetworkInformation.PingReply rp = png.Send("www.esri.com", 120);
+                    System.Net.NetworkInformation.PingReply rp = png.Send("www.google.com", 600);
                     System.Net.NetworkInformation.IPStatus ipStat = rp.Status;
                     if (ipStat != System.Net.NetworkInformation.IPStatus.Success)
                     {

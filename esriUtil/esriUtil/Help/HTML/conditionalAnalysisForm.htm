@@ -26,24 +26,27 @@
         </p>
         <p>
             <span class="style1"> This form is used to perform conditional if then analyses 
-            given a conditional raster (cell values of 1 or 0) and two raster datasets or 
+            given a conditional raster (cell values of 1 = True or 0 = False) and two raster datasets or 
             constants. The outputs from the analysis consist of a raster dataset with each 
             cell having a value equal to the constant or raster of the True or 
             False condition. 
             </span></p>
         <p>
             <span class="style1"><strong><em>Conditional Raster dropdown and open button:</em></strong> 
-            Allows users to select which raster will be used as the conditional raster. The drop down contains 
+            Allows users to select the raster that will be used as the conditional raster. The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
-            raster stored on disk. Conditional raster dataset cell values are assumed to be 0 or 1</span><br 
+            raster stored on disk. Conditional raster dataset cell values are assumed to be 0 or 1. 
+            Values &gt;= to one equate to True.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Condition True (1) Raster or value dropdown and open button:</em></strong> 
-            Allows users to specify a constant or select which raster will be used for the true case of the conditional raster (values of 1). The drop down contains 
+            Allows users to specify a constant or select the raster that will be used for 
+            the true case of the conditional raster (values &gt;= 1). The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
             raster stored on disk.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Condition False (0) Raster or value dropdown and open button:</em></strong> 
-            Allows users to specify a constant or select which raster will be used for the false case of the conditional raster (values of 0). The drop down contains 
+            Allows users to specify a constant or select the raster that will be used for the false case of the conditional raster (values 
+            &lt; 1). The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
             raster stored on disk.</span><br class="style1" />
             <span class="style1"><strong><em>Out Name text box:</em></strong> 

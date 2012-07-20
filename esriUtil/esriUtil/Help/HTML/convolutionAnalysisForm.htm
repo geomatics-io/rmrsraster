@@ -27,13 +27,15 @@
         <p>
             <span class="style1"> This form is used to perform 
             convolution analyses given a raster datasets and specified convolution kernel. Convolution analyses use the same neighboring window concept as <a href="focalAnalyses.htm">focal analyses</a> but allow 
-            the user to specify the values of the kernel. Every band within the raster datasets will be transformed 
+            the user to specify the values of the kernel. Kernel values are used to perform 
+            a weighted sum product function of the cell values within the raster surface. Every band within the raster datasets 
+            are transformed 
             based on the analysis specifications. The outputs from the analysis consist of a raster dataset with transformed cell values based on neighboring cell values and the 
             convolution kernel. 
             </span></p>
         <p>
             <span class="style1"><strong><em>Input Raster dropdown and open button:</em></strong> 
-            Allows users to select which raster will be used as an input to the convolution analysis. The drop down contains 
+            Allows users to select the raster that will be used as an input to the convolution analysis. The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
             raster stored on disk.</span><br 
                 class="style1" />

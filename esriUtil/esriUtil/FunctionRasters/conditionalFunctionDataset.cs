@@ -17,8 +17,8 @@ namespace esriUtil.FunctionRasters
         }
         private IRasterInfo myRasterInfo; // Raster Info for the log Function
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
-        private string myName = ">= Function"; // Name of the log Function.
-        private string myDescription = "Transforms a raster using >= transformation"; // Description of the log Function.
+        private string myName = "Conditional Function"; // Name of the log Function.
+        private string myDescription = "Transforms a raster using Conditonal transformation"; // Description of the log Function.
         private IRaster conRs, trueRs, falseRs;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }

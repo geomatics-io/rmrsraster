@@ -8,12 +8,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeMedianEdgeRectangle:neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(double[,] windowArr, double noDataValue)
+        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            Dictionary<int, int[]> uniqueDic = new Dictionary<int, int[]>();
-            findUniqueRegions fUnq = new findUniqueRegions();
-            fUnq.getUniqueRegions(windowArr,noDataValue, ref uniqueDic);
-            int cnt = (uniqueDic.Count+1)/2;
+            int cnt = (uniqueDic.Count + 1) / 2;
             List<int> areaLst = new List<int>();
             foreach (int[] cntArr in uniqueDic.Values)
             {

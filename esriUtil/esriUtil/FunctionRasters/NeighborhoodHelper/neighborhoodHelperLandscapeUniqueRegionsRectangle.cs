@@ -8,11 +8,8 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeUniqueRegionsRectangle: neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(double[,] windowArr, double noDataValue)
+        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            Dictionary<int, int[]> uniqueDic = new Dictionary<int, int[]>();
-            findUniqueRegions fUnq = new findUniqueRegions();
-            fUnq.getUniqueRegions(windowArr, noDataValue, ref uniqueDic);
             return uniqueDic.Count;
         }
     }

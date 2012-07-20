@@ -195,7 +195,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 int v = kvp.Value;
                 if (v == maxVl)
                 {
-                    tProb = v;
+                    tProb = k;
                     break;
                 }
             }

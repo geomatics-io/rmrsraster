@@ -26,16 +26,18 @@
         </p>
         <p>
             <span class="style1"> This form is used to perform 
-            Logical analyses given two raster datasets or a raster dataset and a constant. Types of 
+            logical analyses given two raster datasets or a raster dataset and a constant. Types of 
             analyses include; greater than, less than, greater than equal to, less than 
             equal to, equal to, AND, and OR. Every band within the raster datasets will be queried 
             for the logical operation. The outputs from the analysis consist of a raster dataset with each cell within a band having a value of either 0 or 1. A value of 1 
             identifies cells meeting the specified criteria while values of 0 denote the 
             opposite. For AND and OR operators, raster cell values are assumed to have values 
-            of 1 or 0</span></p>
+            of 1 or 0. Input raster values greater than or equal to 1 will equate to true 
+            and values 
+            less than 1 will equate to false.</span></p>
         <p>
             <span class="style1"><strong><em>Input Raster 1 dropdown and open button:</em></strong> 
-            Allows users to select which raster will be used to compare against input raster 
+            Allows users to select the raster that will be used to compare against input raster 
             or constant 2. The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
             raster stored on disk.</span><br 
@@ -44,7 +46,7 @@
             Allows users to select which type logical operation will be performed.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Input Raster 2 or number dropdown and open button:</em></strong> 
-            Allows users to select which raster will be used to compare against input raster 
+            Allows users to select the raster that will be used to compare against input raster 
             1. The drop down contains 
             any raster in the TOC and the open button allows the user to select any existing 
             raster stored on disk or manually type in a constant.</span><br 

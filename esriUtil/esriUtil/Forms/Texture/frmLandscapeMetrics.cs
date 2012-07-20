@@ -213,7 +213,7 @@ namespace esriUtil.Forms.Texture
                     rp.Show();
                     rp.Refresh();
                     IRasterLayer rsLyr = new RasterLayerClass();
-                    rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);
+                    //rsUtil.calcStatsAndHist
                     rsLyr.CreateFromRaster(outraster);
                     rsLyr.Name = OutRasterName;
                     rsLyr.Visible = false;

@@ -2041,6 +2041,45 @@ namespace esriUtil
             }
             return domDic;
         }
+        public ITable createTable(IWorkspace wks, string tableName, IFields atrflds)
+        {
+            IWorkspace2 wks2 = (IWorkspace2)wks;
+            IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
+            ITable tbl = null;
+            try
+            {
+                
+                if (wks2.get_NameExists(esriDatasetType.esriDTTable, tableName))
+                {
+                    return tbl;
+                }
+                
+                IObjectClassDescription ocDescription = new ObjectClassDescriptionClass();
+                IFields fields = ocDescription.RequiredFields;
+                IFieldsEdit fieldsEdit = (IFieldsEdit)fields;
+                if (atrflds != null)
+                {
+                    for (int i = 0; i < atrflds.FieldCount; i++)
+                    {
+                        IField fld = atrflds.get_Field(i);
+                        fieldsEdit.AddField(fld);
+                    }
+                }
+                // Use IFieldChecker to create a validated fields collection.
+                IFieldChecker fieldChecker = new FieldCheckerClass();
+                IEnumFieldError enumFieldError = null;
+                IFields validatedFields = null;
+                fieldChecker.ValidateWorkspace = (IWorkspace)wks;
+                fieldChecker.Validate(fields, out enumFieldError, out validatedFields);
+                tbl = ftrWks.CreateTable(tableName, validatedFields, ocDescription.InstanceCLSID, ocDescription.ClassExtensionCLSID, "");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.ToString());
+            }
+            return tbl;
+
+        }
         /// <summary>
         /// copies the feature Class table from one database to another
         /// </summary>

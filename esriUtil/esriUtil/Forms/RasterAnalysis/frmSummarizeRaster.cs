@@ -54,27 +54,32 @@ namespace esriUtil.Forms.RasterAnalysis
             string outPath = null;
             string outName = "";
             ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
+            gxDialog.AllowMultiSelect = true;
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
             flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
             gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a Feature";
+            gxDialog.Title = "Select a Raster";
             ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
             if (gxDialog.DoModalOpen(0, out eGxObj))
             {
                 ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                if (!rstDic.ContainsKey(outName))
+                while (gxObj != null)
                 {
-                    rstDic.Add(outName, rsUtil.returnRaster(outPath));
-                    cmbInRaster1.Items.Add(outName);
+                    outPath = gxObj.FullName;
+                    outName = gxObj.BaseName;
+                    if (!rstDic.ContainsKey(outName))
+                    {
+                        rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                        //cmbInRaster1.Items.Add(outName);
+                        lsbRaster.Items.Add(outName);
+                    }
+                    else
+                    {
+                        rstDic[outName] = rsUtil.returnRaster(outPath);
+                    }
+                    gxObj = eGxObj.Next();
                 }
-                else
-                {
-                    rstDic[outName] = rsUtil.returnRaster(outPath);
-                }
-                cmbInRaster1.SelectedItem = outName;
+                //cmbInRaster1.SelectedItem = outName;
             }
             return;
         }
@@ -162,13 +167,14 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Summarizing Rasters. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 outraster = rsUtil.localStatisticsfunction((IRaster)rsBc,op);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
+                    
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);

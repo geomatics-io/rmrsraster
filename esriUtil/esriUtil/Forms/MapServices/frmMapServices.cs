@@ -39,6 +39,7 @@ namespace esriUtil.Forms.MapServices
                 this.UseWaitCursor = false;
             }
             cmbSrv.Items.AddRange(svLst.ToArray());
+            cmbSrv.SelectedItem = cmbSrv.Items[0];
         }
         private void loadLayers()
         {
@@ -149,7 +150,7 @@ namespace esriUtil.Forms.MapServices
             msUtil.updateConnectionTable(con);
             msUtil.updateServiceTable(con);
             loadConnection();
-            cmbCon.SelectedText = con;
+            cmbCon.SelectedItem = con;
             
 
             
@@ -172,6 +173,7 @@ namespace esriUtil.Forms.MapServices
                 cmbSrv.Text = "";
                 chbLayers.Items.Clear();
             }
+            cmbCon.SelectedItem = cmbCon.Items[0];
         }
 
         private void btnChangeOutput_Click(object sender, EventArgs e)

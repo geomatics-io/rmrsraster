@@ -8,12 +8,8 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeMaxAreaRectangle: neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(double[,] windowArr, double rsNoDataValue)
+        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            //Console.WriteLine("got to the overide");
-            Dictionary<int, int[]> uniqueDic = new Dictionary<int, int[]>();
-            findUniqueRegions fUnq = new findUniqueRegions();
-            fUnq.getUniqueRegions(windowArr,rsNoDataValue,ref uniqueDic);
             int maxVl = 0;
             foreach (int[] cntArr in uniqueDic.Values)
             {

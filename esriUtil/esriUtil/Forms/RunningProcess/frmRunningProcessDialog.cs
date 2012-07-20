@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace esriUtil.Forms.RunningProcess
 {
@@ -25,6 +26,7 @@ namespace esriUtil.Forms.RunningProcess
         {
             this.Close();
         }
+        
         public void addMessage(string msg)
         {
             rtbMessages.AppendText(msg + "\n");
@@ -36,10 +38,11 @@ namespace esriUtil.Forms.RunningProcess
         }
         public void stepPGBar(int steps)
         {
+            
             pgbProcess.Style = ProgressBarStyle.Blocks;
             int pgValue = pgbProcess.Value;
             int dif = pgbProcess.Maximum - pgValue;
-            if(dif<steps)
+            if (dif < steps)
             {
                 steps = dif;
             }
@@ -49,6 +52,7 @@ namespace esriUtil.Forms.RunningProcess
             }
             //pgbProcess.Style = ProgressBarStyle.Marquee;
             this.Refresh();
+
         }
         public void enableClose()
         {
@@ -63,5 +67,11 @@ namespace esriUtil.Forms.RunningProcess
             }
 
         }
+        public void showInSepperateProcess()
+        {
+            Thread t = new Thread(() => Application.Run(this));
+            t.Start();
+        }
+
     }
 }

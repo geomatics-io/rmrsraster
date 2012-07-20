@@ -142,11 +142,12 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.stepPGBar(20);
             rp.Show();
             rp.Refresh();
+            
             DateTime dt1 = DateTime.Now;
             try
             {
                 IRaster rs = rstDic[rstNm];
-                IRasterDataset rsDset = rsUtil.saveRasterToDataset(rs,outNm,outWks,rType);
+                IRasterDataset rsDset = rsUtil.saveRasterToDataset(rs, outNm, outWks, rType);
                 DateTime dt2 = DateTime.Now;
                 if (MessageBox.Show("Do you want to add raster to current map?", "Add Raster", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
@@ -156,11 +157,12 @@ namespace esriUtil.Forms.RasterAnalysis
                     rsLyr.Visible = false;
                     mp.AddLayer((ILayer)rsLyr);
                 }
-                
+
                 TimeSpan ts = dt2.Subtract(dt1);
                 string prcTime = "Time to complete process:\n" + ts.Days.ToString() + " Days " + ts.Hours.ToString() + " Hours " + ts.Minutes.ToString() + " Minutes " + ts.Seconds.ToString() + " Seconds ";
                 rp.addMessage(prcTime);
                 this.DialogResult = DialogResult.OK;
+
 
             }
             catch (Exception ex)
@@ -173,6 +175,8 @@ namespace esriUtil.Forms.RasterAnalysis
                 rp.enableClose();
                 this.Close();
             }
+                
+
         }
 
         private void btnWorkspace_Click(object sender, EventArgs e)

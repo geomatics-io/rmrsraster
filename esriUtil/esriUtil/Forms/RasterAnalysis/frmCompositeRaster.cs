@@ -52,7 +52,7 @@ namespace esriUtil.Forms.RasterAnalysis
             string outPath = null;
             string outName = "";
             ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
+            gxDialog.AllowMultiSelect = true;
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
             flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
             gxDialog.ObjectFilter = flt;
@@ -61,39 +61,43 @@ namespace esriUtil.Forms.RasterAnalysis
             if (gxDialog.DoModalOpen(0, out eGxObj))
             {
                 ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                IRaster rs = rsUtil.returnRaster(outPath);
-                if (((IRasterBandCollection)rs).Count > 1)
+                while (gxObj != null)
                 {
-                    IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    for (int r = 0; r < rsBc.Count; r++)
+                    outPath = gxObj.FullName;
+                    outName = gxObj.BaseName;
+                    IRaster rs = rsUtil.returnRaster(outPath);
+                    if (((IRasterBandCollection)rs).Count > 1)
                     {
-                        string nNm = outName + "_Band_" + (r + 1).ToString();
-                        IRaster rsB = rsUtil.getBand(rs, r);
-                        if (!rstDic.ContainsKey(nNm))
+                        IRasterBandCollection rsBc = (IRasterBandCollection)rs;
+                        for (int r = 0; r < rsBc.Count; r++)
                         {
-                            rstDic.Add(nNm, rsB);
-                            lsbRaster.Items.Add(nNm);
-                            //cmbInRaster1.Items.Add(nNm);
+                            string nNm = outName + "_Band_" + (r + 1).ToString();
+                            IRaster rsB = rsUtil.getBand(rs, r);
+                            if (!rstDic.ContainsKey(nNm))
+                            {
+                                rstDic.Add(nNm, rsB);
+                                lsbRaster.Items.Add(nNm);
+                                //cmbInRaster1.Items.Add(nNm);
+                            }
+                            else
+                            {
+                                rstDic[nNm] = rsB;
+                            }
                         }
-                        else
-                        {
-                            rstDic[nNm] = rsB;
-                        }
-                    }
-                }
-                else
-                {
-                    if (!rstDic.ContainsKey(outName))
-                    {
-                        rstDic.Add(outName, rs);
-                        lsbRaster.Items.Add(outName);
                     }
                     else
                     {
-                        rstDic[outName] = rs;
+                        if (!rstDic.ContainsKey(outName))
+                        {
+                            rstDic.Add(outName, rs);
+                            lsbRaster.Items.Add(outName);
+                        }
+                        else
+                        {
+                            rstDic[outName] = rs;
+                        }
                     }
+                    gxObj = eGxObj.Next();
                 }
             }
             return;

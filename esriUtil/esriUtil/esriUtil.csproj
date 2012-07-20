@@ -12,6 +12,7 @@
     <AssemblyName>esriUtil</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -394,8 +395,22 @@
     <Compile Include="FunctionRasters\exp10FunctionDataset.cs" />
     <Compile Include="FunctionRasters\expFunctionDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\focalFunctionDatasetBase.cs" />
     <Compile Include="FunctionRasters\LandscapeFunctionArguments.cs" />
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperBase.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\fastArrayManipulation.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperEntropy.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMax.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMean.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMedian.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMin.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMode.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperProbability.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperSum.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperUnique.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperVariance.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperStd.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMeanRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMedianRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMinRatioRectangle.cs" />
@@ -465,6 +480,7 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperSumRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperUniqueRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperVarianceRectangle.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\regionGroup.cs" />
     <Compile Include="FunctionRasters\radiansFunctionDataset.cs" />
     <Compile Include="FunctionRasters\sinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\log10FunctionDataset.cs" />

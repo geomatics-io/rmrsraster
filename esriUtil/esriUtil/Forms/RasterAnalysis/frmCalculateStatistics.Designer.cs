@@ -88,7 +88,7 @@
             // 
             this.nudSkip.Location = new System.Drawing.Point(14, 81);
             this.nudSkip.Maximum = new decimal(new int[] {
-            50,
+            10000,
             0,
             0,
             0});

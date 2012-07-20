@@ -52,33 +52,56 @@ namespace esriUtil.FunctionRasters
             set
             {
                 radius=value;
-                Columns = ((radius-1)*2)+1;
-                Rows = Columns;
+                columns = ((radius-1)*2)+1;
+                rows = columns;
+                windowtype = rasterUtil.windowType.CIRCLE;
+            }
+        }
+        private List<int[]> genericiterator = new List<int[]>();
+        public List<int[]> GenericIterator 
+        { 
+            get 
+            {
+                if (windowtype == rasterUtil.windowType.RECTANGLE)
+                {
+                    rsUtil.createFocalWindowRectangle(columns, rows, out genericiterator);
+                }
+                else
+                {
+                    rsUtil.createFocalWindowCircle(radius, out genericiterator);
+                }
+                return genericiterator;
             }
         }
         public rasterUtil.windowType WindowType
         {
             get { return windowtype; }
-            set
-            {
-                windowtype = value;
-                if (windowtype == rasterUtil.windowType.CIRCLE)
-                {
-                    if (Columns % 2 != 0)
-                    {
-                        Radius = (Columns + 1) / 2;
-                    }
-                    else
-                    {
-                        Radius = Columns / 2;
-                    }
-                }
-            }
+            //set
+            //{
+            //    windowtype = value;
+            //    if (windowtype == rasterUtil.windowType.CIRCLE)
+            //    {
+            //        if (Columns % 2 != 0)
+            //        {
+            //            Radius = (Columns + 1) / 2;
+            //        }
+            //        else
+            //        {
+            //            Radius = Columns / 2;
+            //        }
+
+            //        rsUtil.createFocalWindowCircle(Radius,out genericiterator);
+            //    }
+            //    else
+            //    {
+            //        rsUtil.createFocalWindowRectangle(Columns, Rows, out genericiterator);
+            //    }
+            //}
         }
         private int columns = 3;
         private int rows = 3;
-        public int Columns { get { return columns; } set { columns = value; } }
-        public int Rows { get { return rows; } set { rows = value; } }
+        public int Columns { get { return columns; } set { columns = value; windowtype = rasterUtil.windowType.RECTANGLE; } }
+        public int Rows { get { return rows; } set { rows = value; windowtype = rasterUtil.windowType.RECTANGLE; } }
         private ESRI.ArcGIS.Geodatabase.IRaster origRs = null;
         public ESRI.ArcGIS.Geodatabase.IRaster OriginalRaster { get { return origRs; } }
     }

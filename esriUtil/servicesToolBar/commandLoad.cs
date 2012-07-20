@@ -28,11 +28,14 @@ namespace servicesToolBar
                 esriUtil.mapserviceutility mpServ = new esriUtil.mapserviceutility();
                 ISpatialFilter spFlt = new SpatialFilter();
                 spFlt.Geometry = (IGeometry)av.Extent;
+                spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIndexIntersects;
+                //MessageBox.Show(spFlt.Geometry.SpatialReference.Name+ "Extent Width:Height = " + spFlt.Geometry.Envelope.Width.ToString()+":"+spFlt.Geometry.Envelope.Height.ToString());
+
                 mpServ.getDbFtrClassesThatNeedUpdating(spFlt);
             }
             else
             {
-                MessageBox.Show("You are not connected to the internet. To use this tool you must be connected to the internet!", "No Internet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You are not connected to the internet or your connection is too slow. To use this tool you must be connected to the internet!", "No Internet", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
         }

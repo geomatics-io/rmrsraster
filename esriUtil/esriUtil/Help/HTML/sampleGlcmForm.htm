@@ -28,14 +28,16 @@
             <span class="style1"> This form is used to sample <a href="GLCM.htm">GLCM</a> 
             values given a series of sample locations. Currently some of the 
             <a href="GLCM.htm">GLCM</a> metrics 
-            create conventional model outputs as opposed to <a href="FunctionDatasets.htm">
-            function datasets</a>, which can substantial increase processing time. This tool 
-            allows the user to sample some of those metrics without creating the conventional data source, 
-            providing a way to test if those values warrant creating the full dataset. 
+            create conventional model outputs rather than <a href="FunctionDatasets.htm">
+            function datasets</a>, which can substantially increase processing time. This tool 
+            allows the user to sample <a href="GLCM.htm">GLCM</a> metrics without creating conventional dataset, 
+            providing a way to quickly extract sample values and test if those values warrant creating 
+            a conventional dataset. 
             Future release of RMRS Raster Utility will deprecate this form and convert those metrics that 
-            produce conventional raster into function datasets. At that time users can use the
-            <a href="glcmForm.htm">Create GLCM Raster analysis tool</a> to create 
-            function model and then sample that newly created function model using the
+            produce conventional raster into function datasets. In the future users will be 
+            able to use the
+            <a href="glcmForm.htm">Create GLCM Raster Analysis</a> tool to create 
+            a function model and then sample that newly created function model using the
             <a href="sampleRasterForm.htm">Sample Raster Value</a> 
             form.</span></p>
         <p>
@@ -44,7 +46,7 @@
             locations.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Raster dropdown and open button: </em></strong>
-            Allows the user to select which raster will be used to calculate
+            Allows the user to select the raster that will be used to calculate
             <a href="GLCM.htm">GLCM</a> surfaces.</span><br 
                 class="style1" />
             <span class="style1"><strong><em>Window Type dropdown: </em></strong>
@@ -55,10 +57,10 @@
             <span class="style1"><strong><em>Columns, Rows, and Radius numeric dropdown: </em></strong>
             Allows users to specify 
             the size of the analysis window. If window type is Circle the Columns and Rows 
-            numeric dropdown disapears and the Radius numeric dropdown appears. Values are 
-            number of cells within the window.</span><br 
+            numeric dropdown disapears and the Radius numeric dropdown appears. The 
+            deminsion(s) of the widow and radius are specified in cells.</span><br 
                 class="style1" />
-            <span class="style1"><strong><em>Direction dropdown: </em></strong>
+            <span class="style1"><strong><em>Direction dropdown:  </em></strong>
             Allows users to select 
             the direction of comparison for the <a href="GLCM.htm">GLCM</a> (horizontal or 
             vertical). 
@@ -74,8 +76,8 @@
             the list of <a href="GLCM.htm">GLCM</a> values to sample. 
             </span><br 
                 class="style1" />
-            <span class="style1"><strong><em>- button: </em></strong>Subtracts the currently 
-            selected metric type from the list of <a href="GLCM.htm">GLCM</a> values to 
+            <span class="style1"><strong><em>- button: </em></strongSubtracts the currently 
+            selected metric from the list of <a href="GLCM.htm">GLCMM</a> values to 
             sample. 
             </span><br 
                 class="style1" />
@@ -94,9 +96,10 @@
                 class="style1" />
         </p>
         <p class="style3">
-            <strong><span class="style2">Output</span></strong><br />
+            <strong><span class="style2"Output</span></strong><br />
         </p>
         <p class="style1">
-            A .csv file located at the specified location.</p>
+            New fields within the selected sample locations feature that depict the 
+            specified GLCM values. Field names are based on the metrics selected.</p>
 	</body>
 </html>

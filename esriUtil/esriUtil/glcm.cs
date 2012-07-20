@@ -11,7 +11,7 @@ using ESRI.ArcGIS.Geometry;
 namespace esriUtil
 {
     /// <summary>
-    /// a class used to either sample or create gray level co-occurance metrix values or surfaces.
+    /// a class used to either sample or create gray level co-occurrence metrix values or surfaces.
     /// </summary>
     public class glcm
     {
@@ -47,7 +47,8 @@ namespace esriUtil
         private int calcCircleCells(int radius)
         {
             rad = true;
-            xAr = rsUtil.createFocalWindowCircle(radius);
+            List<int[]> iter = new List<int[]>();
+            xAr = rsUtil.createFocalWindowCircle(radius, out iter);
             clms = xAr.GetUpperBound(0)+1;
             rws = xAr.GetUpperBound(1)+1;
             int sum = 0;

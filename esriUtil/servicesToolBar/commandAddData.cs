@@ -19,7 +19,7 @@ namespace servicesToolBar
         {
             IMxDocument doc = ArcMap.Document;
             IMap map = doc.FocusMap;
-            esriUtil.Forms.MapServices.frmAddProjectLayers frmAdd = new esriUtil.Forms.MapServices.frmAddProjectLayers(map, ESRI.ArcGIS.Geodatabase.esriDatasetType.esriDTFeatureDataset);
+            esriUtil.Forms.MapServices.frmAddProjectLayers frmAdd = new esriUtil.Forms.MapServices.frmAddProjectLayers(map, ESRI.ArcGIS.Geodatabase.esriDatasetType.esriDTFeatureClass);
             frmAdd.TopLevel = true;
             frmAdd.Show();
             

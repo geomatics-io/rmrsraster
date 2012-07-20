@@ -20,7 +20,8 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
         /// <param name="rows">number of rows of the window</param>
         public neighborhoodhelper(int columns, int rows)
         {
-            window = rsUtil.createFocalWindowRectangle(columns, rows);
+            List<int[]> iter = new List<int[]>();
+            window = rsUtil.createFocalWindowRectangle(columns, rows,out iter);
             setStartupValues();
         }
         /// <summary>
@@ -30,7 +31,8 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
         public neighborhoodhelper(int radius)
         {
             rad = true;
-            window = rsUtil.createFocalWindowCircle(radius);
+            List<int[]> iter = new List<int[]>();
+            window = rsUtil.createFocalWindowCircle(radius, out iter);
             setStartupValues();
         }
         private void setStartupValues()
@@ -266,6 +268,20 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             {
                 updateSummaryValues();
                 return tuniqvalues.Keys.Count;
+            }
+        }
+        public double WindowProbability
+        {
+            get
+            {
+                double tProb = 0;
+                updateSummaryValues();
+                foreach (int ent in tuniqvalues.Values)
+                {
+                    double prob = Math.Pow(System.Convert.ToDouble(ent) / n,2);
+                    tProb = tProb + prob;
+                }
+                return tProb;
             }
         }
         public double WindowEntropyValues
