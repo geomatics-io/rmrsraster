@@ -156,10 +156,12 @@
     <Compile Include="commandSampleRasterCluster.cs" />
     <Compile Include="commandSaveRaster.cs" />
     <Compile Include="commandSedByArival.cs" />
+    <Compile Include="commandSetNull.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
     <Compile Include="commandVersion.cs" />
     <Compile Include="commandWebSite.cs" />
+    <Compile Include="commandZonalStats.cs" />
     <Compile Include="Config.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Config.esriaddinx</DependentUpon>
@@ -407,6 +409,14 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\commandMergeRasters.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandSetNull.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandZonalStats.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>

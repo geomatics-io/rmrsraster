@@ -177,6 +177,7 @@ namespace esriUtil.Forms.RasterAnalysis
         private frmSummarizeRaster frmSm = null;
         private frmExtractBand frmE = null;
         private frmMathRaster frmM = null;
+        private frmSetNull frmSN = null;
         private Texture.frmLandscapeMetrics frmLand = null;
         private Texture.frmCreateGlcmSurface frmT = null;
         private string funcDirNm = "functionDatasets";
@@ -486,7 +487,26 @@ namespace esriUtil.Forms.RasterAnalysis
                         object[] ob = { nm,false, desc };
                         addRowsToDataGrid(ob);
                     }
-                    //frmT.Dispose();
+                    break;
+                case functionModel.functionGroups.SetNull:
+                    if (frmSN == null)
+                    {
+                        frmSN = new frmSetNull(mp, ref rsUtil, false);
+                    }
+                    foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
+                    {
+                        frmSN.addRasterToComboBox(kVp.Key,kVp.Value);
+                    }
+                    dRslt = frmSN.ShowDialog(this);
+                    mo = frmSN.OutRaster;
+                    nm = frmSN.OutRasterName;
+                    if (mo != null && nm != null && nm != "" && dRslt == System.Windows.Forms.DialogResult.OK)
+                    {
+                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmSN).ToArray()) + ")";
+                        rsultDic[nm] = mo;
+                        object[] ob = { nm,false, desc };
+                        addRowsToDataGrid(ob);
+                    }
                     break;
                 default:
                     if (frmT == null)
@@ -1219,6 +1239,39 @@ namespace esriUtil.Forms.RasterAnalysis
                                         fullPath = getFeaturePath(vl, false);
                                     }
                                     break;
+                                case functionModel.functionGroups.SetNull:
+                                    if (frmSN.RasterDictionary.ContainsKey(vl))
+                                    {
+                                        rs2 = (IRaster2)frmSN.RasterDictionary[vl];
+                                        rsDset = rs2.RasterDataset;
+                                        dSet = (IDataset)rsDset;
+                                        int vlIndex = vl.IndexOf("Band_");
+                                        if ((((IRasterBandCollection)rsDset).Count > 1) && vlIndex > -1)
+                                        {
+                                            if (vlIndex > -1)
+                                            {
+                                                string bandStr = vl.Substring(vlIndex, vl.Length - vlIndex);
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\" + bandStr;
+                                            }
+                                            else
+                                            {
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\xxx";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
+                                        }
+                                    }
+                                    else if (rsUtil.isNumeric(vl) || vl == "")
+                                    {
+                                        checkReplace = false;
+                                    }
+                                    else
+                                    {
+                                        fullPath = getFeaturePath(vl, false);
+                                    }
+                                    break;
                                 default:
                                     break;
                             }
@@ -1284,10 +1337,6 @@ namespace esriUtil.Forms.RasterAnalysis
                 if (tst == true)
                 {
                     IRaster rs = rsultDic[rsNm];
-                    //if (chbBuildStats.Checked)
-                    //{
-                    //    rsUtil.calcStatsAndHist(rs);
-                    //}
                     IRasterLayer rsLyr = new RasterLayerClass();
                     rsLyr.CreateFromRaster(rs);
                     rsLyr.Name = rsNm;

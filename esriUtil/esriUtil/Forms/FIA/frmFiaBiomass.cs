@@ -91,6 +91,7 @@ namespace esriUtil.Forms.FIA
                             {
                                 ftrDic.Add(lyrNm, ftrCls);
                                 cmbSampleFeatureClass.Items.Add(lyrNm);
+                                
                             }
                         }
                     }

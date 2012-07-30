@@ -98,5 +98,17 @@ namespace esriUtil.Properties {
                 this["MosaicDir"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("unknown")]
+        public string ConversionDir {
+            get {
+                return ((string)(this["ConversionDir"]));
+            }
+            set {
+                this["ConversionDir"] = value;
+            }
+        }
     }
 }

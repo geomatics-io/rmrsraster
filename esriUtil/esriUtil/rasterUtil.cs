@@ -16,6 +16,7 @@ namespace esriUtil
         {
             string globFuncDir = esriUtil.Properties.Settings.Default.FuncDir;
             string globMosaicDir = esriUtil.Properties.Settings.Default.MosaicDir;
+            string globConvDir = esriUtil.Properties.Settings.Default.ConversionDir;
             if (globFuncDir == "unknown")
             {
                 globFuncDir = System.Environment.GetEnvironmentVariable("temp") + "\\func";
@@ -28,16 +29,26 @@ namespace esriUtil
                 esriUtil.Properties.Settings.Default.MosaicDir = globMosaicDir;
                 esriUtil.Properties.Settings.Default.Save();
             }
+            if (globConvDir == "unknown")
+            {
+                globConvDir = System.Environment.GetEnvironmentVariable("temp") + "\\conv";
+                esriUtil.Properties.Settings.Default.ConversionDir = globConvDir;
+                esriUtil.Properties.Settings.Default.Save();
+            }
             System.IO.DirectoryInfo DInfo = new System.IO.DirectoryInfo(globFuncDir);
             if (!DInfo.Exists)
             {
                 DInfo.Create();
             }
             if (!System.IO.Directory.Exists(globMosaicDir)) System.IO.Directory.CreateDirectory(globMosaicDir);
+            if (!System.IO.Directory.Exists(globConvDir)) System.IO.Directory.CreateDirectory(globConvDir);
             mosaicDir = globMosaicDir + "\\" + newGuid;
             funcDir = globFuncDir + "\\" + newGuid;
+            convDir = globConvDir + "\\" + newGuid;
             fp = newGuid.Substring(1, 3);
             System.IO.Directory.CreateDirectory(funcDir);
+            System.IO.Directory.CreateDirectory(convDir);
+            System.IO.Directory.CreateDirectory(mosaicDir);
         }
         //~rasterUtil()
         //{
@@ -54,8 +65,13 @@ namespace esriUtil
         {
             return geoUtil.isNumeric(s);
         }
+        
         private string mosaicDir = "";
+        public string TempMosaicDir { get { return mosaicDir; } } 
         private string funcDir = "";
+        public string TempFuncDir { get { return funcDir; } }
+        private string convDir = "";
+        public string TempConvDir { get { return convDir; } }
         private int funcCnt = 0;
         private string newGuid = System.Guid.NewGuid().ToString();
         private string fp = "";
@@ -79,6 +95,7 @@ namespace esriUtil
         /// sampling cluster types
         /// </summary>
         public enum clusterType {SUM,MEAN,MEDIAN,MODE};
+        public enum zoneType { MAX, MIN, RANGE, SUM, MEAN, VARIANCE, STANDARD_DEVIATION, MEDIAN, MODE, MINORITY, VARIETY, ENTROPY, ASM }
         /// <summary>
         /// focal window functions types
         /// </summary>
@@ -3425,7 +3442,11 @@ namespace esriUtil
             rasterAnalysisEnvironment.SetCellSize(ESRI.ArcGIS.GeoAnalyst.esriRasterEnvSettingEnum.esriRasterEnvValue, ref cellS);
             rasterAnalysisEnvironment.SetExtent(ESRI.ArcGIS.GeoAnalyst.esriRasterEnvSettingEnum.esriRasterEnvValue, ref ext,ref snap);
             string fmt = rasterType.ToString();
-            if (fmt == "IMAGINE") fmt = "IMAGINE image";
+            if (fmt == "IMAGINE")
+            {
+                fmt = "IMAGINE image";
+                if (!outName.ToLower().EndsWith(".img")) outName = outName + ".img";
+            }
             IRasterDataset geoDset = convOp.ToRasterDataset((IGeoDataset)featureClass, fmt, outWorkSpace, outName);
             IGeoDatasetSchemaEdit2 geoSch = (IGeoDatasetSchemaEdit2)geoDset;
             if (geoSch.CanAlterSpatialReference) geoSch.AlterSpatialReference(rasterAnalysisEnvironment.OutSpatialReference);
@@ -4733,17 +4754,38 @@ namespace esriUtil
             IRaster rs = mosaicRastersFunction(wks, rstNm, inRasters,esriMosaicMethod.esriMosaicNone,mergeMethod,false,false,false,false);
             return rs;
         }
+        public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        {
+            FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
+            zH.InValueRaster = inValueRaster;
+            zH.convertFeatureToRaster(inFeatureClass, fieldName);
+            //zH.InZoneFeatureClass = inFeatureClass;
+            //zH.InZoneField = fieldName;
+            zH.ZoneTypes = zoneTypes;
+            zH.setZoneValues();
+            return zH.OutTable;
+        }
+        public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        {
+            FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
+            zH.InValueRaster = inValueRaster;
+            zH.InZoneRaster = inZoneRaster;
+            zH.ZoneTypes = zoneTypes;
+            zH.setZoneValues();
+            return zH.OutTable;
+        }
         public static void cleanupTempDirectories()
         {
             string func = System.Environment.GetEnvironmentVariable("temp") + "\\func";
             string mos = System.Environment.GetEnvironmentVariable("temp") + "\\mosaic";
-            string[] dirs = {func,mos};
+            string conv = System.Environment.GetEnvironmentVariable("temp") + "\\conv";
+            string[] dirs = {func,mos,conv};
             foreach (string s in dirs)
             {
                 try
                 {
                     System.IO.DirectoryInfo dInfo = new System.IO.DirectoryInfo(s);
-                    dInfo.Delete(true);
+                    if(dInfo.Exists) dInfo.Delete(true);
                 }
                 catch
                 {

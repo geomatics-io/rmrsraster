@@ -31,7 +31,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 double prob = vl / n;
                 entropy = entropy + prob * Math.Log(prob);
             }
-            return entropy;
+            return -1*entropy;
         }
     }
 }

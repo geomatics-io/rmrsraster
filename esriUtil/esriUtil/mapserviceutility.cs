@@ -338,6 +338,7 @@ namespace esriUtil
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
             }
             finally
             {

@@ -29,7 +29,7 @@ namespace servicesToolBar
             }
             else
             {
-                MessageBox.Show("You are not connected to the internet. To use this tool you must be connected to the internet!", "No Internet", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You are not connected to the internet. To use this tool you must be connected to the internet and have a fast connection!", "No Internet", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
 

@@ -20,5 +20,8 @@
     <Setting Name="MosaicDir" Type="System.String" Scope="User">
       <Value Profile="(Default)">unknown</Value>
     </Setting>
+    <Setting Name="ConversionDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">unknown</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

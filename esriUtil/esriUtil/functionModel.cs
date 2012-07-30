@@ -24,7 +24,7 @@ namespace esriUtil
         {
         }
         public enum dem { NorthSouth, EastWest, Slope, Aspect }
-        public enum functionGroups { Arithmetic, Math, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape };
+        public enum functionGroups { Arithmetic, Math, SetNull, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
@@ -185,11 +185,29 @@ namespace esriUtil
                 case functionGroups.Landscape:
                     calcLandscapeMetrics(prmArr, out otNm, out otRs);
                     break;
+                case functionGroups.SetNull:
+                    calcSetNull(prmArr, out otNm, out otRs);
+                    break;
                 default:
                     break;
             }
 
 
+        }
+
+        private void calcSetNull(string[] prmArr, out string name, out IRaster raster)
+        {
+            name = prmArr[0].Split(new char[] { '@' })[1];
+            string inRaster1 = prmArr[2].Split(new char[] { '@' })[1];
+            string ranges = prmArr[1].Split(new char[]{'@'})[1];
+            List<double[]> rngLst = new List<double[]>();
+            foreach(string s in ranges.Split(new char[]{','}))
+            {
+                string[] vlArr = s.Split(new char[]{'`'});
+                double[] vlArrD = {System.Convert.ToDouble(vlArr[0]),System.Convert.ToDouble(vlArr[1])};
+                rngLst.Add(vlArrD);
+            }
+            raster = rsUtil.setValueRangeToNodata(inRaster1, rngLst);
         }
 
         private void calcLandscapeMetrics(string[] prmArr, out string name, out IRaster raster)

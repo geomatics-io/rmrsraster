@@ -31,17 +31,41 @@ namespace TestConsole
             //ESRI License Initializer generated code.
             m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[] { esriLicenseProductCode.esriLicenseProductCodeArcInfo }, new esriLicenseExtensionCode[] { esriLicenseExtensionCode.esriLicenseExtensionCode3DAnalyst, esriLicenseExtensionCode.esriLicenseExtensionCodeSpatialAnalyst });
             System.DateTime dt = System.DateTime.Now;
-
+            Console.WriteLine();
 
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            esriUtil.FunctionRasters.NeighborhoodHelper.fastArrayManipulation fsArr = new esriUtil.FunctionRasters.NeighborhoodHelper.fastArrayManipulation();
-            string inWks = @"C:\Users\jshogland\Documents\John\temp\testFGD.gdb";
-            string outWks = @"C:\Users\jshogland\Documents\John\temp\testGrid";
-            string outRsNm = "rsEE";
-            string InRsStr = inWks + "\\CCCD";
-            esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime frm = new esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime();
-            System.Windows.Forms.Application.Run(frm);
+            //esriUtil.FunctionRasters.NeighborhoodHelper.fastArrayManipulation fsArr = new esriUtil.FunctionRasters.NeighborhoodHelper.fastArrayManipulation();
+            string inWks = @"C:\Users\jshogland\Documents\John\Projects\Uncompahgre Plateau\test.gdb";
+            
+            //string outWks = @"C:\Users\jshogland\Documents\John\temp\testGrid";
+            //string outRsNm = "rsEE";
+            string InZoneStr = inWks + "\\ZoneFtClsPoly";
+            string inValueRaster = inWks + "\\MLC_CLIP";
+            IRaster vRs = rsUtil.returnRaster(inValueRaster);
+            //IRaster zRs = rsUtil.returnRaster(InZoneStr);
+            //IRasterProps zProps = (IRasterProps)zRs;
+            //zProps.Width = System.Convert.ToInt32(zProps.Width * 2);
+            //zProps.Height = System.Convert.ToInt32(zProps.Height * 2);
+            IFeatureClass ftrCls = geoUtil.getFeatureClass(InZoneStr);
+            string fldNm = "zone";
+            esriUtil.Forms.RunningProcess.frmRunningProcessDialog frm = new esriUtil.Forms.RunningProcess.frmRunningProcessDialog(true);
+            frm.Show();
+            rasterUtil.zoneType[] zt = { rasterUtil.zoneType.MAX, rasterUtil.zoneType.MIN, rasterUtil.zoneType.MEAN, rasterUtil.zoneType.STANDARD_DEVIATION, rasterUtil.zoneType.VARIANCE, rasterUtil.zoneType.SUM, rasterUtil.zoneType.ENTROPY, rasterUtil.zoneType.ASM, rasterUtil.zoneType.VARIETY, rasterUtil.zoneType.MEDIAN, rasterUtil.zoneType.MINORITY, rasterUtil.zoneType.MODE, rasterUtil.zoneType.RANGE };
+            esriUtil.FunctionRasters.zonalHelper zH = new esriUtil.FunctionRasters.zonalHelper(rsUtil, frm);
+            zH.InValueRaster = vRs;
+            //zH.convertFeatureToRaster(ftrCls, fldName);
+            zH.InZoneFeatureClass = ftrCls;
+            zH.InZoneField = fldNm;
+            zH.ZoneTypes = zt;
+            zH.setZoneValues();
+            //IRaster rs5 = rsUtil.calcFocalStatisticsFunction(zRs,3,3,rasterUtil.focalType.SUM);
+            //rasterUtil.zoneType[] zt = {rasterUtil.zoneType.MAX,rasterUtil.zoneType.MIN,rasterUtil.zoneType.MEAN,rasterUtil.zoneType.STANDARD_DEVIATION,rasterUtil.zoneType.VARIANCE,rasterUtil.zoneType.SUM,rasterUtil.zoneType.ENTROPY,rasterUtil.zoneType.ASM,rasterUtil.zoneType.VARIETY,rasterUtil.zoneType.MEDIAN,rasterUtil.zoneType.MINORITY,rasterUtil.zoneType.MODE,rasterUtil.zoneType.RANGE};
+            ITable tbl = zH.OutTable;
+            //IDataset dSetTbl = (IDataset)tbl;
+            //Console.WriteLine(dSetTbl.Workspace.PathName + "\\" + dSetTbl.BrowseName);
+            //esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime frm = new esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime();
+            //System.Windows.Forms.Application.Run(frm);
             //int[,] myArray = { { 1, 2, 3, 4, 5, 6 }, { 7,8,9,10,11,12 }, {13,14,15,16,17,18 }, { 19,20,21,22,23,24 }, { 25,26,27,28,29,30  } };
             
             //var outSelect = from int v in myArray select v;

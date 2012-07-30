@@ -265,6 +265,7 @@ namespace esriUtil
                 }
                 else
                 {
+                    //Console.WriteLine(dbPath);
                     dir = System.IO.Path.GetFullPath(dbPath);
                 }
                 string ext = null;
@@ -453,6 +454,19 @@ namespace esriUtil
                 }
             }
             return x;
+        }
+        public string getSafeOutputNameNonRaster(IWorkspace wks, string inName)
+        {
+            string rstOut = inName;
+            foreach (string s in new string[] { " ", "`", "~", "!", ".", ",", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", "=", "-" })
+            {
+                rstOut = rstOut.Replace(s, "_");
+            }
+            while (((System.IO.Directory.Exists(wks.PathName + "\\" + rstOut) == true) || (ftrExists(wks, rstOut) == true)) == true)
+            {
+                rstOut = "_" + rstOut;
+            }
+            return rstOut;
         }
         /// <summary>
         /// determins if a feature exists
