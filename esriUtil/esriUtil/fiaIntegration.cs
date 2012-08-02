@@ -45,22 +45,24 @@ namespace esriUtil
                 default:
                     break;
             }
-            dbLc = firstP + dbLocation + lastP;
+            dbLc = firstP +dbLocation + lastP;
+            //Console.WriteLine(dbLc);
         }
 
         private void setDbProvider()
         {
             av = msofficeHelper.returnMajorVersion(msofficeHelper.OfficeComponent.Access)+".0";
             ev = oleExceldbprovider = msofficeHelper.returnMajorVersion(msofficeHelper.OfficeComponent.Excel) + ".0";
-            if (av != "0.0")
-            {
-                oleAccessdbprovider = av;
-            }
-            if (ev != "0.0")
-            {
-                oleExceldbprovider = ev;
-            }
-
+            //if (av != "0.0")
+            //{
+            //    oleAccessdbprovider = av;
+            //}
+            //if (ev != "0.0")
+            //{
+            //    oleExceldbprovider = ev;
+            //}
+            //Console.WriteLine(av);
+            //Console.WriteLine(ev);
 
         }
         ~fiaIntegration()
@@ -69,8 +71,8 @@ namespace esriUtil
         }
         string av = "0.0";
         string ev = "0.0";
-        string oleAccessdbprovider = "14.0";
-        string oleExceldbprovider = "14.0";
+        string oleAccessdbprovider = "12.0";
+        string oleExceldbprovider = "12.0";
         private string dbLc = "";
         public enum biomassTypes { BAA, TPA, J_AGB, J_SAGB, J_BAGB, J_FAGB, J_TPAGB };
         public IFeatureClass SampleFeatureClass{get;set;}
@@ -96,7 +98,9 @@ namespace esriUtil
                 string sqlAGBPlot = "SELECT qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME, ((Sum([BA]))*(43560/(3.141592654*24^2))) AS BAA, (Count([DIA]))*(43560/(3.141592654*24^2)) AS TPA, ((Sum([J_TBM]))*(43560/(3.141592654*24^2)))/2000 AS J_AGB, (Sum([J_SBM])*(43560/(3.141592654*24^2)))/2000 AS J_SAGB, (Sum([J_BBM])*(43560/(3.141592654*24^2)))/2000 AS J_BAGB, (Sum([J_FBM])*(43560/(3.141592654*24^2)))/2000 AS J_FAGB, (Sum([J_TPBM])*(43560/(3.141592654*24^2)))/2000 AS J_TPAGB FROM (" + sqlTreeAGB + ") AS qryLbsByTree GROUP BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME ORDER BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR;";
                 using (System.Data.OleDb.OleDbConnection con = new System.Data.OleDb.OleDbConnection(dbLc))
                 {
+                    //Console.WriteLine(con.ConnectionString);
                     con.Open();
+                    //Console.WriteLine("opened the database");
                     System.Data.OleDb.OleDbDataAdapter olDbAdp = new System.Data.OleDb.OleDbDataAdapter(sqlAGBPlot, con);
                     olDbAdp.TableMappings.Add("Table", "tblAGB");
                     olDbAdp.Fill(dSet);
@@ -109,13 +113,15 @@ namespace esriUtil
                     addFields();
                     updateFetureClass();
                     dSet.Tables.Remove("tblSp");
+
                 }
             }
             catch
             {
+                //System.Environment.OSVersion.
                 if (av == "0.0" || ev == "0.0")
                 {
-                    System.Windows.Forms.MessageBox.Show("You do not have an Access or Excel installed. Please download and install Office 2010 data providers from:\nhttp://www.microsoft.com/en-us/download/details.aspx?id=13255!", "No data provider found", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    System.Windows.Forms.MessageBox.Show("You do not have OleDB 12.0 installed. Please download and install Office 2007 data provider from:\nhttp://www.microsoft.com/en-us/download/confirmation.aspx?id=23734", "No data provider found", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                 }
             }
         }
@@ -194,7 +200,7 @@ namespace esriUtil
                     foreach (biomassTypes t in fldArr)
                     {
                         fldNm = t.ToString() + "_" + s;
-                        Console.WriteLine(fldNm);
+                        //Console.WriteLine(fldNm);
                         int fldIndex = ftrCur.FindField(fldNm);
                         ftr.set_Value(fldIndex, 0);
                     }

@@ -136,143 +136,97 @@ namespace esriUtil.FunctionRasters
         private void calcZoneValuesFtr()
         {
             bool makeDic = (ZoneTypes.Contains(rasterUtil.zoneType.VARIETY) || ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY) || ZoneTypes.Contains(rasterUtil.zoneType.ASM) || ZoneTypes.Contains(rasterUtil.zoneType.MINORITY) || ZoneTypes.Contains(rasterUtil.zoneType.MODE) || ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
-            double vNoDataVl = System.Convert.ToDouble(((System.Array)vProps.NoDataValue).GetValue(0));
             IPnt vPntLoc = new PntClass();
             IPnt vPntSize = new PntClass();
-            IRaster2 vr = (IRaster2)vRs;
             IPnt meanCellSize = vProps.MeanCellSize();
             double cSizeX = meanCellSize.X;
             double cSizeY = meanCellSize.Y;
-            Console.WriteLine("Cell size = " +cSizeX.ToString()+":"+cSizeY.ToString());
-            vPntSize.SetCoords(512, 512);
-            IRasterCursor vCur = vr.CreateCursorEx(vPntSize);
-           
             int zoneIndex = ftrCls.FindField(InZoneField);
-            do
+            IFeatureCursor ftrCur = ftrCls.Search(null, false);
+            IFeature ftr = ftrCur.NextFeature();
+            while (ftr != null)
             {
-                IPixelBlock vPb = vCur.PixelBlock;
-                vPntLoc = vCur.TopLeft;
-                Console.WriteLine(vPntLoc.X.ToString() + ":" + vPntLoc.Y.ToString());
-                double mX, mY;
-                vr.PixelToMap(System.Convert.ToInt32(vPntLoc.X), System.Convert.ToInt32(vPntLoc.Y), out mX, out mY);
-                int wd = vPb.Width;
-                int ht = vPb.Height;
-                System.Array vPix = (System.Array)vPb.get_SafeArray(0);
-                for (int r = 0; r < ht; r++)
+                int z = System.Convert.ToInt32(ftr.get_Value(zoneIndex));
+                IGeometry geo = ftr.ShapeCopy;
+                if (needToProject) geo.Project(vProps.SpatialReference);
+                IRaster cutRs = rsUtil.clipRasterFunction(vRs, geo, esriRasterClippingType.esriRasterClippingOutside);
+                IRasterProps cProps = (IRasterProps)cutRs;
+                double cNoDataVl = System.Convert.ToDouble(((System.Array)cProps.NoDataValue).GetValue(0));
+                vPntSize.SetCoords(cProps.Width,cProps.Height);
+                vPntLoc.SetCoords(0,0);
+                IPixelBlock cPb = cutRs.CreatePixelBlock(vPntSize);
+                cutRs.Read(vPntLoc, cPb);
+                System.Array vPix = (System.Array)cPb.get_SafeArray(0);
+                for (int r = 0; r < cProps.Height; r++)
                 {
-                    double mapY = mY-(cSizeY*r);
-                    for (int c = 0; c < wd; c++)
+                    for (int c = 0; c < cProps.Width; c++)
                     {
                         double v = System.Convert.ToDouble(vPix.GetValue(c, r));
-                        if (v == vNoDataVl)
+                        if (v == cNoDataVl)
                         {
                             continue;
                         }
                         else
                         {
-                            double mapX = mX+(cSizeX*c);
-                            IPoint checkPnt = new PointClass();
-                            checkPnt.SpatialReference = ((IGeoDataset)ftrCls).SpatialReference;
-                            ISpatialFilter spFlt = new SpatialFilter();
-                            spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
-                            if(needToProject)
+                            int vi = System.Convert.ToInt32(v);
+                            object[] zoneValue;
+                            if (zoneValueDic.TryGetValue(z, out zoneValue))
                             {
-                                IPoint newPoint = new PointClass();
-                                newPoint.PutCoords(mapX, mapY);
-                                newPoint.SpatialReference = vProps.SpatialReference;
-                                newPoint.Project(checkPnt.SpatialReference);
-                                mapX = newPoint.X;
-                                mapY = newPoint.Y;
-                            }
-                            checkPnt.PutCoords(mapX,mapY);
-                            spFlt.Geometry = checkPnt;
-                            ISelectionSet ss = ftrCls.Select(spFlt, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, null);
-                            //Console.WriteLine(ss.Count);
-                            if (ss.Count<1)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                
-                                IEnumIDs eIDs = ss.IDs;
-                                int id = eIDs.Next();
-                                if (id < 0)
+                                double cnt = System.Convert.ToDouble(zoneValue[0]);
+                                zoneValue[0] = cnt += 1;
+                                double maxVl = System.Convert.ToDouble(zoneValue[1]);
+                                if (v > maxVl)
                                 {
-                                    continue;
+                                    maxVl = v;
+                                    zoneValue[1] = maxVl;
                                 }
-                                else
+                                double minVl = System.Convert.ToDouble(zoneValue[2]);
+                                if (v < minVl)
                                 {
-                                    Console.WriteLine("MapX:MapY = " + mapX.ToString() + ":" + mapY.ToString());
-                                    IRow rw = ftrCls.GetFeature(id);
-                                    int z = System.Convert.ToInt32(rw.get_Value(zoneIndex));
-                                    //Console.WriteLine("\t"+z.ToString());
-                                    int vi = System.Convert.ToInt32(v);
-                                    object[] zoneValue;
-                                    if (zoneValueDic.TryGetValue(z, out zoneValue))
+                                    minVl = v;
+                                    zoneValue[2] = minVl;
+                                }
+                                double s = System.Convert.ToDouble(zoneValue[3]);
+                                zoneValue[3] = s + v;
+                                double s2 = System.Convert.ToDouble(zoneValue[4]);
+                                zoneValue[4] = s2 + v * v;
+                                if (makeDic)
+                                {
+                                    Dictionary<int, int> uDic = (Dictionary<int, int>)zoneValue[5];
+                                    int cntVl = 0;
+                                    if (uDic.TryGetValue(vi, out cntVl))
                                     {
-                                        double cnt = System.Convert.ToDouble(zoneValue[0]);
-                                        zoneValue[0] = cnt += 1;
-                                        double maxVl = System.Convert.ToDouble(zoneValue[1]);
-                                        if (v > maxVl)
-                                        {
-                                            maxVl = v;
-                                            zoneValue[1] = maxVl;
-                                        }
-                                        double minVl = System.Convert.ToDouble(zoneValue[2]);
-                                        if (v < minVl)
-                                        {
-                                            minVl = v;
-                                            zoneValue[2] = minVl;
-                                        }
-                                        double s = System.Convert.ToDouble(zoneValue[3]);
-                                        zoneValue[3] = s + v;
-                                        double s2 = System.Convert.ToDouble(zoneValue[4]);
-                                        zoneValue[4] = s2 + v * v;
-                                        if (makeDic)
-                                        {
-                                            Dictionary<int, int> uDic = (Dictionary<int, int>)zoneValue[5];
-                                            int cntVl = 0;
-                                            if (uDic.TryGetValue(vi, out cntVl))
-                                            {
-                                                uDic[vi] = cntVl += 1;
-                                            }
-                                            else
-                                            {
-                                                uDic.Add(vi, 1);
-                                            }
-                                            zoneValue[5] = uDic;
-                                        }
-                                        zoneValueDic[z] = zoneValue;
+                                        uDic[vi] = cntVl += 1;
                                     }
                                     else
                                     {
-                                        zoneValue = new object[6];
-                                        zoneValue[0] = 1d;
-                                        zoneValue[1] = v;
-                                        zoneValue[2] = v;
-                                        zoneValue[3] = v;
-                                        zoneValue[4] = v * v;
-                                        if (makeDic)
-                                        {
-                                            Dictionary<int, int> uDic = new Dictionary<int, int>();
-                                            uDic.Add(vi, 1);
-                                            zoneValue[5] = uDic;
-                                        }
-                                        zoneValueDic.Add(z, zoneValue);
+                                        uDic.Add(vi, 1);
                                     }
+                                    zoneValue[5] = uDic;
                                 }
-
+                                zoneValueDic[z] = zoneValue;
+                            }
+                            else
+                            {
+                                zoneValue = new object[6];
+                                zoneValue[0] = 1d;
+                                zoneValue[1] = v;
+                                zoneValue[2] = v;
+                                zoneValue[3] = v;
+                                zoneValue[4] = v * v;
+                                if (makeDic)
+                                {
+                                    Dictionary<int, int> uDic = new Dictionary<int, int>();
+                                    uDic.Add(vi, 1);
+                                    zoneValue[5] = uDic;
+                                }
+                                zoneValueDic.Add(z, zoneValue);
                             }
                         }
                     }
                 }
-
-
+                ftr = ftrCur.NextFeature();
             }
-            while (vCur.Next() == true);
-
-
         }
 
         private bool checkProjectionsFtr()
@@ -731,19 +685,27 @@ namespace esriUtil.FunctionRasters
                 }
                 if (divX == 0)
                 {
-                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster to match the value raster!");
-                    zProps.Width = System.Convert.ToInt32((zX / vX) * zProps.Width);
+                    if (zX > vX)
+                    {
+                        zProps.Width = System.Convert.ToInt32(zProps.Width * (zX / vX));
+                        if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster cell width to match the value raster ("+zProps.MeanCellSize().X.ToString()+")!");
+                    }
+                    else
+                    {
+                        vProps.Width = System.Convert.ToInt32(vProps.Width * (vX / zX));
+                        if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the valueRaster cell width to match the zone raster(" + vProps.MeanCellSize().X.ToString() + ")!");
+                    }
                 }
                 else
                 {
-                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size and are not a multiple of each other! Please resample your zone raster to match your value raster!");
+                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size (width) and are not a multiple of each other! Please resample your zone raster to match your value raster!");
                     cS = false;
                     return cS;
                 }
                 
             }
 
-            if (zPnt.Y != vPnt.Y)
+            if (zY != vY)
             {
                 if (zY > vY)
                 {
@@ -755,16 +717,27 @@ namespace esriUtil.FunctionRasters
                 }
                 if (divY == 0)
                 {
-                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster to match the value raster!");
-                    zProps.Height = System.Convert.ToInt32((zY / vY) * zProps.Height);
+                    if (zY > vY)
+                    {
+                        zProps.Height = System.Convert.ToInt32(zProps.Height * (zY / vY));
+                        if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster cell height to match the value raster(" + zProps.MeanCellSize().Y.ToString() + ")!");
+                        
+                    }
+                    else
+                    {
+                        vProps.Height = System.Convert.ToInt32(vProps.Height * (vY / zY));
+                        if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the valueRaster cell height to match the zone raster(" + vProps.MeanCellSize().Y.ToString() + ")!");
+                        
+                    }
                 }
                 else
                 {
-                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size and are not a multiple of each other! Please resample your zone raster to match your value raster!");
-                    Console.WriteLine("DivY = " + divY.ToString());
-                    cS = false; 
+                    if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size (height) and are not a multiple of each other! Please resample your zone raster to match your value raster!");
+                    cS = false;
+                    return cS;
                 }
-                return cS;
+                
+                
             }
             return cS;
         }
@@ -779,7 +752,9 @@ namespace esriUtil.FunctionRasters
             set
             { 
                 ftrCls = value;
-                wks = ((IDataset)ftrCls).Workspace;
+                IDataset ds = (IDataset)ftrCls;
+                wks = ds.Workspace;
+                tblName = geoUtil.getSafeOutputNameNonRaster(wks, ds.BrowseName + "_VAT");
             } 
         }
         string ftrField = null;

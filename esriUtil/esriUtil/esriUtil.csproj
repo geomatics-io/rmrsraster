@@ -22,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="accuracyAssessment.cs" />
+    <Compile Include="batchCalculations.cs" />
     <Compile Include="fiaIntegration.cs" />
     <Compile Include="Forms\FIA\frmFiaBiomass.cs">
       <SubType>Form</SubType>
@@ -156,6 +157,12 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmArithmeticRaster.Designer.cs">
       <DependentUpon>frmArithmeticRaster.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmBatchProcess.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmBatchProcess.Designer.cs">
+      <DependentUpon>frmBatchProcess.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmCalculateStatistics.cs">
       <SubType>Form</SubType>
@@ -547,6 +554,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmArithmeticRaster.resx">
       <DependentUpon>frmArithmeticRaster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmBatchProcess.resx">
+      <DependentUpon>frmBatchProcess.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmCalculateStatistics.resx">
       <DependentUpon>frmCalculateStatistics.cs</DependentUpon>

@@ -41,7 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -119,6 +119,7 @@
     <Compile Include="commandAddFunctionModelToMap.cs" />
     <Compile Include="commandAddTiledImageServer.cs" />
     <Compile Include="commandArithmeticRaster.cs" />
+    <Compile Include="commandBatchProcess.cs" />
     <Compile Include="commandCalculateRasterStatistics.cs" />
     <Compile Include="commandClipRaster.cs" />
     <Compile Include="commandCompositeRaster.cs" />
@@ -417,6 +418,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <AddInContent Include="Images\commandZonalStats.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandBatchProcess.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>

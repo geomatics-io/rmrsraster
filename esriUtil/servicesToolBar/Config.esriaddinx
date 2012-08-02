@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>7/24/2012</Date>
+  <Date>8/2/2012</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -63,6 +63,7 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandMergeRasters" class="commandMergeRasters" message="merges rasters together" caption="Merge Rasters" tip="click to open merge raster form" category="rasterUtilities" image="Images\commandMergeRasters.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSetNull" class="commandSetNull" message="Converts raster values to nodata" caption="Set Values to Nodata" tip="click to open the Set Values to Nodata form" category="rasterUtilities" image="Images\commandSetNull.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandZonalStats" class="commandZonalStats" message="Performs Zonal Statistics and outputs a table with specified values" caption="Zonal Statistics" tip="Click to open Zonal Statistics form" category="rasterUtilities" image="Images\commandZonalStats.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandBatchProcess" class="commandBatchProcess" message="performs batch processing" caption="Batch Processing" tip="click to open Batch Processing Form" category="rasterUtilities" image="Images\commandBatchProcess.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

@@ -4757,7 +4757,7 @@ namespace esriUtil
         public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
-            zH.InValueRaster = inValueRaster;
+            zH.InValueRaster = returnRaster(inValueRaster);
             zH.convertFeatureToRaster(inFeatureClass, fieldName);
             //zH.InZoneFeatureClass = inFeatureClass;
             //zH.InZoneField = fieldName;
@@ -4768,8 +4768,8 @@ namespace esriUtil
         public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
-            zH.InValueRaster = inValueRaster;
-            zH.InZoneRaster = inZoneRaster;
+            zH.InValueRaster = returnRaster(inValueRaster);
+            zH.InZoneRaster = returnRaster(inZoneRaster);
             zH.ZoneTypes = zoneTypes;
             zH.setZoneValues();
             return zH.OutTable;
