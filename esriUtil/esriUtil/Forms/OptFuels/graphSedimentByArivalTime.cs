@@ -73,7 +73,31 @@ namespace esriUtil.Forms.OptFuels
                 graphDir = resultsDir + "\\graph";
                 try
                 {
-                    if (System.IO.Directory.Exists(graphDir)) System.IO.Directory.Delete(graphDir, true);
+                    if (System.IO.Directory.Exists(graphDir))
+                    {
+                        System.IO.DirectoryInfo dInfo = new System.IO.DirectoryInfo(graphDir);
+                        foreach (System.IO.FileInfo fInfo in dInfo.GetFiles())
+                        {
+                            try
+                            {
+                                fInfo.Delete();
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        foreach (System.IO.DirectoryInfo dInfo2 in dInfo.GetDirectories())
+                        {
+                            try
+                            {
+                                dInfo2.Delete(true);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
                 }
                 catch(Exception e)
                 {
@@ -254,14 +278,16 @@ namespace esriUtil.Forms.OptFuels
                     if (System.IO.Directory.Exists(sedDir))
                     {
                         IWorkspace sedWks = geoUtil.OpenRasterWorkspace(sedDir);
-                        if (rsUtil.rasterExists(sedWks, "n10"))
+                        if (rsUtil.rasterExists(sedWks, "n10.img"))
                         {
                             if (System.Windows.Forms.DialogResult.Yes == System.Windows.Forms.MessageBox.Show("Sediment Raster currently exist. Do you want to replace existing sediment raster?", "Replace Existing Rasters?", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question))
                             {
                                 Console.WriteLine("Replacing Existing Rasters");
                                 try
                                 {
-                                    System.IO.Directory.Delete(sedDir, true);
+                                    //removelocks();
+                                    removeSedFiles();
+                                    //System.IO.Directory.Delete(sedDir, true);
                                     geoUtil.check_dir(sedDir);
                                     streamName = rsUtil.getSafeOutputName(tWks, streamName);
                                     IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
@@ -271,16 +297,33 @@ namespace esriUtil.Forms.OptFuels
                                 catch (Exception e)
                                 {
                                     Console.WriteLine(e.ToString());
+                                    rpForm.addMessage("Lock on existing sediment Raster. Using existing sediment rasters! If you want to replace you must restart ArcMap!");
+                                    rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
+                                    rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
+                                    rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
+                                    rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
+                                    rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
+                                    rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
+                                    if (createinter)
+                                    {
+                                        rsUtil.saveRasterToDataset(rsfine10, "n10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsfine50, "n50", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rst1Fine10, "t10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rst1Fine50, "t50", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rshsf10, "h10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rshsf50, "h50", wks, rasterUtil.rasterType.IMAGINE);
+                                    }
                                 }
+                                                             
                             }
                             else
                             {
-                                rsfine10 = rsUtil.returnRaster(sedDir + "\\n10");
-                                rsfine50 = rsUtil.returnRaster(sedDir + "\\n50");
-                                rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10");
-                                rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50");
-                                rshsf10 = rsUtil.returnRaster(sedDir + "\\h10");
-                                rshsf50 = rsUtil.returnRaster(sedDir + "\\h50");
+                                rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
+                                rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
+                                rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
+                                rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
+                                rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
+                                rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
                                 if (createinter)
                                 {
                                     rsUtil.saveRasterToDataset(rsfine10, "n10", wks,rasterUtil.rasterType.IMAGINE);
@@ -294,7 +337,7 @@ namespace esriUtil.Forms.OptFuels
                         }
                         else
                         {
-                            Console.WriteLine("Can't find n10");
+                            Console.WriteLine("Can't find n10.img");
                             streamName = rsUtil.getSafeOutputName(wks, streamName);
                             IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
                             sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
@@ -312,6 +355,33 @@ namespace esriUtil.Forms.OptFuels
                     IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
                     sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
                     createSedimentSurfaces();
+                }
+            }
+        }
+
+        private void removeSedFiles()
+        {
+            System.IO.DirectoryInfo dInfo = new System.IO.DirectoryInfo(sedDir);
+            foreach (System.IO.FileInfo fInfo in dInfo.GetFiles())
+            {
+                fInfo.Delete();
+            }
+        }
+
+        private void removelocks()
+        {
+            IRaster[] rsArr = { rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50 };
+            foreach (IRaster rs in rsArr)
+            {
+                IRasterDataset rsDset = ((IRaster2)rs).RasterDataset;
+                IDataset dSet = (IDataset)rsDset;
+                try
+                {
+                    rsUtil.removeLock(dSet);
+                }
+                catch
+                {
+                    rpForm.addMessage("Could not remove lock on " + dSet.BrowseName);
                 }
             }
         }
@@ -602,6 +672,7 @@ namespace esriUtil.Forms.OptFuels
                 swr.Close();
             }
             outcsvpath = outCSV;
+            removelocks();
             return outCSV;
 
         }

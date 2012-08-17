@@ -35,7 +35,7 @@ namespace TestConsole
 
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            esriUtil.Forms.RasterAnalysis.frmBatchProcess frm = new esriUtil.Forms.RasterAnalysis.frmBatchProcess(null, rsUtil);
+            esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime frm = new esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime(null, rsUtil);
             System.Windows.Forms.Application.Run(frm);    
             System.DateTime dt2 = System.DateTime.Now;
             System.TimeSpan ts = dt2.Subtract(dt);

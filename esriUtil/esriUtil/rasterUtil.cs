@@ -1716,12 +1716,16 @@ namespace esriUtil
             IRaster rs = null;
             if (outWks.Type == esriWorkspaceType.esriFileSystemWorkspace)
             {
-                if (pixelType == rstPixelType.PT_DOUBLE) pixelType = rstPixelType.PT_FLOAT;
+                if (!outRasterName.ToLower().EndsWith(".img"))
+                {
+                    outRasterName = outRasterName + ".img";
+                }
+
                 IPnt mPnt = rstProps.MeanCellSize();
                 double dX = mPnt.X;
                 double dY = mPnt.Y;
                 IRasterWorkspace2 rsWks = (IRasterWorkspace2)outWks;
-                newRstDset = (IRasterDataset2)rsWks.CreateRasterDataset(outRasterName, "GRID", (rstProps.Extent.Envelope.LowerLeft), rstProps.Width, rstProps.Height, dX, dY, numBands, pixelType, rstProps.SpatialReference, true);
+                newRstDset = (IRasterDataset2)rsWks.CreateRasterDataset(outRasterName, "IMAGINE Image", (rstProps.Extent.Envelope.LowerLeft), rstProps.Width, rstProps.Height, dX, dY, numBands, pixelType, rstProps.SpatialReference, true);
                 rs = newRstDset.CreateFullRaster();
             }
             else
@@ -1770,6 +1774,10 @@ namespace esriUtil
             IRaster rs = null;
             if (outWks.Type == esriWorkspaceType.esriFileSystemWorkspace)
             {
+                if (!outRasterName.ToLower().EndsWith(".img"))
+                {
+                    outRasterName = outRasterName + ".img";
+                }
                 double dX = meanCellSize.X;
                 double dY = meanCellSize.Y;
                 IRasterWorkspace2 rsWks = (IRasterWorkspace2)outWks;
@@ -2091,7 +2099,7 @@ namespace esriUtil
             esriWorkspaceType tp = wks.Type;
             if (tp == esriWorkspaceType.esriFileSystemWorkspace)
             {
-                rsType = rasterType.GRID;
+                rsType = rasterType.IMAGINE;
             }
             return saveRasterToDataset(inRaster, outName, wks, rsType);
         }
@@ -4791,6 +4799,11 @@ namespace esriUtil
                 {
                 }
             }
+        }
+        public void removeLock(IDataset rDset)
+        {
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset.Workspace);
+            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset);
         }
 
     }
