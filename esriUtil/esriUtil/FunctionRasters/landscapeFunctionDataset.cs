@@ -102,7 +102,7 @@ namespace esriUtil.FunctionRasters
                                 neighborhoodHelperLandscapeVarianceAreaRectangle nHVar = new neighborhoodHelperLandscapeVarianceAreaRectangle();
                                 nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;
-                            case rasterUtil.focalType.STANDARD_DEVIATION:
+                            case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdAreaRectangle nHSTD = new neighborhoodHelperLandscapeStdAreaRectangle();
                                 nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;
@@ -153,7 +153,7 @@ namespace esriUtil.FunctionRasters
                                 neighborhoodHelperLandscapeVarianceEdgeRectangle nHVar = new neighborhoodHelperLandscapeVarianceEdgeRectangle();
                                 nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;
-                            case rasterUtil.focalType.STANDARD_DEVIATION:
+                            case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdEdgeRectangle nHSTD = new neighborhoodHelperLandscapeStdEdgeRectangle();
                                 nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;
@@ -205,7 +205,7 @@ namespace esriUtil.FunctionRasters
                                 neighborhoodHelperLandscapeVarianceRatioRectangle nHVar = new neighborhoodHelperLandscapeVarianceRatioRectangle();
                                 nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;
-                            case rasterUtil.focalType.STANDARD_DEVIATION:
+                            case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdRatioRectangle nHSTD = new neighborhoodHelperLandscapeStdRatioRectangle();
                                 nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
                                 break;

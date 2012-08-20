@@ -139,7 +139,7 @@ namespace esriUtil
                 spLst.Add(dr[0].ToString());
             }
             uniqueSpecies = spLst.ToArray();
-        }      
+        }
         private void addFields()
         {
             foreach (string s in uniqueSpecies)
@@ -151,7 +151,8 @@ namespace esriUtil
                     {
                         geoDbUtil.delteField(SampleFeatureClass,fldNm);
                     }
-                    geoDbUtil.createField(SampleFeatureClass, fldNm, esriFieldType.esriFieldTypeDouble);
+                   geoDbUtil.createField(SampleFeatureClass, fldNm, esriFieldType.esriFieldTypeDouble);
+
                 }
             }
         }
@@ -181,6 +182,10 @@ namespace esriUtil
                         {
                             nFldNm = s.ToString() + "_" + t;
                             int nFldIndex = ftrCur.FindField(nFldNm);
+                            if (nFldIndex == -1)
+                            {
+                                nFldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
+                            }
                             object cVl = ftr.get_Value(nFldIndex);
                             if (Convert.IsDBNull(cVl)||cVl==null||Double.IsNaN(Convert.ToDouble(cVl)))
                             {

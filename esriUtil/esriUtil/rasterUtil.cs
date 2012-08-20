@@ -86,7 +86,7 @@ namespace esriUtil
         /// <summary>
         /// The different GLCM metric types
         /// </summary>
-        public enum glcmMetric { CONTRAST, DISSIMILARITY, HOMOGENEITY, ASM, ENERGY, MAXPROBABILITY, MINPROBABILITY, RANGE, ENTROPY, MEAN, VARIANCE, CORRELATION, COVARIANCE }
+        public enum glcmMetric { CONTRAST, DIS, HOMOG, ASM, ENERGY, MAXPROB, MINPROB, RANGE, ENTROPY, MEAN, VAR, CORR, COV }
         /// <summary>
         /// ouput raster types
         /// </summary>
@@ -95,15 +95,15 @@ namespace esriUtil
         /// sampling cluster types
         /// </summary>
         public enum clusterType {SUM,MEAN,MEDIAN,MODE};
-        public enum zoneType { MAX, MIN, RANGE, SUM, MEAN, VARIANCE, STANDARD_DEVIATION, MEDIAN, MODE, MINORITY, VARIETY, ENTROPY, ASM }
+        public enum zoneType { MAX, MIN, RANGE, SUM, MEAN, VARIANCE, STD, MEDIAN, MODE, MINORITY, VARIETY, ENTROPY, ASM }
         /// <summary>
         /// focal window functions types
         /// </summary>
-        public enum focalType { MAX, MIN, SUM, MEAN, MODE, MEDIAN, VARIANCE, STANDARD_DEVIATION, UNIQUE, ENTROPY, PROBABILITY }
+        public enum focalType { MAX, MIN, SUM, MEAN, MODE, MEDIAN, VARIANCE, STD, UNIQUE, ENTROPY, PROBABILITY }
         /// <summary>
         /// local type of functions
         /// </summary>
-        public enum localType { MAX, MIN, MAXBAND, MINBAND, SUM, MULTIPLY, DIVIDE, SUBTRACT, POWER, MEAN, VARIANCE, STANDARD_DEVIATION, MODE, MEDIAN, UNIQUE, ENTROPY }
+        public enum localType { MAX, MIN, MAXBAND, MINBAND, SUM, MULTIPLY, DIVIDE, SUBTRACT, POWER, MEAN, VARIANCE, STD, MODE, MEDIAN, UNIQUE, ENTROPY }
         /// <summary>
         /// logical type of functions
         /// </summary>
@@ -2206,6 +2206,61 @@ namespace esriUtil
 
 
         }
+        public IRaster calcFocalSampleFunction(object inRaster, HashSet<string> offset, focalType statType)
+        {
+            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = null;
+            switch (statType)
+            {
+                case focalType.MIN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMin();
+                    break;
+                case focalType.SUM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperSum();
+                    break;
+                case focalType.MEAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperMean();
+                    break;
+                case focalType.MODE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperMode();
+                    break;
+                case focalType.MEDIAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperMedian();
+                    break;
+                case focalType.VARIANCE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperVariance();
+                    break;
+                case focalType.STD:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperStd();
+                    break;
+                case focalType.UNIQUE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperUnique();
+                    break;
+                case focalType.ENTROPY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperEntropy();
+                    break;
+                case focalType.PROBABILITY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperASM();
+                    break;
+                default:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperMax();
+                    break;
+            }
+            FunctionRasters.focalSampleArguments args = new FunctionRasters.focalSampleArguments(this);
+            args.OffSets = offset;
+            args.Operation = statType;
+            //args.WindowType = windowType.RECTANGLE;
+            args.InRaster = iR1;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
         /// <summary>
         /// Will perform a focal raster operation on an input raster all bands
         /// </summary>
@@ -2243,7 +2298,7 @@ namespace esriUtil
                 case focalType.VARIANCE:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperVariance();
                     break;
-                case focalType.STANDARD_DEVIATION:
+                case focalType.STD:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperStd();
                     break;
                 case focalType.UNIQUE:
@@ -2307,7 +2362,7 @@ namespace esriUtil
                 case focalType.VARIANCE:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperVariance();
                     break;
-                case focalType.STANDARD_DEVIATION:
+                case focalType.STD:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperStd();
                     break;
                 case focalType.UNIQUE:
@@ -3119,7 +3174,7 @@ namespace esriUtil
                 case localType.VARIANCE:
                     rsFunc = new FunctionRasters.localVarianceFunctionDataset();
                     break;
-                case localType.STANDARD_DEVIATION:
+                case localType.STD:
                     rsFunc = new FunctionRasters.localStandardDeviationFunctionDataset();
                     break;
                 case localType.MODE:

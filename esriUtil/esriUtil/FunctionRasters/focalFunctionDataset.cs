@@ -67,7 +67,7 @@ namespace esriUtil.FunctionRasters
             {
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                if (inWindow == rasterUtil.windowType.RECTANGLE&&!(inop == rasterUtil.focalType.VARIANCE||inop==rasterUtil.focalType.STANDARD_DEVIATION))
+                if (inWindow == rasterUtil.windowType.RECTANGLE&&!(inop == rasterUtil.focalType.VARIANCE||inop==rasterUtil.focalType.STD))
                 {
                     switch (inop)
                     {
@@ -99,7 +99,7 @@ namespace esriUtil.FunctionRasters
                             neighborhoodHelperVarianceRectangle nHVar = new neighborhoodHelperVarianceRectangle();
                             nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig);
                             break;
-                        case rasterUtil.focalType.STANDARD_DEVIATION:
+                        case rasterUtil.focalType.STD:
                             neighborhoodHelperStdRectangle nHSTD = new neighborhoodHelperStdRectangle();
                             nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig);
                             break;
@@ -201,7 +201,7 @@ namespace esriUtil.FunctionRasters
                                     case rasterUtil.focalType.VARIANCE:
                                         pixelValue = nHelp.WindowVariance;
                                         break;
-                                    case rasterUtil.focalType.STANDARD_DEVIATION:
+                                    case rasterUtil.focalType.STD:
                                         pixelValue = nHelp.WindowStd;
                                         break;
                                     case rasterUtil.focalType.UNIQUE:

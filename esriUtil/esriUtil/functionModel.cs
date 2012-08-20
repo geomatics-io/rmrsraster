@@ -327,7 +327,7 @@ namespace esriUtil
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmContrast(rs, clm, rws, horz));
                         }
                         break;
-                    case rasterUtil.glcmMetric.DISSIMILARITY:
+                    case rasterUtil.glcmMetric.DIS:
                         if (rad)
                         {
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmDissimilarity(rs, clm, horz));
@@ -337,7 +337,7 @@ namespace esriUtil
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmDissimilarity(rs, clm, rws, horz));
                         }
                         break;
-                    case rasterUtil.glcmMetric.HOMOGENEITY:
+                    case rasterUtil.glcmMetric.HOMOG:
                         if (rad)
                         {
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmHomogeneity(rs, clm, horz));
@@ -349,8 +349,8 @@ namespace esriUtil
                         break;
                     case rasterUtil.glcmMetric.ASM:
                     case rasterUtil.glcmMetric.ENERGY:
-                    case rasterUtil.glcmMetric.MAXPROBABILITY:
-                    case rasterUtil.glcmMetric.MINPROBABILITY:
+                    case rasterUtil.glcmMetric.MAXPROB:
+                    case rasterUtil.glcmMetric.MINPROB:
                     case rasterUtil.glcmMetric.RANGE:
                     case rasterUtil.glcmMetric.ENTROPY:
                         break;
@@ -364,7 +364,7 @@ namespace esriUtil
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmMean(rs, clm, rws, horz));
                         }
                         break;
-                    case rasterUtil.glcmMetric.VARIANCE:
+                    case rasterUtil.glcmMetric.VAR:
                         if (rad)
                         {
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmVariance(rs, clm, horz));
@@ -374,7 +374,7 @@ namespace esriUtil
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmVariance(rs, clm, rws, horz));
                         }
                         break;
-                    case rasterUtil.glcmMetric.CORRELATION:
+                    case rasterUtil.glcmMetric.CORR:
                         if (rad)
                         {
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCorrelation(rs, clm, horz));
@@ -384,7 +384,7 @@ namespace esriUtil
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCorrelation(rs, clm, rws, horz));
                         }
                         break;
-                    case rasterUtil.glcmMetric.COVARIANCE:
+                    case rasterUtil.glcmMetric.COV:
                         if (rad)
                         {
                             rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCoVariance(rs, clm, horz));
@@ -1278,7 +1278,7 @@ namespace esriUtil
                     rsStatso.Minimum = Math.Pow(stdMean-(stdMean*0.65),2);
                     rsStatso.StandardDeviation = Math.Pow(stdMean*.21666666,2);
                     break;
-                case rasterUtil.localType.STANDARD_DEVIATION:
+                case rasterUtil.localType.STD:
                     rsStatso.Mean = bStdArr.Average();
                     rsStatso.Maximum = rsStatso.Mean*1.65;
                     rsStatso.Minimum = rsStatso.Mean - (rsStatso.Mean*0.65);
@@ -1419,7 +1419,7 @@ namespace esriUtil
                         rsBStatso.StandardDeviation = rsBStatsi.StandardDeviation;
                         rsBStatso.Mean = rsBStatsi.Mean;
                         break;
-                    case rasterUtil.focalType.STANDARD_DEVIATION:
+                    case rasterUtil.focalType.STD:
                         rsBStatso.Mean = rsBStatsi.StandardDeviation;
                         rsBStatso.Maximum = rsBStatso.Mean*1.96;
                         rsBStatso.Minimum = rsBStatso.Mean-(rsBStatso.Maximum-rsBStatso.Mean);

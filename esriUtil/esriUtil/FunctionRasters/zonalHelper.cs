@@ -343,7 +343,14 @@ namespace esriUtil.FunctionRasters
                         int fldIndex = oTbl.FindField(fldNm);
                         double zVl = vDic[zT];
                         //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
-                        rw.set_Value(fldIndex, zVl);
+                        if (fldIndex > -1)
+                        {
+                            rw.set_Value(fldIndex, zVl);
+                        }
+                        else
+                        {
+                            Console.WriteLine(fldNm);
+                        }
                     }
                     rw.Store();
                 }
@@ -435,7 +442,7 @@ namespace esriUtil.FunctionRasters
                     case rasterUtil.zoneType.VARIANCE:
                         vDic.Add(t,var);
                         break;
-                    case rasterUtil.zoneType.STANDARD_DEVIATION:
+                    case rasterUtil.zoneType.STD:
                         vDic.Add(t, std);
                         break;
                     case rasterUtil.zoneType.VARIETY:

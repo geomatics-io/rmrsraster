@@ -218,6 +218,12 @@
     <Compile Include="Forms\RasterAnalysis\frmExtractBand.Designer.cs">
       <DependentUpon>frmExtractBand.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmFocalSample.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmFocalSample.Designer.cs">
+      <DependentUpon>frmFocalSample.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmFunctionalModeling.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -415,6 +421,8 @@
     <Compile Include="FunctionRasters\expFunctionDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionDataset.cs" />
     <Compile Include="FunctionRasters\focalFunctionDatasetBase.cs" />
+    <Compile Include="FunctionRasters\focalSampleArguments.cs" />
+    <Compile Include="FunctionRasters\focalSampleDataset.cs" />
     <Compile Include="FunctionRasters\LandscapeFunctionArguments.cs" />
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperBase.cs" />
@@ -430,6 +438,17 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperUnique.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperVariance.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperStd.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperASM.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperEntropy.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperMax.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperMean.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperMedian.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperMin.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperMode.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperStd.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperSum.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperUnique.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperVariance.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMeanRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMedianRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMinRatioRectangle.cs" />
@@ -587,6 +606,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmFocalAnalysis.resx">
       <DependentUpon>frmFocalAnalysis.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmFocalSample.resx">
+      <DependentUpon>frmFocalSample.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmFunctionalModeling.resx">
       <DependentUpon>frmFunctionalModeling.cs</DependentUpon>

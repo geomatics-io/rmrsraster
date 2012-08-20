@@ -133,6 +133,7 @@
     <Compile Include="commandExtractRasterBands.cs" />
     <Compile Include="commandFIABiomassSummary.cs" />
     <Compile Include="commandFocalAnalysis.cs" />
+    <Compile Include="commandFocalSample.cs" />
     <Compile Include="commandFunctionalModeling.cs" />
     <Compile Include="commandHelp.cs" />
     <Compile Include="commandLandfireSegmentation.cs" />
@@ -423,6 +424,11 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\commandBatchProcess.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandFocalSample.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>
