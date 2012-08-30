@@ -10,6 +10,14 @@ namespace esriUtil
 {
     class regressionRaster
     {
+        public regressionRaster()
+        {
+            rsUtil = new rasterUtil();
+        }
+        public regressionRaster(ref rasterUtil rasterUtility)
+        {
+            rsUtil = rasterUtility;
+        }
         private rasterUtil rsUtil = new rasterUtil();
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private Dictionary<string, Dictionary<string, double>> betasdic = null;
@@ -76,7 +84,7 @@ namespace esriUtil
         public IFeatureClass SampleLocations { get { return samplelocations; } set { samplelocations = value; } }
         private string dependentfield = null;
         /// <summary>
-        /// The name of the dependent field that has descrete values identifying each class for each record
+        /// The name of the dependent field that has discrete values identifying each class for each record
         /// </summary>
         public string Dependentfield { get { return dependentfield; } set { dependentfield = value; } }
         private string[] independentfields = null;
@@ -127,9 +135,11 @@ namespace esriUtil
                     if (getVls==true)
                     {
                         string betaVl = bVlsSp[j].Replace("\"","");
+                        //Console.WriteLine(betaVl.ToString());
                         if (betaVl != "" && betaVl != null && betaVl != ".")
                         {
                             //Console.WriteLine("\tadding parameter " + flVl + " = " + betaVl);
+                            
                             betas.Add(flVl,System.Convert.ToDouble(betaVl));
                         }
                     }
@@ -158,12 +168,12 @@ namespace esriUtil
         public IRaster InRaster { get; set; }
         private bool validate = false;
         /// <summary>
-        /// An optional boolean property used to segment the data into a training and validation dataset (80%, 20%) defalt is false.
+        /// An optional Boolean property used to segment the data into a training and validation dataset (80%, 20%) defalt is false.
         /// </summary>
         public bool Validate { get { return validate; } set { validate = value; } }
         private string weightfield = null;
         /// <summary>
-        /// An optianal string value that identifies a sample weighting value. Default is null
+        /// An optional string value that identifies a sample weighting value. Default is null
         /// </summary>
         public string WeightField { get { return weightfield; } set { weightfield = value; } }
         private string outRest, outLog, outSas;
@@ -190,83 +200,21 @@ namespace esriUtil
             sasoutdir = sInt.OutDirectory;
 
         }
-        public IRaster createModelRaster()
+        public IRaster createModelRaster(IRaster seedRaster)
         {
-            IRaster2 inRs2 = (IRaster2)InRaster;
-            IPnt pntSize = new PntClass();
-            pntSize.SetCoords(512, 512);
-            IRasterCursor inRsCur = inRs2.CreateCursorEx(pntSize);
-            int outBndCnt = Categories.Length;
-            IRaster outRst = rsUtil.createNewRaster(InRaster, OutWorkspace, "REG", outBndCnt, rstPixelType.PT_FLOAT);
-            IRasterEdit outRstE = (IRasterEdit)outRst;
-            int inBndCnt = ((IRasterBandCollection)InRaster).Count;
-            System.Array[] inBndArr = new System.Array[inBndCnt];
-            System.Array[] outBndArr = new System.Array[outBndCnt];
-            double[] xArr = new double[inBndCnt];
-            while (inRsCur.Next() == true)
+            List<double[]> slopesLst = new List<double[]>();
+            foreach(string s in Categories)
             {
-                IPixelBlock3 inPb = (IPixelBlock3)inRsCur.PixelBlock;
-                pntSize.SetCoords(inPb.Width, inPb.Height);
-                IPixelBlock3 outPb = (IPixelBlock3)outRst.CreatePixelBlock(pntSize);
-                #region set system arraies
-                for (int i = 0; i < inBndCnt; i++)
+                List<double> slp = new List<double>();
+                Dictionary<string, double> dic = betasdic[s];
+                foreach (KeyValuePair<string, double> d in dic)
                 {
-                    inBndArr[i] = (System.Array)inPb.get_PixelData(i);
+                    slp.Add(d.Value);
                 }
-                for (int i = 0; i < outBndCnt; i++)
-                {
-                    outBndArr[i] = (System.Array)outPb.get_PixelData(i);
-                }
-                #endregion
-                #region update pixel values in outBndArr
-                for (int c = 0; c < inPb.Width; c++)
-                {
-                    for (int r = 0; r < inPb.Height; r++)
-                    {
-
-                        for (int i = 0; i < inBndCnt; i++)
-                        {
-                            double xArrVl = System.Convert.ToDouble(inBndArr[i].GetValue(c, r));
-                            xArr[i] = xArrVl;
-                        }
-
-                        for (int i = 0; i < outBndCnt; i++)
-                        {
-                            double[] vls = betasdic[Categories[i]].Values.ToArray();
-                            double sumReg = vls[0];
-                            for (int j = 1; j < vls.Length; j++)
-                            {
-                                sumReg += vls[j] * xArr[j - 1];
-                            }
-                            try
-                            {
-                                if (Double.IsNaN(sumReg))
-                                {
-                                    sumReg = 0;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("Error: vl = " + sumReg.ToString());
-                                sumReg = 0;
-                                Console.WriteLine(e.ToString());
-                            }
-                            outBndArr[i].SetValue(System.Convert.ToSingle(sumReg), c, r);
-                        }
-                    }
-                }
-                #endregion
-                #region store pixel values in out raster
-                for (int i = 0; i < outBndCnt; i++)
-                {
-                    outPb.set_PixelData(i, outBndArr[i]);
-                }
-                outRstE.Write(inRsCur.TopLeft, (IPixelBlock)outPb);
-                #endregion
+                slopesLst.Add(slp.ToArray());
             }
-            outRstE.Refresh();
-            rsUtil.calcStatsAndHist(((IRasterBandCollection)outRst).Item(0).RasterDataset);
-            return outRst;
+
+            return rsUtil.calcRegressFunction(InRaster, slopesLst,seedRaster);
         }
 
         public void showModelOutput()
@@ -343,7 +291,7 @@ namespace esriUtil
         {
             try
             {
-                Console.WriteLine(path);
+                //Console.WriteLine(path);
                 System.Diagnostics.Process prc = new System.Diagnostics.Process();
                 prc.StartInfo.FileName = path;
                 //prc.StartInfo.Arguments = "'" + path + "' FILEOPEN";// "FILEOPEN";// '" + path + "'";

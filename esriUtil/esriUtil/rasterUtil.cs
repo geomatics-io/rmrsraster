@@ -95,11 +95,11 @@ namespace esriUtil
         /// sampling cluster types
         /// </summary>
         public enum clusterType {SUM,MEAN,MEDIAN,MODE};
-        public enum zoneType { MAX, MIN, RANGE, SUM, MEAN, VARIANCE, STD, MEDIAN, MODE, MINORITY, VARIETY, ENTROPY, ASM }
+        public enum zoneType { MAX, MIN, RANGE, SUM, MEAN, VAR, STD, MEDIAN, MODE, MINORITY, VARIETY, ENTROPY, ASM }
         /// <summary>
         /// focal window functions types
         /// </summary>
-        public enum focalType { MAX, MIN, SUM, MEAN, MODE, MEDIAN, VARIANCE, STD, UNIQUE, ENTROPY, PROBABILITY }
+        public enum focalType { MAX, MIN, SUM, MEAN, MODE, MEDIAN, VARIANCE, STD, UNIQUE, ENTROPY, ASM }
         /// <summary>
         /// local type of functions
         /// </summary>
@@ -566,8 +566,8 @@ namespace esriUtil
         /// performs a x and y shift of the input raster
         /// </summary>
         /// <param name="inRaster">IRaster, IRasterDataset, string path</param>
-        /// <param name="shiftX">nuber of cells to shift positive number move to the east negative number move to the west</param>
-        /// <param name="shiftY">number of cells to shift positve number move north negative numebr move south</param>
+        /// <param name="shiftX">number of cells to shift positive number move to the east negative number move to the west</param>
+        /// <param name="shiftY">number of cells to shift positive number move north negative number move south</param>
         /// <returns></returns>
         public IRaster shiftRasterFunction(object inRaster, double shiftx, double shiftY)
         {
@@ -586,978 +586,151 @@ namespace esriUtil
             return outRs;
         }
         /// <summary>
-        /// performs GLCM homogeneity moving window analysis using a circular window
+        /// Performs GLMC Analysis. All bands within the input raster will be transformed
         /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmHomogeneity(object inRaster, int radius, bool horizontal)
+        /// <param name="inRaster">raster to perform GLCM</param>
+        /// <param name="clms">number of Columns within the analysis window</param>
+        /// <param name="rws">number of Rows within the analysis window</param>
+        /// <param name="horizontal">whether the direction of the GLCM is horizontal</param>
+        /// <param name="glcmType">the type of GLCM to calculate</param>
+        /// <returns>a transformed raster</returns>
+        public IRaster calcGLCMFunction(object inRaster, int clms, int rws, bool horizontal, glcmMetric glcmType)
         {
-            List<double> krnLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius,out iterLst);
-            int width = ((radius - 1) * 2) + 1;
-            int height = width;
-            for (int c = 0; c < width; c++)
+            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = null;
+            switch (glcmType)
             {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    int crVl = circleKrn[c, r];
-                    if (crVl == 0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == (width - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crPVl = circleKrn[crP, r];
-                                if (crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-
-                            }
-                        }
-                        else
-                        {
-                            if (r == (height - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crM = r + 1;
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
+                case glcmMetric.CONTRAST:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperContrast();
+                    break;
+                case glcmMetric.DIS:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperDissimilarity();
+                    break;
+                case glcmMetric.HOMOG:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperHomogeneity();
+                    break;
+                case glcmMetric.ASM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperASM();
+                    break;
+                case glcmMetric.ENERGY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperEnergy();
+                    break;
+                case glcmMetric.MAXPROB:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMaxProb();
+                    break;
+                case glcmMetric.MINPROB:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMinProb();
+                    break;
+                case glcmMetric.RANGE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperRange();
+                    break;
+                case glcmMetric.ENTROPY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperEntropy();
+                    break;
+                case glcmMetric.MEAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMean();
+                    break;
+                case glcmMetric.VAR:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperVariance();
+                    break;
+                case glcmMetric.CORR:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperCorrelation();
+                    break;
+                case glcmMetric.COV:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperCovariance();
+                    break;
+                default:
+                    break;
             }
-            double div = krnLst.Sum();
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster minRs2 = calcArithmaticFunction(minRs, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster pRs = calcArithmaticFunction(minRs2, 1, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster invRs = calcArithmaticFunction(pRs, -1, esriRasterArithmeticOperation.esriRasterPower);
-            return convolutionRasterFunction(invRs, width, height, krnLst.ToArray());
+            rsFunc.PixelType = rstPixelType.PT_FLOAT;
+            FunctionRasters.glcmFunctionArguments args = new FunctionRasters.glcmFunctionArguments(this);
+            args.Columns = clms;
+            args.Rows = rws;
+            args.InRaster = iR1;
+            args.Horizontal = horizontal;
+            args.GLCMMETRICS = glcmType;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
         }
         /// <summary>
-        /// performs GLCM homogenity moving window analysis using a rectangle window
+        /// Performs GLMC Analysis. All bands within the input raster will be transformed
         /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmHomogeneity(object inRaster, int width, int height, bool horizontal)
+        /// <param name="inRaster">raster to perform GLCM</param>
+        /// <param name="radius">number of Columns that define the radius of the analysis window</param>
+        /// <param name="horizontal">whether the direction of the GLCM is horizontal</param>
+        /// <param name="glcmType">the type of GLCM to calculate</param>
+        /// <returns>a transformed raster</returns>
+        public IRaster calcGLCMFunction(object inRaster, int radius, bool horizontal, glcmMetric glcmType)
         {
-            List<double> krnLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = (div + ((width - 2) * height)) / 2;
-            }
-            else
-            {
-                div = (div + ((height - 2) * width)) / 2;
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    if (horizontal)
-                    {
-                        if (c == (width - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (r == (height - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster minRs2 = calcArithmaticFunction(minRs, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster pRs = calcArithmaticFunction(minRs2, 1, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster invRs = calcArithmaticFunction(pRs, -1, esriRasterArithmeticOperation.esriRasterPower);
-            return convolutionRasterFunction(invRs, width, height, krnLst.ToArray());
+            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = null;
+            switch (glcmType)
+	        {
+		        case glcmMetric.CONTRAST:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperContrast();
+                 break;
+                case glcmMetric.DIS:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperDissimilarity();
+                 break;
+                case glcmMetric.HOMOG:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperHomogeneity();
+                 break;
+                case glcmMetric.ASM:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperASM();
+                 break;
+                case glcmMetric.ENERGY:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperEnergy();
+                 break;
+                case glcmMetric.MAXPROB:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMaxProb();
+                 break;
+                case glcmMetric.MINPROB:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMinProb();
+                 break;
+                case glcmMetric.RANGE:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperRange();
+                 break;
+                case glcmMetric.ENTROPY:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperEntropy();
+                 break;
+                case glcmMetric.MEAN:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperMean();
+                 break;
+                case glcmMetric.VAR:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperVariance();
+                 break;
+                case glcmMetric.CORR:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperCorrelation();
+                 break;
+                case glcmMetric.COV:
+                 rsFunc = new FunctionRasters.NeighborhoodHelper.glcmHelperCovariance();
+                 break;
+                default:
+                 break;
+	        }
+            rsFunc.PixelType = rstPixelType.PT_FLOAT;
+            FunctionRasters.glcmFunctionArguments args = new FunctionRasters.glcmFunctionArguments(this);
+            args.Radius = radius;
+            args.InRaster = iR1;
+            args.Horizontal = horizontal;
+            args.GLCMMETRICS = glcmType;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
         }
         /// <summary>
-        /// performs GLCM Dissimilarity moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmDissimilarity(object inRaster, int radius, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
-            int width = ((radius - 1) * 2) + 1;
-            int height = width;
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    int crVl = circleKrn[c, r];
-                    if (crVl == 0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == (width - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crPVl = circleKrn[crP, r];
-                                if (crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-
-                            }
-
-                        }
-                        else
-                        {
-                            if (r == (height - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crM = r + 1;
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-
-                }
-            }
-            double div = krnLst.Sum(); 
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster absRs = calcMathRasterFunction(minRs,transType.ABS);
-            return convolutionRasterFunction(absRs, width, height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs GLCM Dissimilarity moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmDissimilarity(object inRaster, int width, int height, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = (div + ((width - 2) * height)) / 2;
-            }
-            else
-            {
-                div = (div + ((height - 2) * width)) / 2;
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    if (horizontal)
-                    {
-                        if (c == (width - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (r == (height - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster absRs = calcMathRasterFunction(minRs,transType.ABS);
-            return convolutionRasterFunction(absRs, width, height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs GLCM Contrast moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmContrast(object inRaster, int radius, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
-            int width = ((radius-1)*2)+1;
-            int height = width;
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    int crVl = circleKrn[c, r];
-                    if (crVl == 0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == (width - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crPVl = circleKrn[crP, r];
-                                if (crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                
-                            }
-                        }
-                        else
-                        {
-                            if (r == (height - 1))
-                            {
-                                vl = 0;
-                            }
-                            else
-                            {
-                                int crM = r + 1;
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-
-            double div = krnLst.Sum();
-            //Console.WriteLine("Div = " + div.ToString());
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                //Console.WriteLine(krnLst[i]);
-                krnLst[i] = krnLst[i] / div;
-                //Console.WriteLine(krnLst[i]);
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster minRs2 = calcArithmaticFunction(minRs, 2, esriRasterArithmeticOperation.esriRasterPower);
-            return convolutionRasterFunction(minRs2, width,height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs GLCM Contrast moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmContrast(object inRaster, int width, int height, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = (div + ((width - 2) * height))/2;
-            }
-            else
-            {
-                div = (div + ((height - 2) * width))/2;
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 1;
-                    if (horizontal)
-                    {
-                        if ( c == (width - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    else
-                    {
-                        if (r == (height - 1))
-                        {
-                            vl = 0;
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            IRaster minRs = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster minRs2 = calcArithmaticFunction(minRs, 2, esriRasterArithmeticOperation.esriRasterPower);
-            return convolutionRasterFunction(minRs2, width, height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs GLCM Correlation moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmCorrelation(object inRaster, int radius, bool horizontal)
-        {
-            IRaster cov = glcmCoVariance(inRaster, radius, horizontal);
-            IRaster var = glcmVariance(inRaster, radius, horizontal);
-            IRemapFilter rmFilt = new RemapFilterClass();
-            rmFilt.AddClass((-1 * 0.000000001), 0.0000000001, 1);
-            IRaster rmapV = calcRemapFunction(var, rmFilt);
-            IRaster rmapC = calcRemapFunction(cov, rmFilt);
-            IRaster cor = calcArithmaticFunction(rmapC, rmapV, esriRasterArithmeticOperation.esriRasterDivide);
-            return cor;
-        }
-        /// <summary>
-        /// performs GLCM Correlation moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmCorrelation(object inRaster, int width, int height, bool horizontal)
-        {
-            IRaster cov = glcmCoVariance(inRaster, width, height, horizontal);
-            IRaster var = glcmVariance(inRaster, width, height, horizontal);
-            IRemapFilter rmFilt = new RemapFilterClass();
-            rmFilt.AddClass((-1 * 0.000000001), 0.0000000001, 1);
-            IRaster rmapV = calcRemapFunction(var, rmFilt);
-            IRaster rmapC = calcRemapFunction(cov, rmFilt);
-            IRaster cor = calcArithmaticFunction(rmapC, rmapV, esriRasterArithmeticOperation.esriRasterDivide);
-            return cor;
-        }
-        /// <summary>
-        /// performs GLCM CoVariance moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmCoVariance(object inRaster, int radius, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<double> sumLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
-            int width = ((radius - 1) * 2) + 1;
-            int height = width;
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2;
-                    int crVl = circleKrn[c, r];
-                    if (crVl == 0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == 0 || c == (width - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crM = c - 1;
-                                int crPVl = circleKrn[crP, r];
-                                int crMVl = circleKrn[crM, r];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            if (r == 0 || r == (height - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = r + 1;
-                                int crM = r - 1;
-                                int crPVl = circleKrn[c, crP];
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-                    vl = 1;
-                    if (horizontal)
-                    {
-                        if (c == (width - 1))
-                        {
-                            vl = 0;
-                        }
-                        else
-                        {
-                            int crP = c + 1;
-                            int crPVl = circleKrn[crP, r];
-                            if (crPVl == 0)
-                            {
-                                vl = 0;
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        if (r == (height - 1))
-                        {
-                            vl = 0;
-                        }
-                        else
-                        {
-                            int crP = r + 1;
-                            int crPVl = circleKrn[c, crP];
-                            if (crPVl == 0)
-                            {
-                                vl = 0;
-                            }
-                        }
-                    }
-                    sumLst.Add(vl);
-                }
-            }
-            double div = krnLst.Sum();
-            IRaster rsY = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            //SumXY
-            IRaster XY = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster SumXy = convolutionRasterFunction(XY, width, height, sumLst.ToArray());
-            IRaster SumXy2 = calcArithmaticFunction(SumXy, 2, esriRasterArithmeticOperation.esriRasterMultiply);
-            //SumXSumY
-            IRaster SumXPlusSumY = convolutionRasterFunction(inRaster, width, height, krnLst.ToArray());
-            IRaster SumXPlusSumY2 = calcArithmaticFunction(SumXPlusSumY, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster SumXPlusSumYDiv = calcArithmaticFunction(SumXPlusSumY2, div, esriRasterArithmeticOperation.esriRasterDivide);
-            IRaster dif = calcArithmaticFunction(SumXy2, SumXPlusSumYDiv, esriRasterArithmeticOperation.esriRasterMinus);
-            return calcArithmaticFunction(dif, div, esriRasterArithmeticOperation.esriRasterDivide);
-        }
-        /// <summary>
-        /// performs GLCM CoVariance moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmCoVariance(object inRaster, int width, int height, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<double> sumLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = div + ((width - 2) * height);
-            }
-            else
-            {
-                div = div + ((height - 2) * width);
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2;
-                    if (horizontal)
-                    {
-                        if (c == 0 || c == (width - 1))
-                        {
-                            vl = 1;
-                        }
-                    }
-                    else
-                    {
-                        if (r == 0 || r == (height - 1))
-                        {
-                            vl = 1;
-                        }
-                    }
-                    krnLst.Add(vl);
-                    vl = 1;
-                    if(horizontal)
-                    {
-                        if(c==(width-1))
-                        {
-                            vl=0;
-                        }
-                    }
-                    else
-                    {
-                        if(r==(height-1))
-                        {
-                            vl=0;
-                        }
-                    }
-                    sumLst.Add(vl);
-                }
-            }
-            IRaster rsY  = null;
-            if (horizontal)
-            {
-                rsY = shiftRasterFunction(inRaster, -1, 0);
-            }
-            else
-            {
-                rsY = shiftRasterFunction(inRaster, 0, -1);
-            }
-            //SumXY
-            IRaster XY = calcArithmaticFunction(inRaster, rsY, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster SumXy = convolutionRasterFunction(XY,width,height,sumLst.ToArray());
-            IRaster SumXy2 = calcArithmaticFunction(SumXy,2,esriRasterArithmeticOperation.esriRasterMultiply);
-            //SumXSumY
-            IRaster SumXPlusSumY = convolutionRasterFunction(inRaster,width,height,krnLst.ToArray());
-            IRaster SumXPlusSumY2 = calcArithmaticFunction(SumXPlusSumY, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster SumXPlusSumYDiv = calcArithmaticFunction(SumXPlusSumY2, div, esriRasterArithmeticOperation.esriRasterDivide);
-            IRaster dif = calcArithmaticFunction(SumXy2, SumXPlusSumYDiv, esriRasterArithmeticOperation.esriRasterMinus);
-            return calcArithmaticFunction(dif,div,esriRasterArithmeticOperation.esriRasterDivide);
-
-        }
-        /// <summary>
-        /// performs GLCM Variance moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmVariance(object inRaster, int radius, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
-            int width = ((radius - 1) * 2) + 1;
-            int height = width;
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2;
-                    int crVl = circleKrn[c, r];
-                    if (crVl == 0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == 0 || c == (width - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crM = c - 1;
-                                int crPVl = circleKrn[crP, r];
-                                int crMVl = circleKrn[crM, r];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            if (r == 0 || r == (height - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = r + 1;
-                                int crM = r - 1;
-                                int crPVl = circleKrn[c, crP];
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            double div = krnLst.Sum();
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i];
-            }
-            //pow(sum(X),2)/N
-            IRaster sumX = convolutionRasterFunction(inRaster, width, height, krnLst.ToArray());
-            IRaster sumX2 = calcArithmaticFunction(sumX, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster sumX2Div = calcArithmaticFunction(sumX2, div, esriRasterArithmeticOperation.esriRasterDivide);
-            //sum(pow(X,2))
-            IRaster X2 = calcArithmaticFunction(inRaster, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster sumPowX = convolutionRasterFunction(X2, width, height, krnLst.ToArray());
-            IRaster minRs = calcArithmaticFunction(sumPowX, sumX2Div, esriRasterArithmeticOperation.esriRasterMinus);
-            return calcArithmaticFunction(minRs, div, esriRasterArithmeticOperation.esriRasterDivide);
-        }
-        /// <summary>
-        /// performs GLCM Variance moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmVariance(object inRaster, int width, int height, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = div + ((width - 2) * height);
-            }
-            else
-            {
-                div = div + ((height - 2) * width);
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2;
-                    if (horizontal)
-                    {
-                        if (c == 0 || c == (width - 1))
-                        {
-                            vl = 1;
-                        }
-                    }
-                    else
-                    {
-                        if (r == 0 || r == (height - 1))
-                        {
-                            vl = 1;
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            //pow(sum(X),2)/N
-            IRaster sumX = convolutionRasterFunction(inRaster, width, height, krnLst.ToArray());
-            IRaster sumX2 = calcArithmaticFunction(sumX, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster sumX2Div = calcArithmaticFunction(sumX2, div, esriRasterArithmeticOperation.esriRasterDivide);
-            //sum(pow(X,2))
-            IRaster X2 = calcArithmaticFunction(inRaster, 2, esriRasterArithmeticOperation.esriRasterPower);
-            IRaster sumPowX = convolutionRasterFunction(X2, width, height, krnLst.ToArray());
-            IRaster minRs = calcArithmaticFunction(sumPowX, sumX2Div, esriRasterArithmeticOperation.esriRasterMinus);
-            return calcArithmaticFunction(minRs, div, esriRasterArithmeticOperation.esriRasterDivide);
-        }
-        /// <summary>
-        /// performs GLCM Mean moving window analysis using a circular window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="radius"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmMean(object inRaster, int radius, bool horizontal)
-        {
-            List<double> krnLst = new List<double>();
-            List<int[]> iterLst = new List<int[]>();
-            int[,] circleKrn = createFocalWindowCircle(radius, out iterLst);
-            int width = ((radius - 1) * 2) + 1;
-            int height = width;
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2;
-                    int crVl = circleKrn[c, r];
-                    if(crVl==0)
-                    {
-                        vl = 0;
-                    }
-                    else
-                    {
-                        if (horizontal)
-                        {
-                            if (c == 0 || c == (width - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = c + 1;
-                                int crM = c - 1;
-                                int crPVl = circleKrn[crP, r];
-                                int crMVl = circleKrn[crM, r];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            if (r == 0 || r == (height - 1))
-                            {
-                                vl = 1;
-                            }
-                            else
-                            {
-                                int crP = r + 1;
-                                int crM = r - 1;
-                                int crPVl = circleKrn[c, crP];
-                                int crMVl = circleKrn[c, crM];
-                                if (crMVl == 0 && crPVl == 0)
-                                {
-                                    vl = 0;
-                                }
-                                else if (crMVl == 0 || crPVl == 0)
-                                {
-                                    vl = 1;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            double div = krnLst.Sum();
-            for (int i = 0; i < krnLst.Count; i++)
-            {
-                krnLst[i] = krnLst[i] / div;
-            }
-            return convolutionRasterFunction(inRaster, width, height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs GLCM mean moving window analysis using a rectangle window
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="horizontal">if true will look at horizontal neighbor values</param>
-        /// <returns></returns>
-        public IRaster glcmMean(object inRaster, int width, int height, bool horizontal )
-        {
-            List<double> krnLst = new List<double>();
-            double div = width * height;
-            if (horizontal)
-            {
-                div = div + ((width - 2) * height);
-            }
-            else
-            {
-                div = div + ((height - 2) * width);
-            }
-            for (int c = 0; c < width; c++)
-            {
-                for (int r = 0; r < height; r++)
-                {
-                    double vl = 2/div;
-                    if (horizontal)
-                    {
-                        if (c == 0 || c == (width - 1))
-                        {
-                            vl = 1/div;
-                        }
-                    }
-                    else
-                    {
-                        if (r == 0 || r == (height - 1))
-                        {
-                            vl = 1/div;
-                        }
-                    }
-                    krnLst.Add(vl);
-                }
-            }
-            return convolutionRasterFunction(inRaster, width, height, krnLst.ToArray());
-        }
-        /// <summary>
-        /// performs a convolution analysis for a defined kernal
+        /// performs a convolution analysis for a defined kernel
         /// </summary>
         /// <param name="inRaster"></param>
         /// <param name="width"></param>
@@ -1608,7 +781,7 @@ namespace esriUtil
                 outRs = shiftRasterFunction(outRs, addX, addY);
             }
             double cells = getNFromKernal(kn);
-            functionModel.estimateStatistics(rs, outRs, focalType.SUM, cells);
+            //functionModel.estimateStatistics(rs, outRs, focalType.SUM, cells);
             return outRs;
             
         }
@@ -1696,7 +869,7 @@ namespace esriUtil
             args.InRaster = rRst;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(rRst, outRs, typ);
+            //functionModel.estimateStatistics(rRst, outRs, typ);
             return outRs;
         }
         /// <summary>
@@ -1870,6 +1043,93 @@ namespace esriUtil
             }
             return xAr;
         }
+        public void createFocalWindowRectangleGLCM(int Width, int Height, bool horizontal, out List<int[]> iter)
+        {
+            createFocalWindowGLCM(Width, Height, windowType.RECTANGLE, horizontal, out iter);
+        }
+        public void createFocalWindowCircleGLCM(int Radius, bool horizontal, out List<int[]> iter)
+        {
+            int Width = ((Radius - 1) * 2) + 1;
+            createFocalWindowGLCM(Width, Width, windowType.CIRCLE, horizontal, out iter);
+        }
+        private void createFocalWindowGLCM(int Width, int Height, windowType WindowType, bool horizontal,out List<int[]> iter)//iter = x,y,weight,getNeightbor 1 or 0
+        {
+            iter = new List<int[]>();
+            int x = 0;
+            int y = 0;
+            int h = 0;
+            int w = Width;
+            if (horizontal)
+            {
+                w = w - 1;
+            }
+            else
+            {
+                h = 1;
+            }
+            switch (WindowType)
+            {
+                case windowType.CIRCLE:
+                    int radius = ((Width - 1) / 2);
+                    for (y = h; y < Height; y++)
+                    {
+                        for (x = 0; x < w; x++)
+                        {
+                            double cD = Math.Sqrt(Math.Pow((x - radius), 2) + Math.Pow((y - radius), 2));
+                            if (cD <= (radius))
+                            {
+                                int gN = 0;
+                                if(horizontal)
+                                {
+                                    double cDn = Math.Sqrt(Math.Pow(((x+1) - radius), 2) + Math.Pow((y - radius), 2));
+                                    if (cDn <= radius)
+                                    {
+                                        gN = 1;
+                                    }
+
+                                }
+                                else
+                                {
+                                    double cDn = Math.Sqrt(Math.Pow((x - radius), 2) + Math.Pow(((y-1) - radius), 2));
+                                    if (cDn <= radius)
+                                    {
+                                        gN = 1;
+                                    }
+                                }
+                                iter.Add(new int[] { x, y, gN });
+                            }
+                            
+                        }
+                    }
+                    break;
+                default:
+                    for (y = h; y < Height; y++)
+                    {
+                        for (x = 0; x < w; x++)
+                        {
+                            int gN = 0;
+                            if (horizontal)
+                            {
+                                if ((x+1) <= Width-1)
+                                {
+                                    gN = 1;
+                                }
+
+                            }
+                            else
+                            {
+                                if ((y-1) >= 0)
+                                {
+                                    gN = 1;
+                                }
+                            }
+                            iter.Add(new int[] { x, y, gN });
+                        }
+                    }
+                    break;
+            }
+            return;
+        }
         private int[,] createFocalWindow(int Width, int Height, windowType WindowType,out List<int[]> iter)
         {
             iter = new List<int[]>();
@@ -1979,7 +1239,7 @@ namespace esriUtil
                         for (int i = 0; i < absDif; i++)
                         {
                             IRaster rs = getBand(iR2, 0);
-                            rsBc1.AppendBands((IRasterBandCollection)rs);
+                            rsBc2.AppendBands((IRasterBandCollection)rs);
                         }
                     }
                     else
@@ -1996,7 +1256,7 @@ namespace esriUtil
             args.Raster2 = iR2;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(iR1, iR2, outRs, op);
+            //functionModel.estimateStatistics(iR1, iR2, outRs, op);
             return outRs;
             
             
@@ -2218,7 +1478,7 @@ namespace esriUtil
             switch (statType)
             {
                 case focalType.MIN:
-                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMin();
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperMin();
                     break;
                 case focalType.SUM:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperSum();
@@ -2244,7 +1504,7 @@ namespace esriUtil
                 case focalType.ENTROPY:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperEntropy();
                     break;
-                case focalType.PROBABILITY:
+                case focalType.ASM:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalSampleHelperASM();
                     break;
                 default:
@@ -2307,7 +1567,7 @@ namespace esriUtil
                 case focalType.ENTROPY:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperEntropy();
                     break;
-                case focalType.PROBABILITY:
+                case focalType.ASM:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperProbability();
                     break;
                 default:
@@ -2323,7 +1583,7 @@ namespace esriUtil
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             double cells  = clm*rws;
-            functionModel.estimateStatistics(iR1, outRs, statType, cells);
+            //functionModel.estimateStatistics(iR1, outRs, statType, cells);
             return outRs;
         }
         /// <summary>
@@ -2371,7 +1631,7 @@ namespace esriUtil
                 case focalType.ENTROPY:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperEntropy();
                     break;
-                case focalType.PROBABILITY:
+                case focalType.ASM:
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperProbability();
                     break;
                 default:
@@ -2387,7 +1647,7 @@ namespace esriUtil
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             double cells = getNFromCircle(radius);
-            functionModel.estimateStatistics(iR1, outRs, statType, cells);
+            //functionModel.estimateStatistics(iR1, outRs, statType, cells);
             return outRs;
         }
         private double getNFromCircle(int radius)
@@ -2768,6 +2028,10 @@ namespace esriUtil
             return createRaster((IRasterDataset)frDset);
 
         }
+        public IRaster calcRegressFunction(object inRaster, List<double[]> slopes)
+        {
+            return calcRegressFunction(inRaster, slopes, null);
+        }
         /// <summary>
         /// regresses sums an intercept value to the sum product of a series of raster bands and corresponding slope values. Number of bands and slope values must match
         /// </summary>
@@ -2775,36 +2039,23 @@ namespace esriUtil
         /// <param name="intercept">double representing the intercept of the regression equation</param>
         /// <param name="slopes">double[] representing the corresponding slope values</param>
         /// <returns></returns>
-        public IRaster calcRegressFunction(object inRaster, double intercept, double[] slopes)
+        public IRaster calcRegressFunction(object inRaster, List<double[]> slopes, IRaster SeedRaster)
         {
-            IRaster iR1 = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster rRst = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new ArithmeticFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_DOUBLE;
-            IArithmeticFunctionArguments args = new ArithmeticFunctionArgumentsClass();
-            args.Operation = esriRasterArithmeticOperation.esriRasterMultiply;
-            IScalar sc = new ScalarClass();
-            sc.Value = slopes;
-            args.Raster = iR1;
-            args.Raster2 = sc;
+            IRasterFunction rsFunc =  new FunctionRasters.regressionFunctionDataset();
+                   
+            FunctionRasters.regressionFunctionArguments args = new FunctionRasters.regressionFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.Slopes = slopes;
+            args.SeedRaster = SeedRaster;
             frDset.Init(rsFunc, args);
-            //frDset.Simplify();
-            IRasterDataset sRsDataset = (IRasterDataset)frDset;
-            IRasterBandCollection sRsBc = (IRasterBandCollection)sRsDataset;
-            IRaster sRs = getBand(sRsBc,0);
-            IRaster[] rstArr = new IRaster[sRsBc.Count];
-            rstArr[0] = calcArithmaticFunction(sRs, intercept,esriRasterArithmeticOperation.esriRasterPlus);
-            for (int i = 1; i < sRsBc.Count; i++)
-            {
-                IRaster nbcR = getBand(sRsBc,i);
-                IRaster pR = rstArr[i-1];
-                rstArr[i]=calcArithmaticFunction(nbcR,pR,esriRasterArithmeticOperation.esriRasterPlus);
-            }
-            return rstArr[rstArr.GetUpperBound(0)];
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
 
         }
         /// <summary>
@@ -2841,7 +2092,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcGreaterEqualFunction(minRst, 0);
             }
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2879,7 +2130,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcGreaterFunction(minRst, 0);
             }
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2977,7 +2228,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcLessEqualFunction(minRst, 0);
             }
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -3012,7 +2263,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcLessFunction(minRst, 0);
             }
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -3049,7 +2300,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcEqualFunction(minRst, 0);
             }
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -3075,7 +2326,7 @@ namespace esriUtil
             rsFunc.PixelType = rstPixelType.PT_DOUBLE;
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(rasterValue,outRs);
+            //functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
         }
@@ -3128,7 +2379,7 @@ namespace esriUtil
             args.FalseRaster = iR2;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(iR1, iR2, outRs, esriRasterArithmeticOperation.esriRasterPlus);
+            //functionModel.estimateStatistics(iR1, iR2, outRs, esriRasterArithmeticOperation.esriRasterPlus);
             return outRs;
             
         }
@@ -3205,7 +2456,7 @@ namespace esriUtil
             IRaster outRs = null;
             frDset.Init(rsFunc, args);
             outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(inRs, outRs, op);
+            //functionModel.estimateStatistics(inRs, outRs, op);
             return outRs;
 
         }
@@ -3337,7 +2588,7 @@ namespace esriUtil
             IRaster rs4 = calcGreaterEqualFunction(rs2, 1);
             IRaster rs5 = calcArithmaticFunction(rs3, rs4, esriRasterArithmeticOperation.esriRasterPlus);
             IRaster outRs = calcEqualFunction(rs5,2);
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -3352,7 +2603,7 @@ namespace esriUtil
             IRaster rs4 = calcGreaterEqualFunction(rs2, 1);
             IRaster rs5 = calcArithmaticFunction(rs3, rs4, esriRasterArithmeticOperation.esriRasterPlus);
             IRaster outRs = calcGreaterEqualFunction(rs5, 1);
-            functionModel.estimateStatistics(outRs);
+            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -3389,7 +2640,7 @@ namespace esriUtil
             args.ZFactor = 1;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(outRs, functionModel.dem.Slope);
+            //functionModel.estimateStatistics(outRs, functionModel.dem.Slope);
             return outRs;
         }
         /// <summary>
@@ -3409,7 +2660,7 @@ namespace esriUtil
             rsFunc.PixelType = rstPixelType.PT_FLOAT;
             frDset.Init(rsFunc, inRaster);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(outRs,functionModel.dem.Aspect);
+            //functionModel.estimateStatistics(outRs,functionModel.dem.Aspect);
             return outRs;
         }
         
@@ -3566,7 +2817,7 @@ namespace esriUtil
             rsFunc.PixelType = pType;
             frDset.Init(rsFunc, outRs);
             IRaster fRs = createRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(fRs, pType);
+            //functionModel.estimateStatistics(fRs, pType);
             return fRs;
         }
         public IRaster setValueRangeToNodata(object inRaster,List<double[]>minMaxList)

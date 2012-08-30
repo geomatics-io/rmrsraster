@@ -20,7 +20,9 @@ namespace servicesToolBar
             {
                 esriUtil.rasterUtil.cleanupTempDirectories();
                 esriUtil.update up = new esriUtil.update(ThisAddIn.Version);
-                up.updateApp();
+                string id = ThisAddIn.AddInID;
+                string folderLoc = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns\\Desktop10.0\\" + id;
+                up.updateApp(folderLoc);
                 up.updateHelp();
             }
             catch

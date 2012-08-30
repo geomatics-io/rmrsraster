@@ -41,11 +41,14 @@
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
             this.btnRasterBands = new System.Windows.Forms.Button();
             this.btnOpenFeatureClass = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cmbModelDir = new System.Windows.Forms.ComboBox();
+            this.btnSeed = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(203, 268);
+            this.button1.Location = new System.Drawing.Point(203, 310);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(59, 23);
             this.button1.TabIndex = 49;
@@ -55,17 +58,17 @@
             // 
             // btnViewOrder
             // 
-            this.btnViewOrder.Location = new System.Drawing.Point(12, 268);
+            this.btnViewOrder.Location = new System.Drawing.Point(12, 310);
             this.btnViewOrder.Name = "btnViewOrder";
-            this.btnViewOrder.Size = new System.Drawing.Size(95, 23);
+            this.btnViewOrder.Size = new System.Drawing.Size(74, 23);
             this.btnViewOrder.TabIndex = 48;
-            this.btnViewOrder.Text = "Order of Rasters";
+            this.btnViewOrder.Text = "Parameters";
             this.btnViewOrder.UseVisualStyleBackColor = true;
             this.btnViewOrder.Click += new System.EventHandler(this.btnViewOrder_Click);
             // 
             // btnRemoveAll
             // 
-            this.btnRemoveAll.Location = new System.Drawing.Point(237, 159);
+            this.btnRemoveAll.Location = new System.Drawing.Point(237, 201);
             this.btnRemoveAll.Name = "btnRemoveAll";
             this.btnRemoveAll.Size = new System.Drawing.Size(25, 23);
             this.btnRemoveAll.TabIndex = 47;
@@ -75,7 +78,7 @@
             // 
             // btnMinus
             // 
-            this.btnMinus.Location = new System.Drawing.Point(237, 101);
+            this.btnMinus.Location = new System.Drawing.Point(237, 143);
             this.btnMinus.Name = "btnMinus";
             this.btnMinus.Size = new System.Drawing.Size(25, 23);
             this.btnMinus.TabIndex = 46;
@@ -85,7 +88,7 @@
             // 
             // btnAddAll
             // 
-            this.btnAddAll.Location = new System.Drawing.Point(237, 130);
+            this.btnAddAll.Location = new System.Drawing.Point(237, 172);
             this.btnAddAll.Name = "btnAddAll";
             this.btnAddAll.Size = new System.Drawing.Size(25, 23);
             this.btnAddAll.TabIndex = 45;
@@ -96,7 +99,7 @@
             // lstRasterBands
             // 
             this.lstRasterBands.FormattingEnabled = true;
-            this.lstRasterBands.Location = new System.Drawing.Point(11, 99);
+            this.lstRasterBands.Location = new System.Drawing.Point(11, 141);
             this.lstRasterBands.Name = "lstRasterBands";
             this.lstRasterBands.Size = new System.Drawing.Size(220, 160);
             this.lstRasterBands.TabIndex = 43;
@@ -104,7 +107,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(8, 54);
+            this.label3.Location = new System.Drawing.Point(8, 96);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(152, 13);
             this.label3.TabIndex = 41;
@@ -113,7 +116,7 @@
             // cmbRasterBands
             // 
             this.cmbRasterBands.FormattingEnabled = true;
-            this.cmbRasterBands.Location = new System.Drawing.Point(11, 71);
+            this.cmbRasterBands.Location = new System.Drawing.Point(11, 113);
             this.cmbRasterBands.Name = "cmbRasterBands";
             this.cmbRasterBands.Size = new System.Drawing.Size(220, 21);
             this.cmbRasterBands.TabIndex = 40;
@@ -124,9 +127,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(9, 8);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(85, 13);
+            this.label2.Size = new System.Drawing.Size(143, 13);
             this.label2.TabIndex = 38;
-            this.label2.Text = "Training Dataset";
+            this.label2.Text = "Training Dataset Workspace";
             // 
             // cmbSampleFeatureClass
             // 
@@ -141,7 +144,7 @@
             // btnRasterBands
             // 
             this.btnRasterBands.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnRasterBands.Location = new System.Drawing.Point(232, 67);
+            this.btnRasterBands.Location = new System.Drawing.Point(232, 111);
             this.btnRasterBands.Name = "btnRasterBands";
             this.btnRasterBands.Size = new System.Drawing.Size(34, 27);
             this.btnRasterBands.TabIndex = 42;
@@ -151,18 +154,49 @@
             // btnOpenFeatureClass
             // 
             this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(233, 21);
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(233, 23);
             this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
             this.btnOpenFeatureClass.Size = new System.Drawing.Size(34, 27);
             this.btnOpenFeatureClass.TabIndex = 39;
             this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
             this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeature_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(10, 51);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(137, 13);
+            this.label1.TabIndex = 51;
+            this.label1.Text = "Regression Model Directory";
+            // 
+            // cmbModelDir
+            // 
+            this.cmbModelDir.FormattingEnabled = true;
+            this.cmbModelDir.Location = new System.Drawing.Point(13, 68);
+            this.cmbModelDir.Name = "cmbModelDir";
+            this.cmbModelDir.Size = new System.Drawing.Size(220, 21);
+            this.cmbModelDir.TabIndex = 50;
+            this.cmbModelDir.SelectedIndexChanged += new System.EventHandler(this.cmbModelDir_SelectedIndexChanged);
+            // 
+            // btnSeed
+            // 
+            this.btnSeed.Location = new System.Drawing.Point(92, 310);
+            this.btnSeed.Name = "btnSeed";
+            this.btnSeed.Size = new System.Drawing.Size(43, 23);
+            this.btnSeed.TabIndex = 52;
+            this.btnSeed.Text = "Seed";
+            this.btnSeed.UseVisualStyleBackColor = true;
+            this.btnSeed.Click += new System.EventHandler(this.btnSeed_Click);
+            // 
             // frmRunRegressionRaster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(278, 296);
+            this.ClientSize = new System.Drawing.Size(278, 337);
+            this.Controls.Add(this.btnSeed);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.cmbModelDir);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.btnViewOrder);
             this.Controls.Add(this.btnRemoveAll);
@@ -199,5 +233,8 @@
         private System.Windows.Forms.Button btnOpenFeatureClass;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbSampleFeatureClass;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox cmbModelDir;
+        private System.Windows.Forms.Button btnSeed;
     }
 }

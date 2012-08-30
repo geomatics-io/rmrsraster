@@ -46,6 +46,8 @@ namespace esriUtil.FunctionRasters
         public string LinkFieldName { get { return linkfieldname; } }
         private IRaster zRs = null;
         private IRaster vRs = null;
+        private string zName = null;
+        private string vName = null;
         public IRaster InZoneRaster 
         {
             get
@@ -58,7 +60,7 @@ namespace esriUtil.FunctionRasters
                 zProps = (IRasterProps)zRs;
                 IDataset ds = (IDataset)((IRaster2)zRs).RasterDataset;
                 wks = geoUtil.OpenWorkSpace(ds.Workspace.PathName);
-                tblName = geoUtil.getSafeOutputNameNonRaster(wks,ds.BrowseName + "_VAT");
+                zName = ds.BrowseName;
                 //Console.WriteLine(tblName);
             }
         }
@@ -73,10 +75,18 @@ namespace esriUtil.FunctionRasters
                 
                 vRs = value;
                 vProps = (IRasterProps)vRs;
+                zoneValueDicArr = new Dictionary<int, object[]>[((IRasterBandCollection)vRs).Count];
+                for (int i = 0; i < zoneValueDicArr.Length; i++)
+                {
+                    zoneValueDicArr[i] = new Dictionary<int, object[]>();
+                }
+                IDataset ds = (IDataset)((IRaster2)vRs).RasterDataset;
+                vName = ds.BrowseName;
             }
         }
         public void setZoneValues()
         {
+            tblName = geoUtil.getSafeOutputNameNonRaster(wks, zName + "_" + vName + "_VAT");
             if (vRs == null)
             {
                 if (rd != null) rd.addMessage("Value raster has not been set! Cannot proceed!");
@@ -107,6 +117,8 @@ namespace esriUtil.FunctionRasters
             }
             else
             {
+                
+                
                 bool cP = checkProjections();
                 bool cE = checkExtents();
                 if (!cE)
@@ -267,14 +279,19 @@ namespace esriUtil.FunctionRasters
                 IFieldsEdit nfldsE = (IFieldsEdit)nflds;
                 IField nfld = new FieldClass();
                 IFieldEdit nfldE = (IFieldEdit)nfld;
-                nfldE.Name_2 = "Value";
+                nfldE.Name_2 = "Band";
                 nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld);
+                nfldsE.AddField(nfldE);
                 IField nfld2 = new FieldClass();
                 IFieldEdit nfld2E = (IFieldEdit)nfld2;
-                nfld2E.Name_2 = "Count";
+                nfld2E.Name_2 = "Value";
                 nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
                 nfldsE.AddField(nfld2E);
+                IField nfld3 = new FieldClass();
+                IFieldEdit nfld3E = (IFieldEdit)nfld3;
+                nfld3E.Name_2 = "Count";
+                nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
+                nfldsE.AddField(nfld3E);
                 oTbl = geoUtil.createTable(wks,tblName,nflds);
             }
             else
@@ -304,55 +321,62 @@ namespace esriUtil.FunctionRasters
             wksE.StartEditOperation();
             try
             {
+                int bdIndex = oTbl.FindField("Band");
                 int vlIndex = oTbl.FindField("Value");
                 int cntIndex = oTbl.FindField("Count");
-                foreach (KeyValuePair<int, object[]> kVp in zoneValueDic)
+                int bndCnt = 1;
+                foreach (Dictionary<int, object[]> zoneValueDicOut in zoneValueDicArr)
                 {
-                    
-                    int key = kVp.Key;
-                    object[] vl = kVp.Value;
-                    Dictionary<rasterUtil.zoneType, double> vDic = getValueDic(vl);
-                    IRow rw = null;
-                    if (!weCreate)
+                    foreach (KeyValuePair<int, object[]> kVp in zoneValueDicOut)
                     {
-                        string qry = "Value = " + key;
-                        IQueryFilter qf = new QueryFilterClass();
-                        qf.WhereClause = qry;
-                        ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
-                        if (tblSelectionSet.Count > 0)
+
+                        int key = kVp.Key;
+                        object[] vl = kVp.Value;
+                        Dictionary<rasterUtil.zoneType, double> vDic = getValueDic(vl);
+                        IRow rw = null;
+                        if (!weCreate)
                         {
-                            int id = tblSelectionSet.IDs.Next();
-                            rw = oTbl.GetRow(id);
+                            string qry = "Band = " + bndCnt.ToString() + " and Value = " + key;
+                            IQueryFilter qf = new QueryFilterClass();
+                            qf.WhereClause = qry;
+                            ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
+                            if (tblSelectionSet.Count > 0)
+                            {
+                                int id = tblSelectionSet.IDs.Next();
+                                rw = oTbl.GetRow(id);
+                            }
+                            else
+                            {
+                                rw = oTbl.CreateRow();
+                            }
+
                         }
                         else
                         {
                             rw = oTbl.CreateRow();
                         }
-
-                    }
-                    else
-                    {
-                        rw = oTbl.CreateRow();
-                    }
-                    //Console.WriteLine(key.ToString());
-                    rw.set_Value(vlIndex, key);
-                    rw.set_Value(cntIndex, vl[0]);
-                    foreach (rasterUtil.zoneType zT in ZoneTypes)
-                    {
-                        string fldNm = zT.ToString();
-                        int fldIndex = oTbl.FindField(fldNm);
-                        double zVl = vDic[zT];
-                        //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
-                        if (fldIndex > -1)
+                        //Console.WriteLine(key.ToString());
+                        rw.set_Value(bdIndex, bndCnt);
+                        rw.set_Value(vlIndex, key);
+                        rw.set_Value(cntIndex, vl[0]);
+                        foreach (rasterUtil.zoneType zT in ZoneTypes)
                         {
-                            rw.set_Value(fldIndex, zVl);
+                            string fldNm = zT.ToString();
+                            int fldIndex = oTbl.FindField(fldNm);
+                            double zVl = vDic[zT];
+                            //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
+                            if (fldIndex > -1)
+                            {
+                                rw.set_Value(fldIndex, zVl);
+                            }
+                            else
+                            {
+                                Console.WriteLine(fldNm);
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine(fldNm);
-                        }
+                        rw.Store();
                     }
-                    rw.Store();
+                    bndCnt += 1;
                 }
             }
             catch(Exception e)
@@ -439,7 +463,7 @@ namespace esriUtil.FunctionRasters
                     case rasterUtil.zoneType.MEAN:
                         vDic.Add(t, s / cellCnt);
                         break;
-                    case rasterUtil.zoneType.VARIANCE:
+                    case rasterUtil.zoneType.VAR:
                         vDic.Add(t,var);
                         break;
                     case rasterUtil.zoneType.STD:
@@ -474,12 +498,13 @@ namespace esriUtil.FunctionRasters
             }
             return vDic;
         }
-        private Dictionary<int, object[]> zoneValueDic = new Dictionary<int, object[]>();//value = [count,max,min,sum,sum2,dictionary<int,int>]->dictionary is for unique, entropy, and ASM
+        private Dictionary<int, object[]>[] zoneValueDicArr = null;
+        private Dictionary<int, object[]> zoneValueDic = null;//value = [count,max,min,sum,sum2,dictionary<int,int>]->dictionary is for unique, entropy, and ASM
         private void calcZoneValues()
         {
             bool makeDic = (ZoneTypes.Contains(rasterUtil.zoneType.VARIETY)||ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY)||ZoneTypes.Contains(rasterUtil.zoneType.ASM)||ZoneTypes.Contains(rasterUtil.zoneType.MINORITY)||ZoneTypes.Contains(rasterUtil.zoneType.MODE)||ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
             double zNoDataVl = System.Convert.ToDouble(((System.Array)zProps.NoDataValue).GetValue(0));
-            double vNoDataVl = System.Convert.ToDouble(((System.Array)vProps.NoDataValue).GetValue(0));
+            
             IPnt vPntLoc = new PntClass();
             IPnt zPntSize = new PntClass();
             IPnt vPntSize = new PntClass();
@@ -511,81 +536,86 @@ namespace esriUtil.FunctionRasters
                 IPixelBlock vPb = InValueRaster.CreatePixelBlock(vPntSize);
                 InValueRaster.Read(vPntLoc, vPb);
                 System.Array zPix = (System.Array)zPb.get_SafeArray(0);
-                System.Array vPix = (System.Array)vPb.get_SafeArray(0);
-                for (int r = 0; r < ht; r++)
+                for (int i = 0; i < vPb.Planes; i++)
                 {
-                    for (int c = 0; c < wd; c++)
+                    zoneValueDic = zoneValueDicArr[i];
+                    double vNoDataVl = System.Convert.ToDouble(((System.Array)vProps.NoDataValue).GetValue(i));
+                    System.Array vPix = (System.Array)vPb.get_SafeArray(i);
+                    for (int r = 0; r < ht; r++)
                     {
-                        int z = System.Convert.ToInt32(zPix.GetValue(c, r));
-                        if (z == zNoDataVl)
+                        for (int c = 0; c < wd; c++)
                         {
-                            continue;
-                        }
-                        else
-                        {
-                            double v = System.Convert.ToDouble(vPix.GetValue(c, r));
-                            if (v == vNoDataVl)
+                            int z = System.Convert.ToInt32(zPix.GetValue(c, r));
+                            if (z == zNoDataVl)
                             {
                                 continue;
                             }
                             else
                             {
-                                //Console.WriteLine(z.ToString());
-                                int vi = System.Convert.ToInt32(v);
-                                object[] zoneValue;
-                                if (zoneValueDic.TryGetValue(z, out zoneValue))
+                                double v = System.Convert.ToDouble(vPix.GetValue(c, r));
+                                if (v == vNoDataVl)
                                 {
-                                    double cnt = System.Convert.ToDouble(zoneValue[0]);
-                                    zoneValue[0] = cnt += 1;
-                                    double maxVl = System.Convert.ToDouble(zoneValue[1]);
-                                    if (v > maxVl)
-                                    {
-                                        maxVl = v;
-                                        zoneValue[1] = maxVl;
-                                    }
-                                    double minVl = System.Convert.ToDouble(zoneValue[2]);
-                                    if (v < minVl)
-                                    {
-                                        minVl = v;
-                                        zoneValue[2] = minVl;
-                                    }
-                                    double s = System.Convert.ToDouble(zoneValue[3]);
-                                    zoneValue[3] = s + v;
-                                    double s2 = System.Convert.ToDouble(zoneValue[4]);
-                                    zoneValue[4] = s2 + v * v;
-                                    if (makeDic)
-                                    {
-                                        Dictionary<int, int> uDic = (Dictionary<int, int>)zoneValue[5];
-                                        int cntVl = 0;
-                                        if (uDic.TryGetValue(vi, out cntVl))
-                                        {
-                                            uDic[vi] = cntVl += 1;
-                                        }
-                                        else
-                                        {
-                                            uDic.Add(vi, 1);
-                                        }
-                                        zoneValue[5] = uDic;
-                                    }
-                                    zoneValueDic[z] = zoneValue;
+                                    continue;
                                 }
                                 else
                                 {
-                                    zoneValue = new object[6];
-                                    zoneValue[0]= 1d;
-                                    zoneValue[1]= v;
-                                    zoneValue[2]= v;
-                                    zoneValue[3]= v;
-                                    zoneValue[4] = v * v;
-                                    if (makeDic)
+                                    //Console.WriteLine(z.ToString());
+                                    int vi = System.Convert.ToInt32(v);
+                                    object[] zoneValue;
+                                    if (zoneValueDic.TryGetValue(z, out zoneValue))
                                     {
-                                        Dictionary<int, int> uDic = new Dictionary<int, int>();
-                                        uDic.Add(vi, 1);
-                                        zoneValue[5] = uDic;
+                                        double cnt = System.Convert.ToDouble(zoneValue[0]);
+                                        zoneValue[0] = cnt += 1;
+                                        double maxVl = System.Convert.ToDouble(zoneValue[1]);
+                                        if (v > maxVl)
+                                        {
+                                            maxVl = v;
+                                            zoneValue[1] = maxVl;
+                                        }
+                                        double minVl = System.Convert.ToDouble(zoneValue[2]);
+                                        if (v < minVl)
+                                        {
+                                            minVl = v;
+                                            zoneValue[2] = minVl;
+                                        }
+                                        double s = System.Convert.ToDouble(zoneValue[3]);
+                                        zoneValue[3] = s + v;
+                                        double s2 = System.Convert.ToDouble(zoneValue[4]);
+                                        zoneValue[4] = s2 + v * v;
+                                        if (makeDic)
+                                        {
+                                            Dictionary<int, int> uDic = (Dictionary<int, int>)zoneValue[5];
+                                            int cntVl = 0;
+                                            if (uDic.TryGetValue(vi, out cntVl))
+                                            {
+                                                uDic[vi] = cntVl += 1;
+                                            }
+                                            else
+                                            {
+                                                uDic.Add(vi, 1);
+                                            }
+                                            zoneValue[5] = uDic;
+                                        }
+                                        zoneValueDic[z] = zoneValue;
                                     }
-                                    zoneValueDic.Add(z, zoneValue);
+                                    else
+                                    {
+                                        zoneValue = new object[6];
+                                        zoneValue[0] = 1d;
+                                        zoneValue[1] = v;
+                                        zoneValue[2] = v;
+                                        zoneValue[3] = v;
+                                        zoneValue[4] = v * v;
+                                        if (makeDic)
+                                        {
+                                            Dictionary<int, int> uDic = new Dictionary<int, int>();
+                                            uDic.Add(vi, 1);
+                                            zoneValue[5] = uDic;
+                                        }
+                                        zoneValueDic.Add(z, zoneValue);
+                                    }
+
                                 }
-                                
                             }
                         }
                     }
@@ -761,7 +791,8 @@ namespace esriUtil.FunctionRasters
                 ftrCls = value;
                 IDataset ds = (IDataset)ftrCls;
                 wks = ds.Workspace;
-                tblName = geoUtil.getSafeOutputNameNonRaster(wks, ds.BrowseName + "_VAT");
+                zName = ds.BrowseName;
+                //tblName = geoUtil.getSafeOutputNameNonRaster(wks, ds.BrowseName + "_VAT");
             } 
         }
         string ftrField = null;
@@ -774,7 +805,7 @@ namespace esriUtil.FunctionRasters
             IDataset dSet = (IDataset)InFeatureClass;
             string outRsNm = dSet.BrowseName;
             wks = dSet.Workspace;
-            tblName = geoUtil.getSafeOutputNameNonRaster(wks,outRsNm + "_VAT");
+            //tblName = geoUtil.getSafeOutputNameNonRaster(wks,outRsNm + "_VAT");
             if (vRs != null)
             {
                 if (!checkProjectionsFtr())

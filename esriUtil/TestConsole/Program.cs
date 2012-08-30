@@ -35,16 +35,9 @@ namespace TestConsole
 
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            string inRsStr = @"C:\Users\jshogland\Documents\John\temp\bpssusecn_z\bpssubscnmaj2";
-            string vRsStr = @"C:\Users\jshogland\Documents\John\temp\modis_rc\ndviMAX_2000_rng.img";
-            IRaster zRs = rsUtil.returnRaster(inRsStr);
-            IRaster vRs = rsUtil.returnRaster(vRsStr);
-            esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new esriUtil.Forms.RunningProcess.frmRunningProcessDialog(false);
-            rp.Show();
-            rasterUtil.zoneType[] zT = {rasterUtil.zoneType.MEAN,rasterUtil.zoneType.SUM,rasterUtil.zoneType.STD};
-            ITable tbl = rsUtil.zonalStats(zRs, vRs, zT, rp);
-            //esriUtil.Forms.RasterAnalysis.frmZonalStats frm = new esriUtil.Forms.RasterAnalysis.frmZonalStats(null);
-            //System.Windows.Forms.Application.Run(frm);    
+
+            esriUtil.Forms.RasterAnalysis.frmBatchProcess frm = new esriUtil.Forms.RasterAnalysis.frmBatchProcess();
+            System.Windows.Forms.Application.Run(frm);    
             System.DateTime dt2 = System.DateTime.Now;
             System.TimeSpan ts = dt2.Subtract(dt);
             Console.WriteLine("Total Seconds = " + ts.TotalSeconds.ToString());

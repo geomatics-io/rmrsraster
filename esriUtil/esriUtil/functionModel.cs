@@ -24,7 +24,7 @@ namespace esriUtil
         {
         }
         public enum dem { NorthSouth, EastWest, Slope, Aspect }
-        public enum functionGroups { Arithmetic, Math, SetNull, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape };
+        public enum functionGroups { Arithmetic, Math, SetNull, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape, FocalSample, RegressionRaster };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
@@ -56,8 +56,6 @@ namespace esriUtil
                         if (ln.Length > 0)
                         {
                             parseFunctionModel(ln, out otNm, out otRs);
-                            //IWorkspace wks = geoUtil.OpenRasterWorkspace(System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(FunctionDatasetPath)));
-                            //rsUtil.saveRasterToDataset(otRs, otNm, wks);
                             if (rstDic.ContainsKey(otNm))
                             {
                                 rstDic[otNm] = otRs;
@@ -188,11 +186,90 @@ namespace esriUtil
                 case functionGroups.SetNull:
                     calcSetNull(prmArr, out otNm, out otRs);
                     break;
+                case functionGroups.FocalSample:
+                    calcFocalSample(prmArr, out otNm, out otRs);
+                    break;
+                case functionGroups.RegressionRaster:
+                    calcRegressionRaster(prmArr, out otNm, out otRs);
+                    break;
                 default:
                     break;
             }
 
 
+        }
+
+        private void calcRegressionRaster(string[] prmArr, out string name, out IRaster raster)
+        {
+            name = prmArr[0].Split(new char[] { '@' })[1];
+            string inRastersStr = prmArr[1].Split(new char[] { '@' })[1];
+            string wksStr = prmArr[3].Split(new char[] { '@' })[1];
+
+            IRaster rs1 = null;
+            IRasterBandCollection rsBc = new RasterClass();
+            foreach(string s in inRastersStr.Split(new char[]{','}))
+            {
+                IRaster rsObj = null;
+                if (rstDic.ContainsKey(s))
+                {
+                    rsObj = rstDic[s];
+                }
+                else
+                {
+                    rsObj = rsUtil.returnRaster(s);
+                }
+                rsBc.AppendBands((IRasterBandCollection)rsObj);
+            }
+            regressionRaster rr = new regressionRaster(ref rsUtil);
+            rs1 = (IRaster)rsBc;
+            string outEst = wksStr + "\\SASOUTPUT\\" + name + "\\outest.csv";
+            if (System.IO.File.Exists(outEst))
+            {
+                using (System.IO.StreamReader sr = new System.IO.StreamReader(outEst))
+                {
+                    string sF = sr.ReadLine();
+                    string sV = sr.ReadLine();
+                    List<string> depFlsLst = new List<string>();
+                    while (sV != null)
+                    {
+                        depFlsLst.Add(sV.Split(new char[] { ',' })[2]);
+                        sV = sr.ReadLine();
+                    }
+                    rr.Dependentfield = String.Join(" ", depFlsLst.ToArray());
+                    sr.Close();
+
+                }
+                rr.SasOutputFile = outEst;
+            }
+            
+            rr.InRaster = rs1;
+            rr.OutWorkspace = geoUtil.OpenRasterWorkspace(wksStr);
+            raster = rr.createModelRaster(null);
+        }
+
+        private void calcFocalSample(string[] prmArr, out string name, out IRaster raster)
+        {
+            name = prmArr[2].Split(new char[] { '@' })[1];
+            string inRaster1 = prmArr[3].Split(new char[] { '@' })[1];
+            string ranges = prmArr[0].Split(new char[] { '@' })[1];
+            rasterUtil.focalType statType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), prmArr[1].Split(new char[] { '@' })[1]);
+            HashSet<string> rngLst = new HashSet<string>();
+            foreach (string s in ranges.Split(new char[] { ',' }))
+            {
+                string vl = s.Replace("`", ";");
+                //Console.WriteLine(vl);
+                rngLst.Add(vl);
+            }
+            object rs1 = null;
+            if (rstDic.ContainsKey(inRaster1))
+            {
+                rs1 = rstDic[inRaster1];
+            }
+            else
+            {
+                rs1 = inRaster1;
+            }
+            raster = rsUtil.calcFocalSampleFunction(rs1,rngLst,statType);
         }
 
         private void calcSetNull(string[] prmArr, out string name, out IRaster raster)
@@ -207,7 +284,16 @@ namespace esriUtil
                 double[] vlArrD = {System.Convert.ToDouble(vlArr[0]),System.Convert.ToDouble(vlArr[1])};
                 rngLst.Add(vlArrD);
             }
-            raster = rsUtil.setValueRangeToNodata(inRaster1, rngLst);
+            object rs1 = null;
+            if (rstDic.ContainsKey(inRaster1))
+            {
+                rs1 = rstDic[inRaster1];
+            }
+            else
+            {
+                rs1 = inRaster1;
+            }
+            raster = rsUtil.setValueRangeToNodata(rs1, rngLst);
         }
 
         private void calcLandscapeMetrics(string[] prmArr, out string name, out IRaster raster)
@@ -293,112 +379,28 @@ namespace esriUtil
         {
             name = prmArr[0].Split(new char[] { '@' })[1];
             string inRaster1 = prmArr[1].Split(new char[] { '@' })[1];
-            string glcmTypes = prmArr[3].Split(new char[] { '@' })[1];
-            string wDir = prmArr[4].Split(new char[] { '@' })[1];
-            string wTyp = prmArr[5].Split(new char[] { '@' })[1];
-            int rws = System.Convert.ToInt32(prmArr[6].Split(new char[] { '@' })[1]);
-            int clm = System.Convert.ToInt32(prmArr[7].Split(new char[] { '@' })[1]);
+            string glcmTypes = prmArr[2].Split(new char[] { '@' })[1];
+            string wDir = prmArr[3].Split(new char[] { '@' })[1];
+            string wTyp = prmArr[4].Split(new char[] { '@' })[1];
+            int rws = System.Convert.ToInt32(prmArr[5].Split(new char[] { '@' })[1]);
+            int clm = System.Convert.ToInt32(prmArr[6 ].Split(new char[] { '@' })[1]);
             IRaster rs = null;
             if (rstDic.ContainsKey(inRaster1)) rs = rstDic[inRaster1];
             else rs = rsUtil.returnRaster(inRaster1);
             bool horz = true;
-            bool rad = false;
+            rasterUtil.glcmMetric rm = (rasterUtil.glcmMetric)Enum.Parse(typeof(rasterUtil.glcmMetric),glcmTypes);
             if (wDir.ToLower() != "horizontal")
             {
                 horz = false;
             }
-            if (wTyp == glcm.windowType.CIRCLE.ToString())
+            if (wTyp == rasterUtil.windowType.CIRCLE.ToString())
             {
-                rad = true;
+                raster = rsUtil.calcGLCMFunction(rs, clm, horz, rm);
             }
-            IRasterBandCollection rsBc = new RasterClass();
-            foreach (string s in glcmTypes.Split(new char[] { ',' }))
+            else
             {
-                rasterUtil.glcmMetric metric = (rasterUtil.glcmMetric)Enum.Parse(typeof(rasterUtil.glcmMetric), s);
-                switch (metric)
-                {
-                    case rasterUtil.glcmMetric.CONTRAST:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmContrast(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmContrast(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.DIS:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmDissimilarity(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmDissimilarity(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.HOMOG:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmHomogeneity(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmHomogeneity(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.ASM:
-                    case rasterUtil.glcmMetric.ENERGY:
-                    case rasterUtil.glcmMetric.MAXPROB:
-                    case rasterUtil.glcmMetric.MINPROB:
-                    case rasterUtil.glcmMetric.RANGE:
-                    case rasterUtil.glcmMetric.ENTROPY:
-                        break;
-                    case rasterUtil.glcmMetric.MEAN:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmMean(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmMean(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.VAR:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmVariance(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmVariance(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.CORR:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCorrelation(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCorrelation(rs, clm, rws, horz));
-                        }
-                        break;
-                    case rasterUtil.glcmMetric.COV:
-                        if (rad)
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCoVariance(rs, clm, horz));
-                        }
-                        else
-                        {
-                            rsBc.AppendBands((IRasterBandCollection)rsUtil.glcmCoVariance(rs, clm, rws, horz));
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                raster = rsUtil.calcGLCMFunction(rs, clm, rws, horz, rm);
             }
-            raster = (IRaster)rsBc;
         }
 
         private void calcExtractBand(string[] prmArr, out string name, out IRaster raster)
@@ -412,7 +414,7 @@ namespace esriUtil
             else rs = rsUtil.returnRaster(inRaster1);
             foreach (string s in bands.Split(new char[] { ',' }))
             {
-                int bndIndex = System.Convert.ToInt32(s.Split(new char[] { '_' })[1]);
+                int bndIndex = System.Convert.ToInt32(s.Split(new char[] { '_' })[1]) - 1;
                 rsBc.AppendBands((IRasterBandCollection)rsUtil.getBand(rs, bndIndex));
             }
             raster = (IRaster)rsBc;
@@ -498,6 +500,7 @@ namespace esriUtil
             double intercept = System.Convert.ToDouble(prmArr[1].Split(new char[] { '@' })[1]);
             string rasterSlopes = prmArr[2].Split(new char[] { '@' })[1];
             List<double> slpLst = new List<double>();
+            slpLst.Add(intercept);
             IRasterBandCollection rsBc = new RasterClass();
             foreach (string s in rasterSlopes.Split(new char[]{','}))
             {
@@ -516,7 +519,9 @@ namespace esriUtil
                 rsBc.AppendBands((IRasterBandCollection)rs);
                 slpLst.Add(System.Convert.ToDouble(s.Split(new char[]{'`'})[1]));
             }
-            raster = rsUtil.calcRegressFunction((IRaster)rsBc, intercept, slpLst.ToArray());
+            List<double[]> fLst = new List<double[]>();
+            fLst.Add(slpLst.ToArray());
+            raster = rsUtil.calcRegressFunction((IRaster)rsBc, fLst);
         }
 
         private void calcSummarize(string[] prmArr, out string name, out IRaster raster)
@@ -1437,7 +1442,7 @@ namespace esriUtil
                         rsBStatso.Mean = rsBStatso.Maximum / 2;
                         rsBStatso.StandardDeviation = (rsBStatso.Maximum - rsBStatso.Mean) / 3;
                         break;
-                    case rasterUtil.focalType.PROBABILITY:
+                    case rasterUtil.focalType.ASM:
                         rsBStatso.Maximum = 1;
                         rsBStatso.Minimum = 0;
                         rsBStatso.Mean = rsBStatso.Maximum / 2;

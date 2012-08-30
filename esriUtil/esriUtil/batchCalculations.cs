@@ -19,9 +19,9 @@ namespace esriUtil
         public batchCalculations(rasterUtil rasterUtility, esriUtil.Forms.RunningProcess.frmRunningProcessDialog runningDialog)
         {
             rsUtil = rasterUtility;
-            if(rp!=null)rp = runningDialog;
+            if (rp != null) rp = runningDialog;
         }
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE };
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, ADDRASTERTOMAP, ADDFEATURECLASSTOMAP, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, CREATEREGRESSIONRASTER };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -214,12 +214,31 @@ namespace esriUtil
                                         rstDic[outName] = createMerge(paramArr);
                                         break;
                                     case batchGroups.SAMPLERASTER:
+                                        sampleRaster(paramArr);
                                         break;
                                     case batchGroups.CREATERANDOMSAMPLE:
+                                        ftrDic[outName] = createRandomSample(paramArr);
                                         break;
                                     case batchGroups.CREATESTRATIFIEDRANDOMSAMPLE:
+                                        ftrDic[outName] = createStratifiedRandomSample(paramArr);
                                         break;
                                     case batchGroups.CLUSTERSAMPLERASTER:
+                                        clusterSampleRaster(paramArr);
+                                        break;
+                                    case batchGroups.FOCALSAMPLE:
+                                        rstDic[outName] = createFocalSampleFunction(paramArr);
+                                        break;
+                                    case batchGroups.CREATEREGRESSIONRASTER:
+                                        rstDic[outName] = createRegressionRaster(paramArr);
+                                        break;
+                                    case batchGroups.ADDRASTERTOMAP:
+                                        addRasterToMap(paramArr);
+                                        break;
+                                    case batchGroups.ADDFEATURECLASSTOMAP:
+                                        addFeatureClassToMap(paramArr);
+                                        break;
+                                    case batchGroups.CONVERTPIXELTYPE:
+                                        rstDic[outName] = convertPixelType(paramArr);
                                         break;
                                     default:
                                         break;
@@ -227,6 +246,10 @@ namespace esriUtil
                             }
                             catch (Exception e)
                             {
+                                if (rp != null)
+                                {
+                                    rp.addMessage("Error in function " + func + "\n" + e.ToString());
+                                }
                                 Console.WriteLine(e.ToString());
                             }
                         }
@@ -246,6 +269,149 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IRaster convertPixelType(string[] paramArr)
+        {
+            IRaster inRaster = getRaster(paramArr[0]);
+            rstPixelType pType = (rstPixelType)Enum.Parse(typeof(rstPixelType),paramArr[1]);
+            return rsUtil.convertToDifFormatFunction(inRaster, pType);
+        }
+
+        private void addFeatureClassToMap(string[] paramArr)
+        {
+            try
+            {
+                Type t = Type.GetTypeFromCLSID(typeof(ESRI.ArcGIS.Framework.AppRefClass).GUID);
+                System.Object obj = Activator.CreateInstance(t);
+                ESRI.ArcGIS.Framework.IApplication app = (ESRI.ArcGIS.Framework.IApplication)obj;
+                ESRI.ArcGIS.Framework.IDocument doc = app.Document;
+                ESRI.ArcGIS.ArcMapUI.IMxDocument mxDoc = (ESRI.ArcGIS.ArcMapUI.IMxDocument)doc;
+                IMap map = mxDoc.FocusMap;
+                IFeatureClass ftrCls = getFeatureClass(paramArr[0]);
+                IFeatureLayer ftrLyr = new FeatureLayerClass();
+                ftrLyr.FeatureClass = ftrCls;
+                ftrLyr.Name = paramArr[1];
+                ftrLyr.Visible = false;
+                map.AddLayer((ILayer)ftrLyr);
+            }
+            catch (Exception e)
+            {
+                if (rp != null)
+                {
+                    rp.addMessage(e.ToString());
+                }
+                else
+                {
+                    Console.WriteLine(e.ToString());
+                }
+            }
+        }
+
+        private void addRasterToMap(string[] paramArr)
+        {
+            
+            try
+            {
+                IRaster rs = getRaster(paramArr[0]);
+                Type t = Type.GetTypeFromCLSID(typeof(ESRI.ArcGIS.Framework.AppRefClass).GUID);
+                System.Object obj = Activator.CreateInstance(t);
+                ESRI.ArcGIS.Framework.IApplication app = (ESRI.ArcGIS.Framework.IApplication)obj;
+                ESRI.ArcGIS.Framework.IDocument doc = app.Document;
+                ESRI.ArcGIS.ArcMapUI.IMxDocument mxDoc = (ESRI.ArcGIS.ArcMapUI.IMxDocument)doc;
+                IMap map = mxDoc.FocusMap;
+                IRasterLayer rsLyr = new RasterLayerClass();
+                rsLyr.CreateFromRaster(rs);
+                rsLyr.Name = paramArr[1];
+                rsLyr.Visible = false;
+                map.AddLayer((ILayer)rsLyr);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+                
+            }
+            catch(Exception e)
+            {
+                if (rp != null)
+                {
+                    rp.addMessage(e.ToString());
+                }
+                else
+                {
+                    Console.WriteLine(e.ToString());
+                }
+            }
+        }
+
+        private IRaster createRegressionRaster(string[] paramArr)
+        {
+            regressionRaster rr = new regressionRaster(ref rsUtil);
+            string rrStr = paramArr[0];
+            IRasterBandCollection rsBC = new RasterClass();
+            foreach (string s in rrStr.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                rsBC.AppendBands((IRasterBandCollection)getRaster(s.Trim()));
+            }
+            rr.InRaster = (IRaster)rsBC;
+            rr.Dependentfield = getDependentField(paramArr[1]);
+            rr.SasOutputFile = paramArr[1];
+            return rr.createModelRaster(null);
+        }
+
+        private string getDependentField(string p)
+        {
+            List<string> depFlsLst = new List<string>();
+            using (System.IO.StreamReader sr = new System.IO.StreamReader(p))
+            {
+                string sF = sr.ReadLine();
+                string sV = sr.ReadLine();
+                
+                while (sV != null)
+                {
+                    depFlsLst.Add(sV.Split(new char[] { ',' })[2]);
+                    sV = sr.ReadLine();
+                }
+                sr.Close();
+
+            }
+            return String.Join(" ", depFlsLst.ToArray());
+        }
+
+        private IRaster createFocalSampleFunction(string[] paramArr)
+        {
+            IRaster inRaster = getRaster(paramArr[0]);
+            HashSet<string> offset = new HashSet<string>();
+            foreach(string s in paramArr[1].Split(new char[]{','},StringSplitOptions.RemoveEmptyEntries))//azimuth:distance -> azimuth;distance
+            {
+                offset.Add(s.Trim().Replace(":",";"));
+            }
+            rasterUtil.focalType statType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType),paramArr[2]);
+            return rsUtil.calcFocalSampleFunction(inRaster, offset, statType);
+        }
+
+        private void clusterSampleRaster(string[] paramArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IFeatureClass createStratifiedRandomSample(string[] paramArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IFeatureClass createRandomSample(string[] paramArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void sampleRaster(string[] paramArr)
+        {
+            IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
+            IRaster sampleRst = getRaster(paramArr[1]);
+            string inName = paramArr[2];
+            if (inName == "" || inName == "null")
+            {
+                inName = null;
+            }
+            rsUtil.sampleRaster(inFtrCls, sampleRst, inName);
         }
 
         private IRaster createMerge(string[] paramArr)
@@ -283,22 +449,78 @@ namespace esriUtil
 
         private IRaster createLandscapeFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRaster rs = getRaster(paramArr[0]);
+            if (paramArr.Length < 4)
+            {
+                int radius = System.Convert.ToInt32(paramArr[1]);
+                rasterUtil.focalType statType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), paramArr[2]);
+                rasterUtil.landscapeType landType = (rasterUtil.landscapeType)Enum.Parse(typeof(rasterUtil.focalType), paramArr[3]);
+                return rsUtil.calcLandscapeFunction(rs, radius, statType, landType);
+            }
+            else
+            {
+                int clm = System.Convert.ToInt32(paramArr[1]);
+                int rws = System.Convert.ToInt32(paramArr[2]);
+                rasterUtil.focalType statType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), paramArr[3]);
+                rasterUtil.landscapeType landType = (rasterUtil.landscapeType)Enum.Parse(typeof(rasterUtil.focalType), paramArr[4]);
+                return rsUtil.calcLandscapeFunction(rs, clm, rws, statType, landType);
+            }
+            
+
         }
 
         private IRaster createGLCMFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRaster inRaster = getRaster(paramArr[0]);
+            bool horizontal = true;
+            rasterUtil.glcmMetric glcmType = rasterUtil.glcmMetric.CONTRAST;
+            if (paramArr.Length <5)
+            {
+                int radius = System.Convert.ToInt32(paramArr[1]);
+                string horz = paramArr[2].ToLower();
+                if (horz == "false")
+                {
+                    horizontal = false;
+                }
+                glcmType = (rasterUtil.glcmMetric)Enum.Parse(typeof(rasterUtil.glcmMetric), paramArr[3].ToUpper());
+                return rsUtil.calcGLCMFunction(inRaster, radius, horizontal, glcmType);
+            }
+            else
+            {
+                int clms = System.Convert.ToInt32(paramArr[1]);
+                int rws = System.Convert.ToInt32(paramArr[2]);
+                string horz = paramArr[3].ToLower();
+                if (horz == "false")
+                {
+                    horizontal = false;
+                }
+                glcmType = (rasterUtil.glcmMetric)Enum.Parse(typeof(rasterUtil.glcmMetric), paramArr[4].ToUpper());
+                return rsUtil.calcGLCMFunction(inRaster, clms, rws, horizontal, glcmType);
+            }
         }
 
         private IRaster createExtractFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRaster inRaster = getRaster(paramArr[0]);
+            IRasterBandCollection rsBCO = (IRasterBandCollection)inRaster;
+            IRasterBandCollection rsBC = new RasterClass();
+            foreach (string s in paramArr[1].Split(new char[]{','}))
+            {
+                int bnd = System.Convert.ToInt32(s.Trim()) - 1;
+                rsBC.AppendBand(rsBCO.Item(bnd));
+            }
+            return (IRaster)rsBC;
         }
 
         private IRaster createCompositeFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRasterBandCollection rsBC = new RasterClass();
+            foreach(string s in paramArr[0].Split(new char[]{','}))
+            {
+                IRaster rs = getRaster(s);
+                rsBC.AppendBands((IRasterBandCollection)rs);
+            }
+            return (IRaster)rsBC;
         }
 
         private IRaster createRemapFunction(string[] paramArr)
@@ -323,7 +545,23 @@ namespace esriUtil
 
         private IRaster createFocalFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRaster rs = getRaster(paramArr[0]);
+            string fTypeStr = null;
+            if (paramArr.Length < 4)
+            {
+                fTypeStr = paramArr[2];
+                rasterUtil.focalType fType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), fTypeStr);
+                int rad = System.Convert.ToInt32(paramArr[1]);
+                return rsUtil.calcFocalStatisticsFunction(rs, rad, fType);
+            }
+            else
+            {
+                fTypeStr = paramArr[3];
+                rasterUtil.focalType fType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), fTypeStr);
+                int clms = System.Convert.ToInt32(paramArr[1]);
+                int rws = System.Convert.ToInt32(paramArr[2]);
+                return rsUtil.calcFocalStatisticsFunction(rs, clms, rws, fType);
+            }
         }
 
         private IRaster createConvolutionFunction(string[] paramArr)
@@ -342,10 +580,28 @@ namespace esriUtil
 
         private IRaster createConditionalFunction(string[] paramArr)
         {
+            string inRs1Str = paramArr[1];
+            string inRs2Str = paramArr[2];
+            object inRs1 = null;
+            object inRs2 = null;
+            if (rsUtil.isNumeric(inRs1Str))
+            {
+                inRs1 = inRs1Str;
+            }
+            else
+            {
+                inRs1 = getRaster(inRs1Str);
+            }
+            if (rsUtil.isNumeric(inRs2Str))
+            {
+                inRs2 = inRs2Str;
+            }
+            else
+            {
+                inRs2 = getRaster(inRs2Str);
+            }
             IRaster conRs = getRaster(paramArr[0]);
-            IRaster tRs = getRaster(paramArr[1]);
-            IRaster fRs = getRaster(paramArr[2]);
-            return rsUtil.conditionalRasterFunction(conRs, tRs, fRs);
+            return rsUtil.conditionalRasterFunction(conRs, inRs1, inRs2);
         }
 
         private IRaster createClipFunction(string[] paramArr)
@@ -361,29 +617,47 @@ namespace esriUtil
             rasterUtil.logicalType opType = (rasterUtil.logicalType)Enum.Parse(typeof(rasterUtil.logicalType),paramArr[2].ToUpper());
             string p1 = paramArr[0];
             string p2 = paramArr[1];
+            object inRs1 = null;
+            object inRs2 = null;
+            if (rsUtil.isNumeric(p1))
+            {
+                inRs1 = p1;
+            }
+            else
+            {
+                inRs1 = getRaster(p1);
+            }
+            if (rsUtil.isNumeric(p2))
+            {
+                inRs2 = p2;
+            }
+            else
+            {
+                inRs2 = getRaster(p2);
+            }
             IRaster rs = null;
             switch (opType)
             {
                 case rasterUtil.logicalType.GT:
-                    rs =  rsUtil.calcGreaterFunction(p1, p2);
+                    rs = rsUtil.calcGreaterFunction(inRs1, inRs2);
                     break;
                 case rasterUtil.logicalType.LT:
-                    rs = rsUtil.calcLessFunction(p1, p2);
+                    rs = rsUtil.calcLessFunction(inRs1, inRs2);
                     break;
                 case rasterUtil.logicalType.GE:
-                    rs = rsUtil.calcGreaterEqualFunction(p1, p2);
+                    rs = rsUtil.calcGreaterEqualFunction(inRs1, inRs2);
                     break;
                 case rasterUtil.logicalType.LE:
-                    rs = rsUtil.calcLessEqualFunction(p1, p2);
+                    rs = rsUtil.calcLessEqualFunction(inRs1, inRs2);
                     break;
                 case rasterUtil.logicalType.EQ:
-                    rs = rsUtil.calcEqualFunction(p1, p2);
+                    rs = rsUtil.calcEqualFunction(inRs1, inRs2);
                     break;
                 case rasterUtil.logicalType.AND:
-                    rs = rsUtil.calcAndFunction(p1, p2);
+                    rs = rsUtil.calcAndFunction(inRs1, inRs2);
                     break;
                 default:
-                    rs = rsUtil.calcOrFunction(p1, p2);
+                    rs = rsUtil.calcOrFunction(inRs1, inRs2);
                     break;
             }
             return rs;
@@ -452,8 +726,26 @@ namespace esriUtil
 
         private IRaster createArithmeticFunction(string[] paramArr)
         {
-            IRaster inRs1 = getRaster(paramArr[0]);
-            IRaster inRs2 = getRaster(paramArr[1]);
+            string inRs1Str = paramArr[0];
+            string inRs2Str = paramArr[1];
+            object inRs1 = null;
+            object inRs2 = null;
+            if (rsUtil.isNumeric(inRs1Str))
+            {
+                inRs1 = inRs1Str;
+            }
+            else
+            {
+                inRs1 = getRaster(inRs1Str);
+            }
+            if (rsUtil.isNumeric(inRs2Str))
+            {
+                inRs2 = inRs2Str;
+            }
+            else
+            {
+                inRs2 = getRaster(inRs2Str);
+            }
             esriRasterArithmeticOperation op = (esriRasterArithmeticOperation)Enum.Parse(typeof(esriRasterArithmeticOperation), paramArr[2]);
             return rsUtil.calcArithmaticFunction(inRs1, inRs2, op);
         }
@@ -530,10 +822,13 @@ namespace esriUtil
                 case batchGroups.REMAP:
                     break;
                 case batchGroups.COMPOSITE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster,inRaster2,inRaster3)";
                     break;
                 case batchGroups.EXTRACTBAND:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;1,2,5)";
                     break;
                 case batchGroups.GLCM:
+                    msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;width;height;horizontal(true,false);glcmMetric)\noutRS = " + batchFunction.ToString() + "(in_Raster1;radius;horizontal(true,false);glcmMetric)";
                     break;
                 case batchGroups.LANDSCAPE:
                     break;
@@ -554,12 +849,28 @@ namespace esriUtil
                 case batchGroups.MERGE:
                     break;
                 case batchGroups.SAMPLERASTER:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass,sampleRaster,FieldNamePrefix)";
                     break;
                 case batchGroups.CLUSTERSAMPLERASTER:
                     break;
                 case batchGroups.CREATERANDOMSAMPLE:
                     break;
                 case batchGroups.CREATESTRATIFIEDRANDOMSAMPLE:
+                    break;
+                case batchGroups.FOCALSAMPLE:
+                    msg = "outRS = " + batchFunction.ToString() + "(in_Raster;360:37.56,120:26.25,240:2;focalType)";
+                    break;
+                case batchGroups.CREATEREGRESSIONRASTER:
+                    msg = "outRS = " + batchFunction.ToString() + "(slopeRaster1,slopeRaster2,slopeRaster3;<pathToSASOutputEstimates e.g. c:\\temp\\outest.csv>)";
+                    break;
+                case batchGroups.ADDFEATURECLASSTOMAP:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass;layerName)";
+                    break;
+                case batchGroups.ADDRASTERTOMAP:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inRaster;layerName)";
+                    break;
+                case batchGroups.CONVERTPIXELTYPE:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inRaster;rstPixelType)";
                     break;
                 default:
                     break;

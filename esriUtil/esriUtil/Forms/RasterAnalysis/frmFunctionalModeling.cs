@@ -49,6 +49,9 @@ namespace esriUtil.Forms.RasterAnalysis
             if(frmT != null) frmT.Dispose();
             if (frmM != null) frmM.Dispose();
             if (frmLand != null) frmLand.Dispose();
+            if (frmSN != null) frmSN.Dispose();
+            if (frmFS != null) frmFS.Dispose();
+            if (frmRR != null) frmRR.Dispose();
         }
         private void populateLstBox()
         {
@@ -178,6 +181,8 @@ namespace esriUtil.Forms.RasterAnalysis
         private frmExtractBand frmE = null;
         private frmMathRaster frmM = null;
         private frmSetNull frmSN = null;
+        private frmFocalSample frmFS = null;
+        private Forms.SasProcedures.frmRunRegressionRaster frmRR = null;
         private Texture.frmLandscapeMetrics frmLand = null;
         private Texture.frmCreateGlcmSurface frmT = null;
         private string funcDirNm = "functionDatasets";
@@ -505,6 +510,46 @@ namespace esriUtil.Forms.RasterAnalysis
                         desc = vl + "(" + String.Join(";", getFormInputs((Form)frmSN).ToArray()) + ")";
                         rsultDic[nm] = mo;
                         object[] ob = { nm,false, desc };
+                        addRowsToDataGrid(ob);
+                    }
+                    break;
+                case functionModel.functionGroups.FocalSample:
+                    if (frmFS == null)
+                    {
+                        frmFS = new frmFocalSample(mp, ref rsUtil, false);
+                    }
+                    foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
+                    {
+                        frmFS.addRasterToComboBox(kVp.Key, kVp.Value);
+                    }
+                    dRslt = frmFS.ShowDialog(this);
+                    mo = frmFS.OutRaster;
+                    nm = frmFS.OutRasterName;
+                    if (mo != null && nm != null && nm != "" && dRslt == System.Windows.Forms.DialogResult.OK)
+                    {
+                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmFS).ToArray()) + ")";
+                        rsultDic[nm] = mo;
+                        object[] ob = { nm,false, desc };
+                        addRowsToDataGrid(ob);
+                    }
+                    break;
+                case functionModel.functionGroups.RegressionRaster:
+                    if (frmRR == null)
+                    {
+                        frmRR = new Forms.SasProcedures.frmRunRegressionRaster(mp, ref rsUtil, false);
+                    }
+                    foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
+                    {
+                        frmRR.addRasterToComboBox(kVp.Key, kVp.Value);
+                    }
+                    dRslt = frmRR.ShowDialog(this);
+                    mo = frmRR.OutRaster;
+                    nm = frmRR.OutRasterName;
+                    if (mo != null && nm != null && nm != "" && dRslt == System.Windows.Forms.DialogResult.OK)
+                    {
+                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmRR).ToArray()) + ")";
+                        rsultDic[nm] = mo;
+                        object[] ob = { nm, false, desc };
                         addRowsToDataGrid(ob);
                     }
                     break;
@@ -1270,6 +1315,73 @@ namespace esriUtil.Forms.RasterAnalysis
                                     else
                                     {
                                         fullPath = getFeaturePath(vl, false);
+                                    }
+                                    break;
+                                case functionModel.functionGroups.FocalSample:
+                                    if (frmFS.RasterDictionary.ContainsKey(vl))
+                                    {
+                                        rs2 = (IRaster2)frmFS.RasterDictionary[vl];
+                                        rsDset = rs2.RasterDataset;
+                                        dSet = (IDataset)rsDset;
+                                        int vlIndex = vl.IndexOf("Band_");
+                                        if ((((IRasterBandCollection)rsDset).Count > 1) && vlIndex > -1)
+                                        {
+                                            if (vlIndex > -1)
+                                            {
+                                                string bandStr = vl.Substring(vlIndex, vl.Length - vlIndex);
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\" + bandStr;
+                                            }
+                                            else
+                                            {
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\xxx";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
+                                        }
+                                    }
+                                    else if (rsUtil.isNumeric(vl) || vl == "")
+                                    {
+                                        checkReplace = false;
+                                    }
+                                    else
+                                    {
+                                        fullPath = getFeaturePath(vl, false);
+                                    }
+                                    break;
+                                case functionModel.functionGroups.RegressionRaster:
+                                    if (frmRR.RasterDictionary.ContainsKey(vl))
+                                    {
+                                        rs2 = (IRaster2)frmRR.RasterDictionary[vl];
+                                        rsDset = rs2.RasterDataset;
+                                        dSet = (IDataset)rsDset;
+                                        int vlIndex = vl.IndexOf("Band_");
+                                        if ((((IRasterBandCollection)rsDset).Count > 1) && vlIndex > -1)
+                                        {
+                                            if (vlIndex > -1)
+                                            {
+                                                string bandStr = vl.Substring(vlIndex, vl.Length - vlIndex);
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\" + bandStr;
+                                            }
+                                            else
+                                            {
+                                                fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName + "\\xxx";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
+                                        }
+                                    }
+                                    else if (frmRR.WorkspaceDictionary.ContainsKey(vl))
+                                    {
+                                        IWorkspace rrWks = frmRR.WorkspaceDictionary[vl];
+                                        fullPath = rrWks.PathName;
+                                    }
+                                    else
+                                    {
+                                        checkReplace = false;
                                     }
                                     break;
                                 default:

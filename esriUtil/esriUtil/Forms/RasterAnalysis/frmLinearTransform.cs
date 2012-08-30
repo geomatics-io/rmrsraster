@@ -211,6 +211,7 @@ namespace esriUtil.Forms.RasterAnalysis
             
             IRasterBandCollection rsBc = new RasterClass();
             List<double> slopes = new List<double>();
+            slopes.Add(intercept);
             for (int i = 0; i < dgvRasterSlopes.Rows.Count; i++)
             {
                 rsBc.AppendBands((IRasterBandCollection)rstDic[dgvRasterSlopes[0,i].Value.ToString()]);
@@ -221,6 +222,8 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 slopes.Add(System.Convert.ToDouble(vl));
             }
+            List<double[]> fslopes = new List<double[]>();
+            fslopes.Add(slopes.ToArray());
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
@@ -229,7 +232,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.calcRegressFunction((IRaster)rsBc,intercept,slopes.ToArray());
+                outraster = rsUtil.calcRegressFunction((IRaster)rsBc,fslopes);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

@@ -186,16 +186,22 @@ namespace esriUtil
                             {
                                 nFldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
                             }
+                            
                             object cVl = ftr.get_Value(nFldIndex);
-                            if (Convert.IsDBNull(cVl)||cVl==null||Double.IsNaN(Convert.ToDouble(cVl)))
+                            if (Convert.IsDBNull(cVl) || cVl == null || Double.IsNaN(Convert.ToDouble(cVl)))
                             {
                                 ftr.set_Value(nFldIndex, 0);
                             }
+                            
                         }
                         else
                         {
                             fldNm = s + "_" + spCd;
                             int fldIndex = ftrCur.FindField(fldNm);
+                            if (fldIndex == -1)
+                            {
+                                fldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
+                            }
                             object vl = dr[s.ToString()];
                             ftr.set_Value(fldIndex, vl);
                         }

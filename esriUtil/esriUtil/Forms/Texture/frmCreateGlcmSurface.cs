@@ -24,7 +24,6 @@ namespace esriUtil.Forms.Texture
                 vUtil = new viewUtility((IActiveView)mp);
             }
             rstUtil = new rasterUtil();
-            glcmTexture = new glcm(ref rstUtil);
             populateComboBox();
         }
         public frmCreateGlcmSurface(IMap map, ref rasterUtil rasterUtility, bool addToMap)
@@ -36,7 +35,6 @@ namespace esriUtil.Forms.Texture
                 vUtil = new viewUtility((IActiveView)mp);
             }
             rstUtil = rasterUtility;
-            glcmTexture = new glcm(ref rstUtil);
             populateComboBox();
             perm = addToMap;
         }
@@ -48,7 +46,7 @@ namespace esriUtil.Forms.Texture
         private IMap mp = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rstUtil = null;
-        private glcm glcmTexture = null;
+        //private glcm glcmTexture = null;
         private viewUtility vUtil = null;
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
         public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
@@ -149,56 +147,11 @@ namespace esriUtil.Forms.Texture
             }
         }
 
-        private void btnPlus_Click(object sender, EventArgs e)
-        {
-            string txt = cmbGlcmTypes.Text;
-            if (txt != null && txt != "")
-            {
-                cmbGlcmTypes.Items.Remove(txt);
-                if (!lsbGlcmType.Items.Contains(txt))
-                {
-                    lsbGlcmType.Items.Add(txt);
-                }
-            }
-        }
+        
 
-        private void btnMinus_Click(object sender, EventArgs e)
-        {
-            string txt = lsbGlcmType.SelectedItem.ToString();
-            if (txt != null && txt != "")
-            {
-                lsbGlcmType.Items.Remove(txt);
-                if (!cmbGlcmTypes.Items.Contains(txt))
-                {
-                    cmbGlcmTypes.Items.Add(txt);
-                }
-            }
+        
 
-
-        }
-
-        private void btnAddAll_Click(object sender, EventArgs e)
-        {
-            int glcmTypesCnt = cmbGlcmTypes.Items.Count;
-            for (int i = 0; i < glcmTypesCnt; i++)
-            {
-                string st = cmbGlcmTypes.Items[i].ToString();
-                lsbGlcmType.Items.Add(st);
-            }
-            cmbGlcmTypes.Items.Clear();
-        }
-
-        private void btnRemoveAll_Click(object sender, EventArgs e)
-        {
-            int glcmTypesCnt = lsbGlcmType.Items.Count;
-            for (int i = 0; i < glcmTypesCnt; i++)
-            {
-                string st = lsbGlcmType.Items[i].ToString();
-                cmbGlcmTypes.Items.Add(st);
-            }
-            lsbGlcmType.Items.Clear();
-
-        }
+        
         private void btnCreate_Click(object sender, EventArgs e)
         {
             createRaster();
@@ -209,10 +162,10 @@ namespace esriUtil.Forms.Texture
             string rstOut = mtbOutName.Text.Trim();
             string windType = cmbWindowType.Text;
             string windDir = cmbDirections.Text;
+            string glcmType = cmbGlcmTypes.Text;
             int clms = System.Convert.ToInt32(nudColumns.Value);
             int rows = System.Convert.ToInt32(nudRows.Value);
-            int lsbCnt = lsbGlcmType.Items.Count;
-            List<glcm.glcmMetric> glcmArr = new List<glcm.glcmMetric>();
+            List<rasterUtil.glcmMetric> glcmArr = new List<rasterUtil.glcmMetric>();
             if (rstNm == "" || rstNm == null||rstOut==""||rstOut==null)
             {
                 MessageBox.Show("You must have both a raster and output name specified to use this tool!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -224,33 +177,30 @@ namespace esriUtil.Forms.Texture
                 MessageBox.Show("Window Type and Direction are not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (lsbCnt < 1)
+            if (glcmType == null || glcmType == "" || glcmType == "" || glcmType == null)
             {
-                MessageBox.Show("You do not have any GLCM metrics selected!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Glcm Type is not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (windType.ToUpper() == "CIRCLE")
+            bool horz = true;
+            rasterUtil.windowType wt = (rasterUtil.windowType)Enum.Parse(typeof(rasterUtil.windowType),windType);
+            rasterUtil.glcmMetric gm = (rasterUtil.glcmMetric)Enum.Parse(typeof(rasterUtil.glcmMetric),glcmType);
+            if (windDir.ToUpper() != "HORIZONTAL")
             {
-                glcmTexture.RADIUS = clms;
+                horz = false;
             }
-            else
+            bool radius = false;
+            if(wt!= rasterUtil.windowType.RECTANGLE)
             {
-                glcmTexture.COLUMNS = clms;
-                glcmTexture.ROWS = rows;
+                radius = true;
+
             }
-            if (windDir.ToUpper() == "HORIZONTAL")
-            {
-                glcmTexture.HORIZONTAL = true;
-            }
-            else
-            {
-                glcmTexture.HORIZONTAL = false;
-            }
-            //this.Enabled = false;
+
+            this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog((perm==false));
             System.DateTime t1 = System.DateTime.Now;
             rp.addMessage("Start date and time = " + t1.Month.ToString() + "\\" + t1.Day.ToString() + "\\" + t1.Year.ToString() + " " + t1.Hour.ToString() + ":" + t1.Minute.ToString() + ":" + t1.Second.ToString());
-            rp.addMessage("Creating the following " + windDir + " GLCM surfaces from the first band of the specified Raster:");
+            rp.addMessage("Creating the following " + windDir + " GLCM surfaces for the specified Raster:");
             rp.stepPGBar(15);
             if (perm)
             {
@@ -258,7 +208,7 @@ namespace esriUtil.Forms.Texture
             }
             rp.Refresh();
             rp.TopMost = true;
-            foreach (glcm.glcmMetric g in glcmArr)
+            foreach (rasterUtil.glcmMetric g in glcmArr)
             {
                 rp.addMessage("\t" + g.ToString());
             }
@@ -266,107 +216,15 @@ namespace esriUtil.Forms.Texture
             IRaster inRs = rstDic[rstNm];
             try
             {
-                bool horz = true;
-                if (windDir.ToUpper()!="HORIZONTAL")
+                if(radius)
                 {
-                    horz = false;
+                    rst = rstUtil.calcGLCMFunction(inRs,clms,horz,gm);
                 }
-                IRasterBandCollection rsBc = new RasterClass();
-                for (int i = 0;i<lsbCnt;i++)
+                else
                 {
-                    glcm.glcmMetric mtr = (glcm.glcmMetric)Enum.Parse(typeof(glcm.glcmMetric),lsbGlcmType.Items[i].ToString());
-                    switch (mtr)
-                    {
-                        case glcm.glcmMetric.CONTRAST:
-                            if(windType.ToUpper()=="CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmContrast(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmContrast(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.DISSIMILARITY:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmDissimilarity(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmDissimilarity(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.HOMOGENEITY:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmHomogeneity(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmHomogeneity(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.ASM:
-                        case glcm.glcmMetric.ENERGY:
-                        case glcm.glcmMetric.MAXPROBABILITY:
-                        case glcm.glcmMetric.MINPROBABILITY:
-                        case glcm.glcmMetric.RANGE:
-                        case glcm.glcmMetric.ENTROPY:
-                            glcmArr.Add(mtr);
-                            break;
-                        case glcm.glcmMetric.MEAN:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmMean(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmMean(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.VARIANCE:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmVariance(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmVariance(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.CORRELATION:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmCorrelation(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmCorrelation(inRs, clms, rows, horz));
-                            }
-                            break;
-                        case glcm.glcmMetric.COVARIANCE:
-                            if (windType.ToUpper() == "CIRCLE")
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmCoVariance(inRs, clms, horz));
-                            }
-                            else
-                            {
-                                rsBc.AppendBands((IRasterBandCollection)rstUtil.glcmCoVariance(inRs, clms, rows, horz));
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+
+                    rst = rstUtil.calcGLCMFunction(inRs, clms, rows, horz, gm);
                 }
-                if (glcmArr.Count > 0)
-                {
-                    glcmTexture.GLCM_METRIC = glcmArr.ToArray();
-                    glcmTexture.InRaster = inRs;
-                    glcmTexture.createTexture();
-                    rsBc.AppendBands((IRasterBandCollection)glcmTexture.OUTRASTER);
-                }
-                rst = (IRaster)rsBc;
                 if (mp != null&&perm)
                 {
                     IRasterLayer rsLyr = new RasterLayerClass();

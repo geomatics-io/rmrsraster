@@ -131,10 +131,13 @@ namespace esriUtil.Forms.RasterAnalysis
             gxDialog.AllowMultiSelect = true;
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt2 = new ESRI.ArcGIS.Catalog.GxFilterPolygonFeatureClassesClass();
-            ESRI.ArcGIS.Catalog.IGxObjectFilter flt3 = new ESRI.ArcGIS.Catalog.GxFilterTablesClass();
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt3 = new ESRI.ArcGIS.Catalog.GxFilterPointFeatureClassesClass();
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt4 = new ESRI.ArcGIS.Catalog.GxFilterTablesClass();
             fltColl.AddFilter(flt, true);
             fltColl.AddFilter(flt2, false);
-            gxDialog.Title = "Select a Raster, Polygon, or Table";
+            fltColl.AddFilter(flt3, false);
+            fltColl.AddFilter(flt4, false);
+            gxDialog.Title = "Select a Raster, Polygon, Point, or Table";
             ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
             if (gxDialog.DoModalOpen(0, out eGxObj))
             {
@@ -253,6 +256,12 @@ namespace esriUtil.Forms.RasterAnalysis
                     l.AddRange(Enum.GetNames(typeof(esriMosaicMethod)));
                     l.AddRange(Enum.GetNames(typeof(rstMosaicOperatorType)));
                     nm = l.ToArray();
+                    break;
+                case batchCalculations.batchGroups.CONVERTPIXELTYPE:
+                    nm = Enum.GetNames(typeof(rstPixelType));
+                    break;
+                case batchCalculations.batchGroups.FOCALSAMPLE:
+                    nm = Enum.GetNames(typeof(rasterUtil.focalType));
                     break;
                 default:
                     break;

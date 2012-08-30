@@ -2,7 +2,7 @@
   <Name>servicesToolBar</Name>
   <AddInID>{00ebf4c7-7068-4ef2-a175-a79568a85cb9}</AddInID>
   <Description>Toolbar for Raster Processing</Description>
-  <Version>1</Version>
+  <Version>1.1</Version>
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
@@ -24,7 +24,6 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandCreateGLCM" class="commandCreateGLCM" message="Creates a functional Raster Dataset of GLCM surfaces" caption="Create GLCM" tip="Click to open create GLCM form" category="rasterUtilities" image="Images\commandCreateGLCM.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandPlrClassification" class="commandPlrClassification" message="Creates PLR model probability and MLC raster surfaces" caption="Run PLR Classification" tip="Click to create PLR probability and MLC raster sufaces" category="Stats" image="Images\commandPlrClassification.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandPLRModel" class="commandPLRModel" message="Integration to SAS Proc Logistic Regession" caption="Model PLR" tip="Click to model PLR" category="Stats" image="Images\commandPLRModel.bmp" />
-        <Button id="USDA_Forest_Service_servicesToolBar_commandSampleGLCM" class="commandSampleGLCM" message="This tool will sample GLCM metric values without actually creating the rasters." caption="Sample GLCM" tip="click to sample GLCM" category="Sample" image="Images\commandSampleGLCM.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSampleRaster" class="commandSampleRaster" message="Samples the values of an existing raster" caption="Sample Raster Values" tip="Allows a user to sample an existing raster" category="Sample" image="Images\commandSampleRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandClipRaster" class="commandClipRaster" message="Clips or erases the area outside or within a polygon layer from a specified raster." caption="Clip Analysis" tip="click to open clip raster form" category="rasterUtilities" image="Images\commandClipRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandExportToCsv" class="commandExportToCsv" message="Will export all text and numeric fields to a csv file." caption="Export to csv" tip="click to open export to csv form" category="Sample" image="Images\commandExportToCsv.bmp" />
@@ -100,7 +99,6 @@
             <Button refID="USDA_Forest_Service_servicesToolBar_commandSampleRaster" separator="true" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandSampleRasterCluster" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandFIABiomassSummary" />
-            <Button refID="USDA_Forest_Service_servicesToolBar_commandSampleGLCM" />
           </Items>
         </Menu>
         <Menu id="USDA_Forest_Service_servicesToolBar_Raster_Analysis" caption="Raster Analysis" isRootMenu="false">

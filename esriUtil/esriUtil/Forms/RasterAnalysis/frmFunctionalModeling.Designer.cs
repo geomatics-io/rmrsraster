@@ -52,7 +52,7 @@
             this.lsbFunctions.Name = "lsbFunctions";
             this.lsbFunctions.Size = new System.Drawing.Size(326, 121);
             this.lsbFunctions.TabIndex = 2;
-            this.lsbFunctions.SelectedIndexChanged += new System.EventHandler(this.lsbFunctions_SelectedIndexChanged);
+            this.lsbFunctions.Click += new System.EventHandler(this.lsbFunctions_SelectedIndexChanged);
             // 
             // label1
             // 

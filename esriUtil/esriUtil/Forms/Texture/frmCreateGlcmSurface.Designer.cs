@@ -34,12 +34,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.cmbRaster = new System.Windows.Forms.ComboBox();
             this.gpbWindowType = new System.Windows.Forms.GroupBox();
-            this.btnRemoveAll = new System.Windows.Forms.Button();
             this.lblGlcmType = new System.Windows.Forms.Label();
             this.cmbGlcmTypes = new System.Windows.Forms.ComboBox();
-            this.btnMinus = new System.Windows.Forms.Button();
-            this.btnAddAll = new System.Windows.Forms.Button();
-            this.lsbGlcmType = new System.Windows.Forms.ListBox();
             this.label4 = new System.Windows.Forms.Label();
             this.cmbDirections = new System.Windows.Forms.ComboBox();
             this.lblRows = new System.Windows.Forms.Label();
@@ -67,7 +63,7 @@
             // 
             // btnCreate
             // 
-            this.btnCreate.Location = new System.Drawing.Point(220, 474);
+            this.btnCreate.Location = new System.Drawing.Point(223, 296);
             this.btnCreate.Name = "btnCreate";
             this.btnCreate.Size = new System.Drawing.Size(57, 23);
             this.btnCreate.TabIndex = 18;
@@ -94,12 +90,8 @@
             // 
             // gpbWindowType
             // 
-            this.gpbWindowType.Controls.Add(this.btnRemoveAll);
             this.gpbWindowType.Controls.Add(this.lblGlcmType);
             this.gpbWindowType.Controls.Add(this.cmbGlcmTypes);
-            this.gpbWindowType.Controls.Add(this.btnMinus);
-            this.gpbWindowType.Controls.Add(this.btnAddAll);
-            this.gpbWindowType.Controls.Add(this.lsbGlcmType);
             this.gpbWindowType.Controls.Add(this.label4);
             this.gpbWindowType.Controls.Add(this.cmbDirections);
             this.gpbWindowType.Controls.Add(this.lblRows);
@@ -108,73 +100,34 @@
             this.gpbWindowType.Controls.Add(this.lblColumns);
             this.gpbWindowType.Controls.Add(this.label3);
             this.gpbWindowType.Controls.Add(this.nudColumns);
-            this.gpbWindowType.Location = new System.Drawing.Point(13, 121);
+            this.gpbWindowType.Location = new System.Drawing.Point(13, 112);
             this.gpbWindowType.Name = "gpbWindowType";
-            this.gpbWindowType.Size = new System.Drawing.Size(267, 343);
+            this.gpbWindowType.Size = new System.Drawing.Size(267, 172);
             this.gpbWindowType.TabIndex = 17;
             this.gpbWindowType.TabStop = false;
             this.gpbWindowType.Text = "GLCM window";
             // 
-            // btnRemoveAll
-            // 
-            this.btnRemoveAll.Location = new System.Drawing.Point(235, 216);
-            this.btnRemoveAll.Name = "btnRemoveAll";
-            this.btnRemoveAll.Size = new System.Drawing.Size(25, 23);
-            this.btnRemoveAll.TabIndex = 20;
-            this.btnRemoveAll.Text = "!";
-            this.btnRemoveAll.UseVisualStyleBackColor = true;
-            this.btnRemoveAll.Click += new System.EventHandler(this.btnRemoveAll_Click);
-            // 
             // lblGlcmType
             // 
             this.lblGlcmType.AutoSize = true;
-            this.lblGlcmType.Location = new System.Drawing.Point(9, 111);
+            this.lblGlcmType.Location = new System.Drawing.Point(12, 27);
             this.lblGlcmType.Name = "lblGlcmType";
-            this.lblGlcmType.Size = new System.Drawing.Size(36, 13);
+            this.lblGlcmType.Size = new System.Drawing.Size(37, 13);
             this.lblGlcmType.TabIndex = 19;
-            this.lblGlcmType.Text = "Types";
+            this.lblGlcmType.Text = "GLCM";
             // 
             // cmbGlcmTypes
             // 
             this.cmbGlcmTypes.FormattingEnabled = true;
-            this.cmbGlcmTypes.Location = new System.Drawing.Point(9, 129);
+            this.cmbGlcmTypes.Location = new System.Drawing.Point(12, 45);
             this.cmbGlcmTypes.Name = "cmbGlcmTypes";
-            this.cmbGlcmTypes.Size = new System.Drawing.Size(220, 21);
+            this.cmbGlcmTypes.Size = new System.Drawing.Size(121, 21);
             this.cmbGlcmTypes.TabIndex = 18;
-            this.cmbGlcmTypes.SelectedIndexChanged += new System.EventHandler(this.btnPlus_Click);
-            // 
-            // btnMinus
-            // 
-            this.btnMinus.Location = new System.Drawing.Point(235, 158);
-            this.btnMinus.Name = "btnMinus";
-            this.btnMinus.Size = new System.Drawing.Size(25, 23);
-            this.btnMinus.TabIndex = 17;
-            this.btnMinus.Text = "-";
-            this.btnMinus.UseVisualStyleBackColor = true;
-            this.btnMinus.Click += new System.EventHandler(this.btnMinus_Click);
-            // 
-            // btnAddAll
-            // 
-            this.btnAddAll.Location = new System.Drawing.Point(235, 187);
-            this.btnAddAll.Name = "btnAddAll";
-            this.btnAddAll.Size = new System.Drawing.Size(25, 23);
-            this.btnAddAll.TabIndex = 16;
-            this.btnAddAll.Text = "%";
-            this.btnAddAll.UseVisualStyleBackColor = true;
-            this.btnAddAll.Click += new System.EventHandler(this.btnAddAll_Click);
-            // 
-            // lsbGlcmType
-            // 
-            this.lsbGlcmType.FormattingEnabled = true;
-            this.lsbGlcmType.Location = new System.Drawing.Point(9, 156);
-            this.lsbGlcmType.Name = "lsbGlcmType";
-            this.lsbGlcmType.Size = new System.Drawing.Size(220, 173);
-            this.lsbGlcmType.TabIndex = 15;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(124, 65);
+            this.label4.Location = new System.Drawing.Point(136, 74);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(49, 13);
             this.label4.TabIndex = 12;
@@ -186,7 +139,7 @@
             this.cmbDirections.Items.AddRange(new object[] {
             "Horizontal",
             "Vertical"});
-            this.cmbDirections.Location = new System.Drawing.Point(127, 83);
+            this.cmbDirections.Location = new System.Drawing.Point(139, 92);
             this.cmbDirections.Name = "cmbDirections";
             this.cmbDirections.Size = new System.Drawing.Size(121, 21);
             this.cmbDirections.TabIndex = 11;
@@ -195,7 +148,7 @@
             // lblRows
             // 
             this.lblRows.AutoSize = true;
-            this.lblRows.Location = new System.Drawing.Point(67, 66);
+            this.lblRows.Location = new System.Drawing.Point(136, 120);
             this.lblRows.Name = "lblRows";
             this.lblRows.Size = new System.Drawing.Size(34, 13);
             this.lblRows.TabIndex = 10;
@@ -204,7 +157,7 @@
             // cmbWindowType
             // 
             this.cmbWindowType.FormattingEnabled = true;
-            this.cmbWindowType.Location = new System.Drawing.Point(62, 38);
+            this.cmbWindowType.Location = new System.Drawing.Point(12, 92);
             this.cmbWindowType.Name = "cmbWindowType";
             this.cmbWindowType.Size = new System.Drawing.Size(121, 21);
             this.cmbWindowType.TabIndex = 5;
@@ -213,7 +166,7 @@
             // 
             // nudRows
             // 
-            this.nudRows.Location = new System.Drawing.Point(70, 84);
+            this.nudRows.Location = new System.Drawing.Point(139, 138);
             this.nudRows.Maximum = new decimal(new int[] {
             50,
             0,
@@ -225,7 +178,7 @@
             0,
             0});
             this.nudRows.Name = "nudRows";
-            this.nudRows.Size = new System.Drawing.Size(46, 20);
+            this.nudRows.Size = new System.Drawing.Size(121, 20);
             this.nudRows.TabIndex = 8;
             this.nudRows.Value = new decimal(new int[] {
             3,
@@ -236,7 +189,7 @@
             // lblColumns
             // 
             this.lblColumns.AutoSize = true;
-            this.lblColumns.Location = new System.Drawing.Point(7, 66);
+            this.lblColumns.Location = new System.Drawing.Point(7, 120);
             this.lblColumns.Name = "lblColumns";
             this.lblColumns.Size = new System.Drawing.Size(47, 13);
             this.lblColumns.TabIndex = 9;
@@ -245,7 +198,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(80, 20);
+            this.label3.Location = new System.Drawing.Point(9, 74);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(73, 13);
             this.label3.TabIndex = 6;
@@ -253,7 +206,7 @@
             // 
             // nudColumns
             // 
-            this.nudColumns.Location = new System.Drawing.Point(10, 84);
+            this.nudColumns.Location = new System.Drawing.Point(10, 138);
             this.nudColumns.Maximum = new decimal(new int[] {
             50,
             0,
@@ -265,7 +218,7 @@
             0,
             0});
             this.nudColumns.Name = "nudColumns";
-            this.nudColumns.Size = new System.Drawing.Size(46, 20);
+            this.nudColumns.Size = new System.Drawing.Size(123, 20);
             this.nudColumns.TabIndex = 7;
             this.nudColumns.Value = new decimal(new int[] {
             3,
@@ -293,7 +246,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(301, 504);
+            this.ClientSize = new System.Drawing.Size(301, 323);
             this.Controls.Add(this.mtbOutName);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnOpenRaster);
@@ -322,12 +275,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cmbRaster;
         private System.Windows.Forms.GroupBox gpbWindowType;
-        private System.Windows.Forms.Button btnRemoveAll;
         private System.Windows.Forms.Label lblGlcmType;
         private System.Windows.Forms.ComboBox cmbGlcmTypes;
-        private System.Windows.Forms.Button btnMinus;
-        private System.Windows.Forms.Button btnAddAll;
-        private System.Windows.Forms.ListBox lsbGlcmType;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ComboBox cmbDirections;
         private System.Windows.Forms.Label lblRows;

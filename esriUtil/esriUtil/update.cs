@@ -19,17 +19,25 @@ namespace esriUtil
         private string HelpFileName = "RmrsRasterUtilityToolbarHelp.chm";
         private string HelpFileVersion = "helpVersion.txt";
         private string toolbarVersion = "";
-        private string appFileName = "serviceToolBar.esriaddin";
+        private string appFileName = "servicesToolBar.esriAddIn";
         private string appFileVersion = "toolbarVersion.txt";
-        public void updateApp()
+        public void updateApp(string curDir)
         {
             if (!checkToolbarVersion())
             {
-
-                System.Diagnostics.Process pc = new System.Diagnostics.Process();
-                string lcInstall = rmrsDir + "\\" + appFileName;
-                pc.StartInfo.FileName = lcInstall;
-                pc.Start();
+                try
+                {
+                    if (System.IO.Directory.Exists(curDir)) System.IO.Directory.Delete(curDir, true);
+                    System.Diagnostics.Process pc = new System.Diagnostics.Process();
+                    string lcInstall = rmrsDir + "\\" + appFileName;
+                    pc.StartInfo.FileName = lcInstall;
+                    pc.Start();
+                }
+                catch(Exception e)
+                {
+                    System.Windows.Forms.MessageBox.Show("Could not update addin. You will need to delete the addin folder and manually install!\n\n" + e.ToString() ); 
+                }
+                
             }
 
 

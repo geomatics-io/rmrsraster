@@ -2430,7 +2430,7 @@ namespace esriUtil
         }
         public string createField(ITable inFtr, string nm, esriFieldType FieldType)
         {
-            nm = getSafeFieldName(inFtr, nm);
+            string snm = getSafeFieldName(inFtr, nm);
             ISchemaLock schemaLock = (ISchemaLock)inFtr;
             try
             {
@@ -2438,7 +2438,8 @@ namespace esriUtil
                 schemaLock.ChangeSchemaLock(esriSchemaLock.esriExclusiveSchemaLock);
                 IField fld = new FieldClass();
                 IFieldEdit fldE = (IFieldEdit)fld;
-                fldE.Name_2 = nm;
+                fldE.AliasName_2 = nm;
+                fldE.Name_2 = snm;
                 fldE.Type_2 = FieldType;
                 if (FieldType == esriFieldType.esriFieldTypeSmallInteger || FieldType == esriFieldType.esriFieldTypeSingle || FieldType == esriFieldType.esriFieldTypeInteger || FieldType == esriFieldType.esriFieldTypeDouble)
                 {
@@ -2602,6 +2603,14 @@ namespace esriUtil
             {
                 rstOut = "_" + rstOut;
             }
+            if (rstOut.Length > 12)
+            {
+                IDataset dSet = (IDataset)ftrCls;
+                if (dSet.Workspace.Type == esriWorkspaceType.esriFileSystemWorkspace)
+                {
+                    rstOut = rstOut.Substring(0, 10);
+                }
+            }
             return rstOut;
         }
         public string getSafeFieldName(ITable ftrCls, string fldName)
@@ -2614,6 +2623,14 @@ namespace esriUtil
             while (ftrCls.FindField(rstOut) > -1)
             {
                 rstOut = "_" + rstOut;
+            }
+            if (rstOut.Length > 12)
+            {
+                IDataset dSet = (IDataset)ftrCls;
+                if (dSet.Workspace.Type == esriWorkspaceType.esriFileSystemWorkspace)
+                {
+                    rstOut = rstOut.Substring(0, 10);
+                }
             }
             return rstOut;
         }

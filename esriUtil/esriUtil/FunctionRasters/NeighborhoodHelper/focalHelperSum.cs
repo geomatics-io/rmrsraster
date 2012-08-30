@@ -16,7 +16,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             {
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
-                
+                //Console.WriteLine("\t Window CR = " + bWc.ToString() + " : " + bRc.ToString());
                 double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
                 //Console.WriteLine("\t"+vl.ToString());
                 if(vl==noDataValue)

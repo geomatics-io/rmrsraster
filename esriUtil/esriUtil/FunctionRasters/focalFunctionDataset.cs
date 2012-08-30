@@ -210,7 +210,7 @@ namespace esriUtil.FunctionRasters
                                     case rasterUtil.focalType.ENTROPY:
                                         pixelValue = nHelp.WindowEntropyValues;
                                         break;
-                                    case rasterUtil.focalType.PROBABILITY:
+                                    case rasterUtil.focalType.ASM:
                                         pixelValue = nHelp.WindowProbability;
                                         break;
                                     default:

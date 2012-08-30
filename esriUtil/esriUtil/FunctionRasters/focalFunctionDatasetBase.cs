@@ -69,13 +69,14 @@ namespace esriUtil.FunctionRasters
             {
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
+
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                 IPnt pbBigSize = new PntClass();
                 IPnt pbBigLoc = new PntClass();
-                int pbBigWd = pBWidth + clms - 1;
-                int pbBigHt = pBHeight + rws - 1;
+                int pbBigWd = pBWidth + clms;
+                int pbBigHt = pBHeight + rws;
                 int l, t;
                 l = clms / 2;
                 t = rws / 2;
@@ -102,6 +103,7 @@ namespace esriUtil.FunctionRasters
                             else
                             {
                                 object outVl = getTransformedValue(pixelValuesBig, c, r);
+                                //Console.WriteLine(outVl.ToString());
                                 pixelValues.SetValue(outVl, c, r);
                             }
                         }
@@ -112,8 +114,9 @@ namespace esriUtil.FunctionRasters
                 }
 
             }
-            catch
+            catch(Exception e)
             {
+                Console.WriteLine(e.ToString());
             }
         }
         public void Update()

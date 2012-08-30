@@ -36,7 +36,7 @@ namespace esriUtil.FunctionRasters
                     inrsT = rsUtil.convertToDifFormatFunction(inrsT, rstPixelType.PT_DOUBLE);
                 }
                 inrs = inrsT;
-                origRs = rsUtil.getBand(inrs, 0);
+                origRs = rsUtil.returnRaster(value);
             } 
         }
         public rasterUtil.focalType Operation { get; set; }

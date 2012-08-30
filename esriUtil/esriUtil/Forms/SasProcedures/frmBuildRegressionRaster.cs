@@ -29,7 +29,6 @@ namespace esriUtil.Forms.SasProcedures
         private IMap mp = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rstUtil = new rasterUtil();
-        private glcm glcmTexture = new glcm();
         private viewUtility vUtil = null;
         private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
         private IFields flds = null;

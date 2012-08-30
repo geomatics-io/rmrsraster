@@ -32,8 +32,36 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ESRI.ArcGIS.ArcMap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="ESRI.ArcGIS.ArcMapUI, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.Carto, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -73,6 +101,10 @@
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="ESRI.ArcGIS.Framework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="ESRI.ArcGIS.GeoAnalyst, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
@@ -374,12 +406,6 @@
     <Compile Include="Forms\Sampling\frmCreateRandomSample.Designer.cs">
       <DependentUpon>frmCreateRandomSample.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\Sampling\frmSampleGlcm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\Sampling\frmSampleGlcm.Designer.cs">
-      <DependentUpon>frmSampleGlcm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\Sampling\frmSampleRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -423,6 +449,8 @@
     <Compile Include="FunctionRasters\focalFunctionDatasetBase.cs" />
     <Compile Include="FunctionRasters\focalSampleArguments.cs" />
     <Compile Include="FunctionRasters\focalSampleDataset.cs" />
+    <Compile Include="FunctionRasters\glcmFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\glcmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\LandscapeFunctionArguments.cs" />
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperBase.cs" />
@@ -449,6 +477,19 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperSum.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperUnique.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperVariance.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperASM.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperContrast.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperCorrelation.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperCovariance.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperDissimilarity.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperEnergy.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperEntropy.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperHomogeneity.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperMaxProb.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperMean.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperMinProb.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperRange.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperVariance.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMeanRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMedianRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMinRatioRectangle.cs" />
@@ -520,6 +561,8 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperVarianceRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\regionGroup.cs" />
     <Compile Include="FunctionRasters\radiansFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\regressionFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\regressionFunctionDataset.cs" />
     <Compile Include="FunctionRasters\sinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\log10FunctionDataset.cs" />
     <Compile Include="FunctionRasters\logFunctionDataset.cs" />
@@ -527,7 +570,6 @@
     <Compile Include="FunctionRasters\zonalHelper.cs" />
     <Compile Include="geodatabaseutility.cs" />
     <Compile Include="geoprocessor.cs" />
-    <Compile Include="glcm.cs" />
     <Compile Include="help.cs" />
     <Compile Include="imageAnalysisUtil.cs" />
     <Compile Include="Forms\OptFuels\landFire.cs" />
@@ -657,9 +699,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Sampling\frmExportSampleToCsv.resx">
       <DependentUpon>frmExportSampleToCsv.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\Sampling\frmSampleGlcm.resx">
-      <DependentUpon>frmSampleGlcm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Sampling\frmSampleRaster.resx">
       <DependentUpon>frmSampleRaster.cs</DependentUpon>

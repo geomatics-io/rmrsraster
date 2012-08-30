@@ -28,7 +28,6 @@ namespace esriUtil.Forms.Sampling
         private IMap mp = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = new rasterUtil();
-        private glcm glcmTexture = new glcm();
         private viewUtility vUtil = null;
         private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
         private void populateComboBox()
