@@ -117,13 +117,13 @@ namespace esriUtil.FunctionRasters
                         {
                             double inVl = System.Convert.ToDouble(pixelValues.GetValue(c, r));
 
-                            if (inVl == noDataValue)
+                            if (rasterUtil.isNullData(inVl, noDataValue))
                             {
                                 continue;
                             }
                             else
                             {
-                                object outVl = getTransformedValue(pixelValuesBig, c+l, r+t);
+                                double outVl = System.Convert.ToDouble(getTransformedValue(pixelValuesBig, c+l, r+t));
                                 //Console.WriteLine(outVl.ToString());
                                 pixelValues.SetValue(outVl, c, r);
                             }

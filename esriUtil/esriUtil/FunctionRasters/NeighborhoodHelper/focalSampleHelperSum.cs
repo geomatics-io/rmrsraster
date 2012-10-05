@@ -19,7 +19,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 //Console.WriteLine("\tOffset CR = " + bWc.ToString() + " : " + bRc.ToString());
                 double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
                 //Console.WriteLine("\t"+vl.ToString());
-                if (vl == noDataValue)
+                if (rasterUtil.isNullData(vl, noDataValue))
                 {
                     continue;
                 }

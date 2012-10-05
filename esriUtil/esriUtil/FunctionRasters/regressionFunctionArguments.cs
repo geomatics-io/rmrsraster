@@ -31,6 +31,10 @@ namespace esriUtil.FunctionRasters
             set 
             {
                 IRaster temp = value;
+                if (((IRasterProps)temp).PixelType != rstPixelType.PT_DOUBLE)
+                {
+                    temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_DOUBLE);
+                }
                 inrs = temp;
             } 
         }

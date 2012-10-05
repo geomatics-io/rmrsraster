@@ -37,9 +37,17 @@ namespace esriUtil
 
             if(wks2.get_NameExists(esriDatasetType.esriDTTable,"SERVICECONNECTIONS"))
             {
-                tblCon = fWks.OpenTable("SERVICECONNECTIONS");
-                tblSrv = fWks.OpenTable("SERVICES");
-                tblLyr = fWks.OpenTable("LAYERS");
+                try
+                {
+                    tblCon = fWks.OpenTable("SERVICECONNECTIONS");
+                    tblSrv = fWks.OpenTable("SERVICES");
+                    tblLyr = fWks.OpenTable("LAYERS");
+                }
+                catch
+                {
+                    createConnectionDb();
+                    updateConnectionTable(gisProdServer);
+                }
             }
             else
             {

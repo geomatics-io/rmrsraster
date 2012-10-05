@@ -1,0 +1,66 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Accuracy Assessment Answers</title>
+	    <style type="text/css">
+            .style4
+            {
+                font-style: italic;
+                font-weight: bold;
+                font-size: large;
+            }
+            .style5
+            {
+                font-size: large;
+            }
+            .style6
+            {
+                font-size: x-large;
+            }
+            </style>
+	</head>
+	<body>
+        <p class="style4">	
+            <span class="style6">Answers for Function Modeling Tutorial</span><br /> 
+            </p>
+            <span class="style5">Exercise1.</span><br />	  
+            <ol>
+                <li class="style5">Because all raster cells within the view extent must be processed 
+                    on the fly. The Focal Analysis exacerbates this issue because each cell is processed 25 times (window size of 5 by 5).</li>
+                <li class="style5">Because raster statistics are not calculated until the user 
+                    specifies.</li>
+                <li class="style5">Function Modeling reduces both processing time and storage space 
+                    using delayed reading techniques. This means that for a given spatial model no 
+                    processing time or storage space needs to be allocated to in and out (IO) 
+                    procedures (writing to disk) and that intermediate datasets do not need to ever 
+                    be created.</li>
+            </ol>	
+            <span class="style5">Exercise2.</span><br />
+            <ol>
+                <li class="style5">9 raster datasets</li>
+                <li class="style5">No, you do not need to output all steps of a function model.</li>
+                <li class="style5">0 additional layers were loaded into the TOC.</li>
+            </ol>	
+            <span class="style5">
+            Exersice3.</span><br/>
+            <ol>
+                <li class="style5">Your results will vary depending on the shape and location of you 
+                    management polygon. For our 31.97 acre management polygon we estimate a total of 
+                    962.99 bole tons.</li>
+                <li class="style5">&nbsp;Using a conventional modeling methodology 6 intermediate 
+                    raster datasets would have been created to run the zonal statistics. If you 
+                    combine this model with the model that helps identify cells in need of 
+                    management then a total of 15 intermediate dataset would be created.</li>
+                <li class="style5">Yes, the raster surface appears to be displaying correctly. 
+                    Remember, after we created saved the function model we built statistic thereby 
+                    persisting those values.&nbsp; </li>
+            </ol>
+        
+        <p>
+            For technical questions contact 
+            <a href="mailto:jshogland@fs.fed.us">John Hogland</a>, Biological Scientist in 
+            the Human Dimensions program at the <a href="http://www.fs.fed.us/rmrs/">Rocky Mountain Research Station</a>
+        </p>
+            <div style="text-align: left; float: right;"><a href="welcome.htm">RMRS Raster Utility</a></div>
+	</body>
+</html>

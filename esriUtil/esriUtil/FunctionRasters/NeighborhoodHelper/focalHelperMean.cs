@@ -17,7 +17,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
                 double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
-                if(vl==noDataValue)
+                if (rasterUtil.isNullData(vl, noDataValue))
                 {
                     cntSub++;
                 }

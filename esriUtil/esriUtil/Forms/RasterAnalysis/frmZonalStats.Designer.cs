@@ -44,6 +44,8 @@
             this.btnAll = new System.Windows.Forms.Button();
             this.cmbZoneField = new System.Windows.Forms.ComboBox();
             this.lblZone = new System.Windows.Forms.Label();
+            this.txtTableName = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // cmbZonalStat
@@ -121,7 +123,7 @@
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(186, 313);
+            this.btnExecute.Location = new System.Drawing.Point(186, 360);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
             this.btnExecute.TabIndex = 42;
@@ -186,11 +188,29 @@
             this.lblZone.Text = "Zone field";
             this.lblZone.Visible = false;
             // 
+            // txtTableName
+            // 
+            this.txtTableName.Location = new System.Drawing.Point(10, 330);
+            this.txtTableName.Name = "txtTableName";
+            this.txtTableName.Size = new System.Drawing.Size(222, 20);
+            this.txtTableName.TabIndex = 49;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(10, 313);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(100, 13);
+            this.label3.TabIndex = 50;
+            this.label3.Text = "Output Table Name";
+            // 
             // frmZonalStats
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(271, 343);
+            this.ClientSize = new System.Drawing.Size(271, 395);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.txtTableName);
             this.Controls.Add(this.lblZone);
             this.Controls.Add(this.cmbZoneField);
             this.Controls.Add(this.btnAll);
@@ -233,5 +253,7 @@
         private System.Windows.Forms.Button btnAll;
         private System.Windows.Forms.ComboBox cmbZoneField;
         private System.Windows.Forms.Label lblZone;
+        private System.Windows.Forms.TextBox txtTableName;
+        private System.Windows.Forms.Label label3;
     }
 }

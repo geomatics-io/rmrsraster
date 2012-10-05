@@ -562,6 +562,23 @@ namespace esriUtil
             rsGeoProc3.Shift(shiftX, shiftY, inRs);
             return inRs;
         }
+        public IRaster reSizeRasterCellsFunction(object inRaster,int numCells)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new IdentityFunctionClass();
+            IRaster inrs = returnRaster(inRaster);
+            IRasterProps ps = (IRasterProps)inrs;
+            double cellW = ps.MeanCellSize().X;
+            IRasterGeometryProc geoP = new RasterGeometryProcClass();
+            geoP.Resample(rstResamplingTypes.RSP_NearestNeighbor, cellW * numCells, inrs);
+            frDset.Init(rsFunc, inrs);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
         /// <summary>
         /// performs a x and y shift of the input raster
         /// </summary>
@@ -577,6 +594,7 @@ namespace esriUtil
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new GeometricFunctionClass();
+            IGeometricXform geoX = new GeometricXformClass();
             IRaster2 rs = (IRaster2)shiftRaster(inRaster,shiftx,shiftY);
             IGeometricFunctionArguments args = new GeometricFunctionArgumentsClass();
             args.Raster = returnRaster(inRaster);
@@ -596,7 +614,7 @@ namespace esriUtil
         /// <returns>a transformed raster</returns>
         public IRaster calcGLCMFunction(object inRaster, int clms, int rws, bool horizontal, glcmMetric glcmType)
         {
-            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -647,7 +665,6 @@ namespace esriUtil
                 default:
                     break;
             }
-            rsFunc.PixelType = rstPixelType.PT_FLOAT;
             FunctionRasters.glcmFunctionArguments args = new FunctionRasters.glcmFunctionArguments(this);
             args.Columns = clms;
             args.Rows = rws;
@@ -668,7 +685,7 @@ namespace esriUtil
         /// <returns>a transformed raster</returns>
         public IRaster calcGLCMFunction(object inRaster, int radius, bool horizontal, glcmMetric glcmType)
         {
-            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -719,7 +736,6 @@ namespace esriUtil
                 default:
                  break;
 	        }
-            rsFunc.PixelType = rstPixelType.PT_FLOAT;
             FunctionRasters.glcmFunctionArguments args = new FunctionRasters.glcmFunctionArguments(this);
             args.Radius = radius;
             args.InRaster = iR1;
@@ -745,7 +761,6 @@ namespace esriUtil
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new ConvolutionFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_DOUBLE;
             IRaster rs = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
             IConvolutionFunctionArguments args = new ConvolutionFunctionArgumentsClass();
             args.Raster = rs;
@@ -819,7 +834,7 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcMathRasterFunction(object inRaster, transType typ)
         {
-            IRaster rRst = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster rRst = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -1186,7 +1201,6 @@ namespace esriUtil
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new ArithmeticFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_DOUBLE;
             IArithmeticFunctionArguments args = new ArithmeticFunctionArgumentsClass();
             if(isNumeric(inRaster1.ToString())&&isNumeric(inRaster2.ToString()))
             {
@@ -1468,7 +1482,7 @@ namespace esriUtil
         }
         public IRaster calcFocalSampleFunction(object inRaster, HashSet<string> offset, focalType statType)
         {
-            IRaster iR1 = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -1531,7 +1545,7 @@ namespace esriUtil
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcFocalStatisticsFunction(object inRaster, int clm, int rws, focalType statType)
         {
-            IRaster iR1 = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -1595,7 +1609,7 @@ namespace esriUtil
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcFocalStatisticsFunction(object inRaster, int radius, focalType statType)
         {
-            IRaster iR1 = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -1638,16 +1652,13 @@ namespace esriUtil
                     rsFunc = new FunctionRasters.NeighborhoodHelper.focalHelperMax();
                     break;
             }
-            rsFunc.PixelType = rstPixelType.PT_FLOAT;
             FunctionRasters.FocalFunctionArguments args = new FunctionRasters.FocalFunctionArguments(this);
             args.Radius = radius;
             args.InRaster = iR1;
-            //args.WindowType = windowType.CIRCLE;
             args.Operation = statType;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             double cells = getNFromCircle(radius);
-            //functionModel.estimateStatistics(iR1, outRs, statType, cells);
             return outRs;
         }
         private double getNFromCircle(int radius)
@@ -1676,7 +1687,7 @@ namespace esriUtil
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcLandscapeFunction(object inRaster, int clm, int rws, focalType statType, landscapeType landType)
         {
-            IRaster iR1 = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -1704,7 +1715,7 @@ namespace esriUtil
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcLandscapeFunction(object inRaster, int radius, focalType statType, landscapeType landType)
         {
-            IRaster iR1 = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster iR1 = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -2016,7 +2027,6 @@ namespace esriUtil
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new TrendFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_DOUBLE;
             ITrendFunctionArguments args = new TrendFunctionArgumentsClass();
             args.Raster = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
             for (int i = 0; i < doubleFilter.Length; i++)
@@ -2041,7 +2051,7 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcRegressFunction(object inRaster, List<double[]> slopes, IRaster SeedRaster)
         {
-            IRaster rRst = returnRaster(inRaster, rstPixelType.PT_DOUBLE);
+            IRaster rRst = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -2323,7 +2333,6 @@ namespace esriUtil
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new ConstantFunction();
-            rsFunc.PixelType = rstPixelType.PT_DOUBLE;
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             //functionModel.estimateStatistics(rasterValue,outRs);
@@ -2347,7 +2356,7 @@ namespace esriUtil
             frDset.FullName = (IName)frDsetName;
             FunctionRasters.conditionalFunctionDataset rsFunc = new FunctionRasters.conditionalFunctionDataset();
             FunctionRasters.conditionalFunctionArguments args = new FunctionRasters.conditionalFunctionArguments(this);
-            IRaster conRs = returnRaster(condRaster,rstPixelType.PT_DOUBLE);
+            IRaster conRs = returnRaster(condRaster);
             if (conRs==null)
             {
                 Console.WriteLine("Condition Raster must be a raster");
@@ -2451,7 +2460,7 @@ namespace esriUtil
             }
             FunctionRasters.LocalFunctionArguments args = new FunctionRasters.LocalFunctionArguments(this);
             
-            IRaster inRs = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            IRaster inRs = returnRaster(inRaster);
             args.InRaster = inRs;
             IRaster outRs = null;
             frDset.Init(rsFunc, args);
@@ -2627,14 +2636,13 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcSlopeFunction(IRaster inRaster)
         {
-            IRaster rRst = returnRaster(inRaster);
+            IRaster rRst = returnRaster(inRaster,rstPixelType.PT_FLOAT);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new SlopeFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_FLOAT;
             ISlopeFunctionArguments args = new SlopeFunctionArgumentsClass();
             args.DEM = rRst;
             args.ZFactor = 1;
@@ -2650,14 +2658,13 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcAspectFunction(IRaster inRaster)
         {
-            IRaster rRst = returnRaster(inRaster);
+            IRaster rRst = returnRaster(inRaster,rstPixelType.PT_FLOAT);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new AspectFunctionClass();
-            rsFunc.PixelType = rstPixelType.PT_FLOAT;
             frDset.Init(rsFunc, inRaster);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             //functionModel.estimateStatistics(outRs,functionModel.dem.Aspect);
@@ -2819,6 +2826,30 @@ namespace esriUtil
             IRaster fRs = createRaster((IRasterDataset)frDset);
             //functionModel.estimateStatistics(fRs, pType);
             return fRs;
+        }
+        public IRaster setnullToValue(object inRaster, double vl)
+        {
+            IRaster rRst = returnRaster(inRaster,rstPixelType.PT_DOUBLE);
+            INoDataFilter pF = new NoDataFilterClass();
+            pF.NoDataToPixelValue = vl;
+            IPixelOperation pO = (IPixelOperation)rRst;
+            pO.PixelFilter = (IPixelFilter)pF;
+            return rRst;
+            
+        }
+        public IRaster setnullToValueFunction(object inRaster, double vl)
+        {
+            IRaster rs = setnullToValue(inRaster, vl);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new IdentityFunctionClass();
+            frDset.Init(rsFunc, rs);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
         }
         public IRaster setValueRangeToNodata(object inRaster,List<double[]>minMaxList)
         {
@@ -3805,62 +3836,59 @@ namespace esriUtil
         /// <param name="outRsName"></param>
         /// <param name="numCells"></param>
         /// <returns></returns>
-        public IRaster blockSum(IRaster inRaster, IWorkspace outWks, string outRsName, int numCells)
+        public IRaster calcAggregationFunction(object inRaster, int cells, focalType statType)
         {
-            IRasterProps rsProps = (IRasterProps)inRaster;
-            return blockSum(inRaster, outWks, outRsName, numCells, rsProps.PixelType);
-        }
-        public IRaster blockSum(IRaster inRaster, IWorkspace outWks, string outRsName, int numCells, rstPixelType pType)
-        {
-            IPnt meanCellSize = new PntClass();
-            IRasterProps rsProps = (IRasterProps)inRaster;
-            double noDataVl = System.Convert.ToDouble(((System.Array)rsProps.NoDataValue).GetValue(0));
-            IPnt inRasterCellSize = rsProps.MeanCellSize();
-            meanCellSize.X = inRasterCellSize.X*numCells;
-            meanCellSize.Y = inRasterCellSize.Y*numCells;
-            IRaster rs = createNewRaster(rsProps.Extent, meanCellSize, outWks, outRsName, 1, pType, ((IGeoDataset)inRaster).SpatialReference);
-            IRasterEdit rsE = (IRasterEdit)rs;
-            IRasterProps rsProps2 = (IRasterProps)rs;
-            double noDataVl2 = System.Convert.ToDouble(((System.Array)rsProps2.NoDataValue).GetValue(0));
-            IPnt pbBlockSizeIn = new PntClass();
-            IPnt pbBlockSizeOut = new PntClass();
-            int bigXCells = 512;
-            int bigYCells = bigXCells;
-            int xCells = bigXCells*numCells;
-            int yCells = bigYCells*numCells;
-            pbBlockSizeIn.SetCoords(xCells,yCells);
-            pbBlockSizeOut.SetCoords(bigXCells,bigYCells);
-            IRasterCursor rsCurIn = ((IRaster2)inRaster).CreateCursorEx(pbBlockSizeIn);
-            IRasterCursor rsCurOut = ((IRaster2)rs).CreateCursorEx(pbBlockSizeOut);
-            bool x = true;
-            while (x)
+            IRaster iR1 = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = null;
+            switch (statType)
             {
-                IPixelBlock pbIn = rsCurIn.PixelBlock;
-                IPixelBlock pbOut = rsCurOut.PixelBlock;
-                System.Array inArr = (System.Array)pbIn.get_SafeArray(0);
-                System.Array outArr = (System.Array)pbOut.get_SafeArray(0);
-                int inWd = pbOut.Width;
-                int inHt = pbOut.Height;
-                for (int r = 0; r < inHt; r++)
-                {
-                    for (int c = 0; c < inWd; c++)
-                    {
-                        double bVl = FunctionRasters.NeighborhoodHelper.blockHelperValue.getBlockSum(inArr, c, r, numCells,noDataVl);    
-                        if (bVl == noDataVl2)
-                        {
-                            bVl = 0;
-                        }
-                        object uVl = getSafeValue(bVl, rsProps2.PixelType);
-                        outArr.SetValue(uVl, c, r);
-                    }
-                }
-                pbOut.set_SafeArray(0, outArr);
-                rsE.Write(rsCurOut.TopLeft, pbOut);
-                x = rsCurIn.Next() && rsCurOut.Next();
+                case focalType.MIN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperMin();
+                    break;
+                case focalType.SUM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperSum();
+                    break;
+                case focalType.MEAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperMean();
+                    break;
+                case focalType.MODE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperMode();
+                    break;
+                case focalType.MEDIAN:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperMedian();
+                    break;
+                case focalType.VARIANCE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperVar();
+                    break;
+                case focalType.STD:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperStd();
+                    break;
+                case focalType.UNIQUE:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperUnique();
+                    break;
+                case focalType.ENTROPY:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperEntropy();
+                    break;
+                case focalType.ASM:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperASM();
+                    break;
+                default:
+                    rsFunc = new FunctionRasters.NeighborhoodHelper.aggregationHelperMax();
+                    break;
             }
-            calcStatsAndHist(rs);
-            return rs;
+            FunctionRasters.aggregationFunctionArguments args = new FunctionRasters.aggregationFunctionArguments(this);
+            args.Cells = cells;
+            args.InRaster = iR1;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
         }
+       
         /// <summary>
         /// retrieves a safe value for a given a raster pixel type
         /// </summary>
@@ -4068,7 +4096,7 @@ namespace esriUtil
             IRaster rs = mosaicRastersFunction(wks, rstNm, inRasters,esriMosaicMethod.esriMosaicNone,mergeMethod,false,false,false,false);
             return rs;
         }
-        public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
             zH.InValueRaster = returnRaster(inValueRaster);
@@ -4076,15 +4104,17 @@ namespace esriUtil
             //zH.InZoneFeatureClass = inFeatureClass;
             //zH.InZoneField = fieldName;
             zH.ZoneTypes = zoneTypes;
+            zH.OutTableName = outTableName;
             zH.setZoneValues();
             return zH.OutTable;
         }
-        public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
             zH.InValueRaster = returnRaster(inValueRaster);
             zH.InZoneRaster = returnRaster(inZoneRaster);
             zH.ZoneTypes = zoneTypes;
+            zH.OutTableName = outTableName;
             zH.setZoneValues();
             return zH.OutTable;
         }
@@ -4110,6 +4140,18 @@ namespace esriUtil
         {
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset.Workspace);
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset);
+        }
+        public static bool isNullData(double inValue, double noDataValue)
+        {
+            if (inValue == noDataValue || Double.IsNaN(inValue) || Double.IsInfinity(inValue))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
         }
 
     }

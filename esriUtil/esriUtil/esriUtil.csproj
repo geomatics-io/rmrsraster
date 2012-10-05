@@ -438,6 +438,8 @@
     </Compile>
     <Compile Include="functionModel.cs" />
     <Compile Include="FunctionRasters\acosFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\aggregationFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\aggregationFunctionDataset.cs" />
     <Compile Include="FunctionRasters\asinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\atanFunctionDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionArguments.cs" />
@@ -453,7 +455,18 @@
     <Compile Include="FunctionRasters\glcmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\LandscapeFunctionArguments.cs" />
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperBase.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperASM.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperEntropy.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMax.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMean.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMedian.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMin.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMode.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperStd.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperSum.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperUnique.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperVar.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperStats.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\fastArrayManipulation.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperEntropy.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMax.cs" />
@@ -560,6 +573,8 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperUniqueRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperVarianceRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\regionGroup.cs" />
+    <Compile Include="FunctionRasters\nullToValueFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\nullToValueFunctionDataset.cs" />
     <Compile Include="FunctionRasters\radiansFunctionDataset.cs" />
     <Compile Include="FunctionRasters\regressionFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regressionFunctionDataset.cs" />

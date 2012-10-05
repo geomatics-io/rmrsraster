@@ -10,7 +10,7 @@ using ESRI.ArcGIS.Geometry;
 
 namespace esriUtil
 {
-    class batchCalculations
+    public class batchCalculations
     {
         public batchCalculations()
         {
@@ -515,7 +515,7 @@ namespace esriUtil
         private IRaster createCompositeFunction(string[] paramArr)
         {
             IRasterBandCollection rsBC = new RasterClass();
-            foreach(string s in paramArr[0].Split(new char[]{','}))
+            foreach(string s in paramArr)
             {
                 IRaster rs = getRaster(s);
                 rsBC.AppendBands((IRasterBandCollection)rs);
@@ -695,18 +695,18 @@ namespace esriUtil
                 rasterUtil.zoneType zT = (rasterUtil.zoneType)Enum.Parse(typeof(rasterUtil.zoneType),s.ToUpper());
                 zLst.Add(zT);
             }
-            if(paramArr.Length<4)
+            if(paramArr.Length<5)
             {
                 IRaster rs1 = getRaster(paramArr[0]);
                 IRaster rs2 = getRaster(paramArr[1]);
-                return rsUtil.zonalStats(rs1, rs2, zLst.ToArray(),rp);
+                return rsUtil.zonalStats(rs1, rs2,paramArr[2], zLst.ToArray(),rp);
             }
             else
             {
                 IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
                 string inFtrFld = paramArr[1];
                 IRaster vRs = getRaster(paramArr[2]);
-                return rsUtil.zonalStats(inFtrCls, inFtrFld, vRs, zLst.ToArray(),rp);
+                return rsUtil.zonalStats(inFtrCls, inFtrFld, vRs, paramArr[3],zLst.ToArray(),rp);
             }
         }
 
@@ -833,7 +833,7 @@ namespace esriUtil
                 case batchGroups.LANDSCAPE:
                     break;
                 case batchGroups.ZONALSTATS:
-                    msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;MAX,MIN,SUM)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;MAX,MIN,SUM)";
+                    msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;OutTableName;MAX,MIN,SUM)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;OutTableName;MAX,MIN,SUM)";
                     break;
                 case batchGroups.SAVEFUNCTIONRASTER:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;outName;outWorkspace;rasterType)";

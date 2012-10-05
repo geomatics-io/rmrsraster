@@ -269,7 +269,7 @@ namespace esriUtil.Forms.OptFuels
                 rd.stepPGBar(10);
                 rd.addMessage("Summarizing sediment by arrival time. This may take a while...");
                 rd.Refresh();
-                gSed.sumSedimentValues();
+                gSed.sumSedimentValues(); 
             }
             catch (Exception ex)
             {

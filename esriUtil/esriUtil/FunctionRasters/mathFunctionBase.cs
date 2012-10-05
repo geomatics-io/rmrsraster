@@ -71,7 +71,7 @@ namespace esriUtil.FunctionRasters
                         for (int k = pBColIndex; k < pBWidth; k++)
                         {
                             pixelValue = Convert.ToDouble(pixelValues.GetValue(k, i));
-                            if (pixelValue == noDataValue)
+                            if (rasterUtil.isNullData(pixelValue, noDataValue))
                             {
                                 continue;
                             }

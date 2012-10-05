@@ -88,7 +88,7 @@ namespace esriUtil.FunctionRasters
                         {
                             double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
                             double pixelValue = Convert.ToDouble(pArr[nBand].GetValue(k, i));
-                            if (pixelValue == noDataValue)
+                            if (rasterUtil.isNullData(pixelValue,noDataValue))
                             {
                                 break;
                             }

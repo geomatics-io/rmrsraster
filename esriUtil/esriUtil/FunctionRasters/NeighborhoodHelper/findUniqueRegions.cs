@@ -25,7 +25,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     
                     double cvd = System.Convert.ToDouble(windowArr.GetValue(c, r));
                     
-                    if (cvd == rsNoDataValue || Double.IsNaN(cvd) || Double.IsInfinity(cvd))
+                    if (rasterUtil.isNullData(cvd,rsNoDataValue))
                     {
                     }
                     else
@@ -63,7 +63,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 {
                     int rSmall = r - sr;
                     double cvd = System.Convert.ToDouble(windowArr.GetValue(c, r));
-                    if (cvd == rsNoDataValue || Double.IsNaN(cvd) || Double.IsInfinity(cvd))
+                    if (rasterUtil.isNullData(cvd, rsNoDataValue))
                     {
                     }
                     else

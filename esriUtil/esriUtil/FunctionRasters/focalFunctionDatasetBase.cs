@@ -95,14 +95,14 @@ namespace esriUtil.FunctionRasters
                         for (int c = 0; c < pBWidth; c++)
                         {
                             double inVl = System.Convert.ToDouble(pixelValues.GetValue(c, r));
-                            
-                            if (inVl == noDataValue)
+
+                            if (rasterUtil.isNullData(inVl, noDataValue))
                             {
                                 continue;
                             }
                             else
                             {
-                                object outVl = getTransformedValue(pixelValuesBig, c, r);
+                                double outVl = System.Convert.ToDouble(getTransformedValue(pixelValuesBig, c, r));
                                 //Console.WriteLine(outVl.ToString());
                                 pixelValues.SetValue(outVl, c, r);
                             }

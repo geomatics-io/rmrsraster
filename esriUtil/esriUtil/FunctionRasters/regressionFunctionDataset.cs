@@ -96,7 +96,7 @@ namespace esriUtil.FunctionRasters
                             {
                                 double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
                                 double pixelValue = Convert.ToDouble(pArr[coefnBand].GetValue(k, i));
-                                if (pixelValue == noDataValue)
+                                if (rasterUtil.isNullData(pixelValue, noDataValue))
                                 {
                                     sumVls = noDataVl;
                                     break;

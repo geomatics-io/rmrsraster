@@ -74,8 +74,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="HTML\accuracyAssessmentAnswers.htm" />
     <Content Include="HTML\background.htm" />
     <Content Include="HTML\BugReport.htm" />
+    <Content Include="HTML\FunctionModelingAnswers.htm" />
     <Content Include="HTML\demos.htm" />
     <Content Include="HTML\downloads.htm" />
     <Content Include="HTML\FAQ.htm" />
@@ -97,10 +99,9 @@
     <Content Include="IMAGES\workFlow.gif" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DOWNLOADS\accuracyAssessmentTutorial.zip" />
     <Content Include="DOWNLOADS\FunctionModeling.zip" />
     <Content Include="DOWNLOADS\RmrsRasterUtilityPresentations.zip" />
-    <Content Include="DOWNLOADS\rmrsRasterUtilitySourceCode.zip" />
+    <Content Include="DOWNLOADS\AccuracyAssessment.zip" />
     <None Include="DOWNLOADS\RmrsRasterUtilityToolbarHelp.chm" />
     <Content Include="DOWNLOADS\Sampling.zip" />
     <None Include="DOWNLOADS\servicesToolBar.esriAddIn" />

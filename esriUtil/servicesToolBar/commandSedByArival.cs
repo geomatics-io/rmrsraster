@@ -20,7 +20,7 @@ namespace servicesToolBar
             esriUtil.rasterUtil rsUtil = new esriUtil.rasterUtil();
             IMxDocument doc = ArcMap.Document;
             IMap map = doc.FocusMap;
-            esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime frm = new esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime(map,rsUtil);
+            esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime frm = new esriUtil.Forms.OptFuels.frmSummarizeGraphSedimentByArivalTime(map, rsUtil);
             frm.Show();
         }
 

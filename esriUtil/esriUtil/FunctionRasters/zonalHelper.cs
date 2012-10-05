@@ -46,8 +46,8 @@ namespace esriUtil.FunctionRasters
         public string LinkFieldName { get { return linkfieldname; } }
         private IRaster zRs = null;
         private IRaster vRs = null;
-        private string zName = null;
-        private string vName = null;
+        private string oName = "_VAT";
+        public string OutTableName { get { return oName; } set { oName = value; } }
         public IRaster InZoneRaster 
         {
             get
@@ -60,7 +60,7 @@ namespace esriUtil.FunctionRasters
                 zProps = (IRasterProps)zRs;
                 IDataset ds = (IDataset)((IRaster2)zRs).RasterDataset;
                 wks = geoUtil.OpenWorkSpace(ds.Workspace.PathName);
-                zName = ds.BrowseName;
+                //zName = ds.BrowseName;
                 //Console.WriteLine(tblName);
             }
         }
@@ -81,12 +81,12 @@ namespace esriUtil.FunctionRasters
                     zoneValueDicArr[i] = new Dictionary<int, object[]>();
                 }
                 IDataset ds = (IDataset)((IRaster2)vRs).RasterDataset;
-                vName = ds.BrowseName;
+                //vName = ds.BrowseName;
             }
         }
         public void setZoneValues()
         {
-            tblName = geoUtil.getSafeOutputNameNonRaster(wks, zName + "_" + vName + "_VAT");
+            tblName = geoUtil.getSafeOutputNameNonRaster(wks, oName + "_VAT");
             if (vRs == null)
             {
                 if (rd != null) rd.addMessage("Value raster has not been set! Cannot proceed!");
@@ -546,14 +546,14 @@ namespace esriUtil.FunctionRasters
                         for (int c = 0; c < wd; c++)
                         {
                             int z = System.Convert.ToInt32(zPix.GetValue(c, r));
-                            if (z == zNoDataVl)
+                            if (rasterUtil.isNullData(z,zNoDataVl))
                             {
                                 continue;
                             }
                             else
                             {
                                 double v = System.Convert.ToDouble(vPix.GetValue(c, r));
-                                if (v == vNoDataVl)
+                                if (rasterUtil.isNullData(v,vNoDataVl))
                                 {
                                     continue;
                                 }
@@ -791,7 +791,7 @@ namespace esriUtil.FunctionRasters
                 ftrCls = value;
                 IDataset ds = (IDataset)ftrCls;
                 wks = ds.Workspace;
-                zName = ds.BrowseName;
+                //zName = ds.BrowseName;
                 //tblName = geoUtil.getSafeOutputNameNonRaster(wks, ds.BrowseName + "_VAT");
             } 
         }

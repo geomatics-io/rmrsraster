@@ -211,6 +211,7 @@ namespace esriUtil.Forms.RasterAnalysis
             string zNm = cmbZoneRaster.Text;
             string vNm = cmbValueRaster.Text;
             string zFld = cmbZoneField.Text;
+            string oTbl = txtTableName.Text;
             if (zNm == null || zNm == "")
             {
                 MessageBox.Show("You must specify a zone layer","No Zone",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -227,6 +228,11 @@ namespace esriUtil.Forms.RasterAnalysis
             if (vNm == null || vNm == "")
             {
                 MessageBox.Show("You must specify a value raster","No Value",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                return;
+            }
+            if (oTbl == null || oTbl == "")
+            {
+                MessageBox.Show("You must specify an output table name","No Value",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
             if (lsbStats.Items.Count < 1)
@@ -255,14 +261,14 @@ namespace esriUtil.Forms.RasterAnalysis
                 if(rstDic.ContainsKey(zNm))
                 {
                     IRaster zRs = rstDic[zNm];
-                    outTbl = rsUtil.zonalStats(zRs,vRs,rsLst.ToArray(),rp);
+                    outTbl = rsUtil.zonalStats(zRs,vRs,oTbl,rsLst.ToArray(),rp);
                 }
                 else
                 {
                     rp.addMessage("Converting feature class to raster...");
                     rp.Refresh();
                     IFeatureClass zFtr = ftrDic[zNm];
-                    outTbl = rsUtil.zonalStats(zFtr,zFld,vRs,rsLst.ToArray(),rp);
+                    outTbl = rsUtil.zonalStats(zFtr,zFld,vRs,oTbl,rsLst.ToArray(),rp);
                 }
                 if (mp != null&&addToMap)
                 {

@@ -117,12 +117,6 @@ namespace esriUtil.Forms.OptFuels
             }
         }
 
-        private IRaster reSampleRasterGrid(IRaster raster)
-        {
-            IRasterGeometryProc3 rsGeoP3 = new RasterGeometryProcClass();
-            rsGeoP3.Resample(rstResamplingTypes.RSP_NearestNeighbor, cellSize, raster);
-            return raster;
-        }
         private string tempDir = null;
         private string graphDir = null;
         public string GraphDir { get { return graphDir; } }
@@ -218,7 +212,7 @@ namespace esriUtil.Forms.OptFuels
         {
             string wksPath = wks.PathName;
             if (wksPath.EndsWith(".accdb") || wksPath.EndsWith(".mdb") || wksPath.EndsWith(".sde")) rsType = rasterUtil.rasterType.GDB;
-            else rsType = rasterUtil.rasterType.GRID;
+            else rsType = rasterUtil.rasterType.IMAGINE;
             string lastRS = "";
             bool checkNA = false;
             foreach(string s in System.IO.Directory.GetFiles(resultsDir,"arrivaltime*.txt"))
@@ -258,11 +252,12 @@ namespace esriUtil.Forms.OptFuels
         public string HSF10Field { get { return hsf10fld; } set { hsf10fld = value; } }
         public string HSF50Field { get { return hsf50fld; } set { hsf50fld = value; } }        
         private IFeatureClass ftrCls = null;
-        private rasterUtil.rasterType rsType = rasterUtil.rasterType.GDB;
+        private rasterUtil.rasterType rsType = rasterUtil.rasterType.IMAGINE;
         private string streamName = "rcz";
         private string inputDir = null;
         private string sedDir = null;
         private string projectDir = null;
+        IWorkspace tWks = null;
         public IFeatureClass StreamPolygon
         {
             get
@@ -271,39 +266,43 @@ namespace esriUtil.Forms.OptFuels
             }
             set
             {
-                IWorkspace tWks = geoUtil.OpenRasterWorkspace(tempDir);
+                tWks = geoUtil.OpenRasterWorkspace(tempDir);
                 ftrCls=value;
                 if (wks != null)
                 {
                     if (System.IO.Directory.Exists(sedDir))
                     {
                         IWorkspace sedWks = geoUtil.OpenRasterWorkspace(sedDir);
-                        if (rsUtil.rasterExists(sedWks, "n10.img"))
+                        if (rsUtil.rasterExists(sedWks, "n10.asc"))
                         {
                             if (System.Windows.Forms.DialogResult.Yes == System.Windows.Forms.MessageBox.Show("Sediment Raster currently exist. Do you want to replace existing sediment raster?", "Replace Existing Rasters?", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question))
                             {
-                                Console.WriteLine("Replacing Existing Rasters");
+                                //Console.WriteLine("Replacing Existing Rasters");
                                 try
                                 {
                                     //removelocks();
                                     removeSedFiles();
                                     //System.IO.Directory.Delete(sedDir, true);
                                     geoUtil.check_dir(sedDir);
+                                    //string tName = rsUtil.getSafeOutputName(tWks, "xxx");
                                     streamName = rsUtil.getSafeOutputName(tWks, streamName);
                                     IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
                                     sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                                    //IRaster xxx2 = rsUtil.setnullToValue(xxx, 0);
+                                    //IRaster sRs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(xxx2, streamName, tWks));
+                                    //System.Windows.Forms.MessageBox.Show("After creating raster " + ((IRasterProps)sedRaster).PixelType.ToString());
                                     createSedimentSurfaces();
                                 }
                                 catch (Exception e)
                                 {
                                     Console.WriteLine(e.ToString());
                                     rpForm.addMessage("Lock on existing sediment Raster. Using existing sediment rasters! If you want to replace you must restart ArcMap!");
-                                    rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
-                                    rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
-                                    rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
-                                    rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
-                                    rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
-                                    rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
+                                    rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.asc");
+                                    rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.asc");
+                                    rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.asc");
+                                    rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.asc");
+                                    rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.asc");
+                                    rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.asc");
                                     if (createinter)
                                     {
                                         rsUtil.saveRasterToDataset(rsfine10, "n10", wks, rasterUtil.rasterType.IMAGINE);
@@ -318,12 +317,12 @@ namespace esriUtil.Forms.OptFuels
                             }
                             else
                             {
-                                rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
-                                rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
-                                rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
-                                rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
-                                rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
-                                rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
+                                rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.asc");
+                                rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.asc");
+                                rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.asc");
+                                rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.asc");
+                                rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.asc");
+                                rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.asc");
                                 if (createinter)
                                 {
                                     rsUtil.saveRasterToDataset(rsfine10, "n10", wks,rasterUtil.rasterType.IMAGINE);
@@ -337,10 +336,15 @@ namespace esriUtil.Forms.OptFuels
                         }
                         else
                         {
-                            Console.WriteLine("Can't find n10.img");
-                            streamName = rsUtil.getSafeOutputName(wks, streamName);
+                            Console.WriteLine("Can't find n10.asc");
+                            //string tName = rsUtil.getSafeOutputName(tWks, "xxx");
+                            streamName = rsUtil.getSafeOutputName(tWks, streamName);
                             IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
                             sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                            
+                            //IRaster sRs = rsUtil.setnullToValue(xxx, 0);
+                            //sedRaster = rsUtil.returnRaster(rsUtil.saveRasterToDataset(sRs, streamName, tWks, rasterUtil.rasterType.IMAGINE));
+                            //System.Windows.Forms.MessageBox.Show("After creating raster " + ((IRasterProps)sedRaster).PixelType.ToString());
                             createSedimentSurfaces();
                         }
                     }
@@ -351,9 +355,14 @@ namespace esriUtil.Forms.OptFuels
                 }
                 else
                 {
-                    streamName = rsUtil.getSafeOutputName(wks, streamName);
+                    string tName = rsUtil.getSafeOutputName(tWks, "xxx");
+                    streamName = rsUtil.getSafeOutputName(tWks, streamName);
                     IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
-                    sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                    sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, tName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                    //IRaster sRs = rsUtil.setnullToValue(xxx, 0);
+                    
+                    //sedRaster = rsUtil.returnRaster(rsUtil.saveRasterToDataset(sRs, streamName, tWks, rasterUtil.rasterType.IMAGINE));
+                    //System.Windows.Forms.MessageBox.Show("After creating raster " + ((IRasterProps)sedRaster).PixelType.ToString());
                     createSedimentSurfaces();
                 }
             }
@@ -432,41 +441,39 @@ namespace esriUtil.Forms.OptFuels
             {
                 string rsNm = "";
                 IRaster rs = null;
+                IRaster rr = rsUtil.calcRemapFunction(sedRaster, remap);
+                //IRaster xx = rsUtil.setnullToValueFunction(rr, 0);
+                //IRaster rRs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(xx, "xxx"+cnt.ToString(), tWks, rasterUtil.rasterType.IMAGINE));
+                //IRaster rs = calcAgFunction(rr, numCells, rasterUtil.focalType.SUM);
                 switch (cnt)
                 {
                     case 1:
-                        rsfine10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rsfine10 = rsUtil.blockSum(rsfine10, sedWks,"n10",numCells,rstPixelType.PT_FLOAT);
+                        rsfine10 = calcAgFunction(rr, "n10", numCells);
                         rs = rsfine10;
                         rsNm = "n10";
                         break;
                     case 2:
-                        rsfine50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rsfine50 = rsUtil.blockSum(rsfine50, sedWks, "n50", numCells, rstPixelType.PT_FLOAT);
+                        rsfine50 = calcAgFunction(rr, "n50", numCells);
                         rs = rsfine50;
                         rsNm = "n50";
                         break;
                     case 3:
-                        rst1Fine10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rst1Fine10 = rsUtil.blockSum(rst1Fine10, sedWks, "t10", numCells, rstPixelType.PT_FLOAT);
+                        rst1Fine10 = calcAgFunction(rr,"t10", numCells);
                         rs = rst1Fine10;
                         rsNm = "t10";
                         break;
                     case 4:
-                        rst1Fine50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rst1Fine50 = rsUtil.blockSum(rst1Fine50, sedWks, "t50", numCells, rstPixelType.PT_FLOAT);
+                        rst1Fine50 = calcAgFunction(rr, "t50", numCells);
                         rs = rst1Fine50;
                         rsNm = "t50";
                         break;
                     case 5:
-                        rshsf10 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rshsf10 = rsUtil.blockSum(rshsf10, sedWks, "h10", numCells, rstPixelType.PT_FLOAT);
+                        rshsf10 = calcAgFunction(rr, "h10", numCells);
                         rs = rshsf10;
                         rsNm = "h10";
                         break;
                     case 6:
-                        rshsf50 = rsUtil.calcRemapFunction(sedRaster, remap);
-                        rshsf50 = rsUtil.blockSum(rshsf50, sedWks, "h50", numCells, rstPixelType.PT_FLOAT);
+                        rshsf50 = calcAgFunction(rr, "h50", numCells);
                         rs = rshsf50;
                         rsNm = "h50";
                         break;
@@ -476,10 +483,97 @@ namespace esriUtil.Forms.OptFuels
                 cnt++;
                 if (createinter && rsNm != "" && rs != null)
                 {
-                    rsUtil.saveRasterToDataset(rs, rsNm, wks);
+                    rsUtil.saveRasterToDataset(rs, rsNm, wks,rasterUtil.rasterType.IMAGINE);
                 }
 
             }
+        }
+
+        private IRaster calcAgFunction(IRaster rr, string outName, int numCells)
+        {
+            IRasterProps rsP = (IRasterProps)rr;
+            double noDataVl = System.Convert.ToDouble(((System.Array)(rsP).NoDataValue).GetValue(0));
+            int rsPW = rsP.Width;
+            int rsPH = rsP.Height;
+            int width = System.Convert.ToInt32(System.Convert.ToDouble(rsPW)/numCells);
+            int height = System.Convert.ToInt32(System.Convert.ToDouble(rsPH)/numCells);
+            double[,] vlArr = new double[width, height];
+            int bigCellSize = 512/numCells;
+            int bsize = bigCellSize*numCells;
+            IPnt pntSize = new PntClass();
+            //Console.WriteLine("bsize = " + bsize.ToString());
+            pntSize.SetCoords(bsize, bsize);
+            IRaster2 r2 = (IRaster2)rr;
+            IRasterCursor rsCur = r2.CreateCursorEx(pntSize);
+
+            while (rsCur.Next())
+            {
+                IPixelBlock pb = rsCur.PixelBlock;
+                System.Array sArr = (System.Array)pb.get_SafeArray(0);
+                for (int r = 0; r < pb.Height; r++)
+                {
+                    
+                    
+                    int br = System.Convert.ToInt32(r / numCells + (rsCur.TopLeft.Y/numCells));
+
+                    for (int c = 0; c < pb.Width; c++)
+                    {
+                        //Console.WriteLine("TL X:Y = " + rsCur.TopLeft.X.ToString() + ":" + rsCur.TopLeft.Y.ToString());
+                        double rrVl = System.Convert.ToDouble(sArr.GetValue(c, r));
+                        
+                        
+                        if (rasterUtil.isNullData(rrVl, noDataVl))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            int bc = System.Convert.ToInt32(c / numCells + (rsCur.TopLeft.X/numCells));
+                            //Console.WriteLine("BC:BR " + bc.ToString() + ":" + br.ToString());
+                            double cVl = vlArr[bc, br];
+                            vlArr[bc, br] = cVl + rrVl;
+                        }
+
+                    }
+
+                }
+            }
+            return writeRaster(rr,vlArr,outName); 
+            
+        }
+
+        private IRaster writeRaster(IRaster rr, double[,] vlArr,string outName)
+        {
+            IRasterProps rsProps = (IRasterProps)rr;
+            IPoint uL = rsProps.Extent.UpperLeft;
+            IPoint lL = rsProps.Extent.LowerLeft;
+            int clms =vlArr.GetUpperBound(0)+1;
+            int rws = vlArr.GetUpperBound(1)+1;
+            string otFL = sedDir + "\\" + outName + ".asc";
+            //Console.WriteLine(otFL);
+            using (System.IO.StreamWriter sw = new System.IO.StreamWriter(otFL))
+            {
+                sw.WriteLine("NCOLS " + clms.ToString());
+                sw.WriteLine("NROWS " + rws.ToString());
+                sw.WriteLine("XLLCORNER " + uL.X.ToString());
+                sw.WriteLine("YLLCORNER " + lL.Y.ToString());
+                sw.WriteLine("CELLSIZE 90");
+                sw.WriteLine("NODATA_VALUE " + rasterUtil.getNoDataValue(rstPixelType.PT_FLOAT).ToString());
+                for (int r = 0; r < rws; r++)
+                {
+                    List<string> sH = new List<string>();
+                    for (int c = 0; c < clms; c++)
+                    {
+                        double vl = vlArr[c,r];
+                        sH.Add(vl.ToString());
+                    }
+                    sw.WriteLine(String.Join(" ",sH.ToArray()));
+                }
+                sw.Close();
+            }
+            return rsUtil.returnRaster(otFL);
+
+
         }
         private IRaster rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50;
         private double flmlng = 3;
@@ -785,7 +879,7 @@ namespace esriUtil.Forms.OptFuels
             double noDataVlAr = System.Convert.ToDouble(noDataAr.GetValue(0));
             double noDataVlf50 = System.Convert.ToDouble(noDataf50.GetValue(0));
             double noDataVlf10 = System.Convert.ToDouble(noDataf10.GetValue(0));
-            Dictionary<int, float[]> vlDic = new Dictionary<int, float[]>();
+            Dictionary<int, double[]> vlDic = new Dictionary<int, double[]>();
             IRasterCursor rsCur = ((IRaster2)arivZones).CreateCursorEx(null);
             IPnt pnt = new PntClass();
             pnt.X = rsCur.PixelBlock.Width;
@@ -807,14 +901,14 @@ namespace esriUtil.Forms.OptFuels
                     for (int h = 0; h < ht; h++)
                     {
                         int at = System.Convert.ToInt32(arvTArr.GetValue(w,h));
-                        float f10 = System.Convert.ToSingle(f10Arr.GetValue(w, h));
-                        float f50 = System.Convert.ToSingle(f50Arr.GetValue(w, h));
-                        if (Single.IsNaN(f10) || Single.IsNaN(f50)||Single.IsNegativeInfinity(f10)||Single.IsNegativeInfinity(f50)||Single.IsPositiveInfinity(f10)||Single.IsPositiveInfinity(f50)||at==-9999||at==noDataVlAr||f50==noDataVlf50||f10==noDataVlf50)
+                        double f10 = System.Convert.ToDouble(f10Arr.GetValue(w, h));
+                        double f50 = System.Convert.ToDouble(f50Arr.GetValue(w, h));
+                        if (Double.IsNaN(f10) || Double.IsNaN(f50)||Double.IsInfinity(f10)||Double.IsInfinity(f50)||at==-9999||at==noDataVlAr||f50==noDataVlf50||f10==noDataVlf50)
                         {
                             //Console.WriteLine(f10.ToString());
                             continue;
                         }
-                        float[] fArr = {0,0,0};
+                        double[] fArr = {0,0,0};
                         if (vlDic.TryGetValue(at, out fArr))
                         {
                             fArr[0] = fArr[0] + f10;
@@ -824,7 +918,7 @@ namespace esriUtil.Forms.OptFuels
                         }
                         else
                         {
-                            fArr = new float[] { f10, f50, 1 };
+                            fArr = new double[] { f10, f50, 1 };
                             vlDic.Add(at, fArr);
                         }
                     }
@@ -834,16 +928,16 @@ namespace esriUtil.Forms.OptFuels
             //need to sort to do accumulative;
             List<int> keySortLst = vlDic.Keys.ToList();
             keySortLst.Sort();
-            float ac10 = 0;
-            float ac50 = 0;
+            double ac10 = 0;
+            double ac50 = 0;
             foreach (int ky in keySortLst)
             {
-                float[] vlArr = vlDic[ky];
-                float s10 = vlArr[0];
-                float s50 = vlArr[1];
+                double[] vlArr = vlDic[ky];
+                double s10 = vlArr[0];
+                double s50 = vlArr[1];
                 ac10 += s10;
                 ac50 += s50;
-                float cellCnt = vlArr[2];
+                double cellCnt = vlArr[2];
                 string newStr = iteration + "," + fire.ToString() + "," + Period.ToString() + "," + s10.ToString() + "," + s50.ToString() + "," + ac10.ToString() + "," + ac50.ToString() + "," + ky.ToString() + "," + cellCnt.ToString();
                 //Console.WriteLine(newStr);
                 sb.AppendLine(newStr);
