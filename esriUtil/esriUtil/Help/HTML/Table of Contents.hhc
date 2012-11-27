@@ -114,7 +114,7 @@
 				<param name="Local" value="HTML\conditionalAnalysisForm.htm">
 				</OBJECT>
 			<LI> <OBJECT type="text/sitemap">
-				<param name="Name" value="Rempa Raster">
+				<param name="Name" value="Remap Raster">
 				<param name="Local" value="HTML\remapRasterForm.htm">
 				</OBJECT>
 			<LI> <OBJECT type="text/sitemap">

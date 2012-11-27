@@ -30,13 +30,7 @@ namespace esriUtil.FunctionRasters
             }
             set
             {
-                IRaster temp = value;
-                IRasterProps rsProps = (IRasterProps)temp;
-                if (rsProps.PixelType != rstPixelType.PT_DOUBLE)
-                {
-                    temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_DOUBLE);
-                }
-                inrs = temp;
+                inrs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
             }
         }
     }

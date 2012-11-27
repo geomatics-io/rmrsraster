@@ -303,7 +303,7 @@ namespace esriUtil.Forms.SasProcedures
             rp.Refresh();
             try
             {
-                outraster = rR.createModelRaster(seed);
+                outraster = rR.createModelRaster();
                 outrastername = sasDir;
                 if (mp != null && addToMap)
                 {
@@ -367,34 +367,7 @@ namespace esriUtil.Forms.SasProcedures
             }
 
         }
-        IRaster seed = null;
-        private void btnSeed_Click(object sender, EventArgs e)
-        {
-            seed = getSeedRaster();
+        
 
-
-        }
-
-        private IRaster getSeedRaster()
-        {
-            IRaster rsOut = null;
-            string outPath = null;
-            string outName = "";
-            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
-            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
-            flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
-            gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a Seed Raster";
-            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
-            if (gxDialog.DoModalOpen(0, out eGxObj))
-            {
-                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                rsOut = rstUtil.returnRaster(outPath);
-            }
-            return rsOut;
-        }
     }
 }

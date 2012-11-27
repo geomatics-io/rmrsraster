@@ -10,13 +10,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
     {
         public override object getTransformedValue(System.Array bigArr, int startClm, int startRw)
         {
-            Dictionary<double, int> countDic = new Dictionary<double, int>();
+            Dictionary<float, int> countDic = new Dictionary<float, int>();
             int cntSub = 0;
             foreach (int[] xy in offsetLst)
             {
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
-                double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
+                float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
                 if (rasterUtil.isNullData(vl, noDataValue))
                 {
                     cntSub += 1;
@@ -35,11 +35,11 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 }
             }
             int n = offsetLst.Count - cntSub;
-            double prob = 0;
-            double ent = 0;
+            float prob = 0;
+            float ent = 0;
             foreach (int v in countDic.Values)
             {
-                prob = (System.Convert.ToDouble(v) / n);
+                prob = (System.Convert.ToSingle(v) / n);
                 ent += (prob * prob);
             }
             //Console.WriteLine(vlMax);

@@ -8,7 +8,7 @@ using ESRI.ArcGIS.Geodatabase;
 
 namespace esriUtil
 {
-    class regressionRaster
+    public class regressionRaster
     {
         public regressionRaster()
         {
@@ -20,12 +20,12 @@ namespace esriUtil
         }
         private rasterUtil rsUtil = new rasterUtil();
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        private Dictionary<string, Dictionary<string, double>> betasdic = null;
+        private Dictionary<string, Dictionary<string, float>> betasdic = null;
         /// <summary>
         /// A dictionary (key = dependent field names) of dictionary (key = parameter) estiamtes (value = double) created after the SasOutputFile is specfied.
         /// The SasOutput File must be a valid output csv output file.
         /// </summary>
-        public Dictionary<string, Dictionary<string, double>> BetasDictionary { get { return betasdic; } }
+        public Dictionary<string, Dictionary<string, float>> BetasDictionary { get { return betasdic; } }
         private string[] outparam = null;
         /// <summary>
         /// a list of significant independent variables in the order of the output file
@@ -92,9 +92,9 @@ namespace esriUtil
         /// An array of Independent field names that might help predict the dependent field  
         /// </summary>
         public string[] IndependentFields { get { return independentfields; } set { independentfields = value; } }
-        private Dictionary<string, Dictionary<string, double>> getBetas()
+        private Dictionary<string, Dictionary<string, float>> getBetas()
         {
-            Dictionary<string, Dictionary<string, double>> cBetas = new Dictionary<string, Dictionary<string, double>>();
+            Dictionary<string, Dictionary<string, float>> cBetas = new Dictionary<string, Dictionary<string, float>>();
             string[] oFlds = null;
             List<string> bVls = new List<string>();
             string[] depSp = dependentfield.Split(new char[]{' '});
@@ -115,7 +115,7 @@ namespace esriUtil
                 string[] bVlsSp = bVls[i].Split(new char[]{','});
                 string cls = bVlsSp[2];
                 bool getVls = false;
-                Dictionary<string, double> betas = new Dictionary<string, double>();
+                Dictionary<string, float> betas = new Dictionary<string, float>();
                 for (int j = 0; j < oFlds.Length; j++)
                 {
                     string flVl = oFlds[j].Replace("\"","");
@@ -140,7 +140,7 @@ namespace esriUtil
                         {
                             //Console.WriteLine("\tadding parameter " + flVl + " = " + betaVl);
                             
-                            betas.Add(flVl,System.Convert.ToDouble(betaVl));
+                            betas.Add(flVl,System.Convert.ToSingle(betaVl));
                         }
                     }
 
@@ -200,21 +200,21 @@ namespace esriUtil
             sasoutdir = sInt.OutDirectory;
 
         }
-        public IRaster createModelRaster(IRaster seedRaster)
+        public IRaster createModelRaster()
         {
-            List<double[]> slopesLst = new List<double[]>();
+            List<float[]> slopesLst = new List<float[]>();
             foreach(string s in Categories)
             {
-                List<double> slp = new List<double>();
-                Dictionary<string, double> dic = betasdic[s];
-                foreach (KeyValuePair<string, double> d in dic)
+                List<float> slp = new List<float>();
+                Dictionary<string, float> dic = betasdic[s];
+                foreach (KeyValuePair<string, float> d in dic)
                 {
                     slp.Add(d.Value);
                 }
                 slopesLst.Add(slp.ToArray());
             }
 
-            return rsUtil.calcRegressFunction(InRaster, slopesLst,seedRaster);
+            return rsUtil.calcRegressFunction(InRaster, slopesLst);
         }
 
         public void showModelOutput()

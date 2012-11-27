@@ -21,7 +21,7 @@ namespace esriUtil
             rsUtil = rasterUtility;
             if (rp != null) rp = runningDialog;
         }
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, ADDRASTERTOMAP, ADDFEATURECLASSTOMAP, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, CREATEREGRESSIONRASTER };
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, ADDRASTERTOMAP, ADDFEATURECLASSTOMAP, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, CREATEREGRESSIONRASTER, CREATEPLRRASTER };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -240,6 +240,9 @@ namespace esriUtil
                                     case batchGroups.CONVERTPIXELTYPE:
                                         rstDic[outName] = convertPixelType(paramArr);
                                         break;
+                                    case batchGroups.CREATEPLRRASTER:
+                                        rstDic[outName] = createPlrRaster(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -269,6 +272,21 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IRaster createPlrRaster(string[] paramArr)
+        {
+            polytomousLogisticRaster plr = new polytomousLogisticRaster(ref rsUtil);
+            string plrStr = paramArr[0];
+            IRasterBandCollection rsBC = new RasterClass();
+            foreach (string s in plrStr.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                rsBC.AppendBands((IRasterBandCollection)getRaster(s.Trim()));
+            }
+            plr.InRaster = (IRaster)rsBC;
+            plr.Dependentfield = getDependentField(paramArr[1],true);
+            plr.SasOutputFile = paramArr[1];
+            return plr.createModelRaster(null);
         }
 
         private IRaster convertPixelType(string[] paramArr)
@@ -351,13 +369,18 @@ namespace esriUtil
                 rsBC.AppendBands((IRasterBandCollection)getRaster(s.Trim()));
             }
             rr.InRaster = (IRaster)rsBC;
-            rr.Dependentfield = getDependentField(paramArr[1]);
+            rr.Dependentfield = getDependentField(paramArr[1],false);
             rr.SasOutputFile = paramArr[1];
-            return rr.createModelRaster(null);
+            return rr.createModelRaster();
         }
 
-        private string getDependentField(string p)
+        private string getDependentField(string p,bool PLR)
         {
+            int cl = 2;
+            if (PLR)
+            {
+                cl = 3;
+            }
             List<string> depFlsLst = new List<string>();
             using (System.IO.StreamReader sr = new System.IO.StreamReader(p))
             {
@@ -366,7 +389,7 @@ namespace esriUtil
                 
                 while (sV != null)
                 {
-                    depFlsLst.Add(sV.Split(new char[] { ',' })[2]);
+                    depFlsLst.Add(sV.Split(new char[] { ',' })[cl]);
                     sV = sr.ReadLine();
                 }
                 sr.Close();
@@ -871,6 +894,9 @@ namespace esriUtil
                     break;
                 case batchGroups.CONVERTPIXELTYPE:
                     msg = "outFtrClass = " + batchFunction.ToString() + "(inRaster;rstPixelType)";
+                    break;
+                case batchGroups.CREATEPLRRASTER:
+                    msg = "outRS = " + batchFunction.ToString() + "(slopeRaster1,slopeRaster2,slopeRaster3;<pathToSASOutputEstimates e.g. c:\\temp\\outest.csv>)";
                     break;
                 default:
                     break;

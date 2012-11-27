@@ -55,56 +55,90 @@ namespace esriUtil.FunctionRasters
         /// <param name="pPixelBlock">PixelBlock to be filled in</param>
         public void Read(IPnt pTlc, IRaster pRaster, IPixelBlock pPixelBlock)
         {
-            double pixelValue = 0d;
+            IRaster2 inRs2 = (IRaster2)pRaster;
+            double inX, inY;
+            int outX, outY; 
+            inRs2.PixelToMap(System.Convert.ToInt32(pTlc.X),System.Convert.ToInt32(pTlc.Y),out inX, out inY);
+            IPnt tpTlc = new PntClass();
+            IPnt fpTlc = new PntClass();
+            IRaster2 tRs2 = (IRaster2)trueRs;
+            IRaster2 fRs2 = (IRaster2)falseRs;
+            tRs2.MapToPixel(inX, inY, out outX, out outY);
+            tpTlc.SetCoords(outX, outY);
+            fRs2.MapToPixel(inX, inY, out outX, out outY);
+            fpTlc.SetCoords(outX, outY);
+            float pixelValue = 0f;
             try
             {
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 System.Array noDataValueArrT = (System.Array)((IRasterProps)trueRs).NoDataValue;
                 System.Array noDataValueArrF = (System.Array)((IRasterProps)falseRs).NoDataValue;
-                // Call Read method of the Raster Function Helper object.
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 #region Load log object
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 Pnt pbSize = new PntClass();
                 pbSize.SetCoords(pPixelBlock.Width,pPixelBlock.Height);
-                int pBRowIndex = 0;
-                int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                 IPixelBlock3 truePb = (IPixelBlock3)trueRs.CreatePixelBlock(pbSize);
                 IPixelBlock3 falsePb = (IPixelBlock3)falseRs.CreatePixelBlock(pbSize);
-                trueRs.Read(pTlc, (IPixelBlock)truePb);
-                falseRs.Read(pTlc, (IPixelBlock)falsePb);
-                double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(0));
-                double noDataValueT = System.Convert.ToDouble(noDataValueArrT.GetValue(0));
-                double noDataValueF = System.Convert.ToDouble(noDataValueArrF.GetValue(0));
+                trueRs.Read(tpTlc, (IPixelBlock)truePb);
+                falseRs.Read(fpTlc, (IPixelBlock)falsePb);
+                float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(0));
+                float noDataValueT = System.Convert.ToSingle(noDataValueArrT.GetValue(0));
+                float noDataValueF = System.Convert.ToSingle(noDataValueArrF.GetValue(0));
                 System.Array pixelValuesCon = (System.Array)ipPixelBlock.get_PixelData(0);
+                int lng = pixelValuesCon.Length;
                 System.Array truePixelValues = (System.Array)truePb.get_PixelData(0);
                 System.Array falsePixelValues = (System.Array)falsePb.get_PixelData(0);
-                for (int i = pBRowIndex; i < pBHeight; i++)
+                for (int r = 0; r < ipPixelBlock.Height; r++)
                 {
-                    for (int k = pBColIndex; k < pBWidth; k++)
+                    for (int c = 0; c < ipPixelBlock.Width; c++)
                     {
-                        pixelValue = Convert.ToDouble(pixelValuesCon.GetValue(k, i));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue))
+                        pixelValue = System.Convert.ToSingle(pixelValuesCon.GetValue(c, r));
+                        if (rasterUtil.isNullData(pixelValue, noDataValue)) continue;
+                        if (pixelValue >= 1)
                         {
-                            continue;
-                        }
-                        if(pixelValue>=1)
-                        {
-                            pixelValue = System.Convert.ToDouble(truePixelValues.GetValue(k,i));
+                            pixelValue = System.Convert.ToSingle(truePixelValues.GetValue(c, r));
                             if (pixelValue == noDataValueT) pixelValue = noDataValue;
                         }
                         else
                         {
-                            pixelValue = System.Convert.ToDouble(falsePixelValues.GetValue(k,i));
-                            if (pixelValue == noDataValueF) pixelValue = noDataValue;
+                            pixelValue = System.Convert.ToSingle(falsePixelValues.GetValue(c, r));
+                            if (pixelValue == noDataValueT) pixelValue = noDataValue;
                         }
-
-                        pixelValuesCon.SetValue(pixelValue, k, i);
                     }
+                    
                 }
-                pPixelBlock.set_SafeArray(0, pixelValuesCon);
+                ipPixelBlock.set_PixelData(0, pixelValuesCon);
+
+                //unsafe
+                //{
+                //    fixed(float* conVl = pixelValuesCon, tVl = truePixelValues, fVl = falsePixelValues)
+                //    {
+                //        for (int i = 0; i < lng; i++)
+                //        {
+                //            pixelValue = *(conVl + i);
+                //            if (rasterUtil.isNullData(pixelValue, noDataValue))
+                //            {
+                //                continue;
+                //            }
+                //            if (pixelValue >= 1)
+                //            {
+                //                pixelValue = *(tVl+i);
+                //                if (pixelValue == noDataValueT) pixelValue = noDataValue;
+                //            }
+                //            else
+                //            {
+                //                pixelValue = *(fVl + i);
+                //                if (pixelValue == noDataValueF) pixelValue = noDataValue;
+                //            }
+                //            *(conVl + i) = pixelValue;
+                            
+                //        }
+                //    }
+                //}
+                //ipPixelBlock.set_PixelData(0, pixelValuesCon);
                 #endregion
             }
             catch (Exception exc)

@@ -50,36 +50,54 @@ namespace esriUtil.FunctionRasters
         /// <param name="pPixelBlock">PixelBlock to be filled in</param>
         public void Read(IPnt pTlc, IRaster pRaster, IPixelBlock pPixelBlock)
         {
-            double pixelValue = 0d;
+            double vl = 0;
+            float pixelValue = 0f;
             try
             {
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 // Call Read method of the Raster Function Helper object.
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
+                IPixelBlock3 pb3 = (IPixelBlock3)pPixelBlock;
                 #region Load log object
-                int pBHeight = pPixelBlock.Height;
-                int pBWidth = pPixelBlock.Width;
-                int pBRowIndex = 0;
-                int pBColIndex = 0;
-                IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
+                for (int nBand = 0; nBand < pPixelBlock.Planes; nBand++)
                 {
-                    double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
-                    System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
-                    for (int i = pBRowIndex; i < pBHeight; i++)
+                    float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    System.Array dArr = (System.Array)pb3.get_PixelData(nBand);
+                    for (int r = 0; r < pPixelBlock.Height; r++)
                     {
-                        for (int k = pBColIndex; k < pBWidth; k++)
+                        for (int c = 0; c < pPixelBlock.Width; c++)
                         {
-                            pixelValue = Convert.ToDouble(pixelValues.GetValue(k, i));
-                            if (rasterUtil.isNullData(pixelValue, noDataValue))
+                            vl = System.Convert.ToDouble(dArr.GetValue(c, r));
+                            if (rasterUtil.isNullData(System.Convert.ToSingle(vl), noDataValue))
                             {
                                 continue;
                             }
-                            pixelValue = getFunctionValue(pixelValue);
-                            pixelValues.SetValue(pixelValue, k, i);
+                            pixelValue = System.Convert.ToSingle(getFunctionValue(vl));
+                            dArr.SetValue(pixelValue, c, r);
                         }
                     }
-                    ((IPixelBlock3)pPixelBlock).set_PixelData(nBand, pixelValues);
+                    pb3.set_PixelData(nBand, dArr);
+                    //unsafe
+                    //{ 
+                    //    System.Array dArr = (System.Array)pb3.get_PixelData(nBand);
+                    //    int lng = dArr.Length;
+                    //    fixed (float* dValue = (float[,])dArr)
+                    //    {
+                    //        for (int i = 0; i < lng; i++)
+                    //        {
+                    //            pixelValue = *(dValue + i);
+                    //            if (rasterUtil.isNullData(pixelValue, noDataValue))
+                    //            {
+                    //                continue;
+                    //            }
+                    //            pixelValue = System.Convert.ToSingle(getFunctionValue(pixelValue));
+                    //            *(dValue + i) = pixelValue;
+
+                    //        }
+                    //        pb3.set_PixelData(nBand, dArr);
+                    //    }
+                    //}
+                    
                 }
                 #endregion
             }

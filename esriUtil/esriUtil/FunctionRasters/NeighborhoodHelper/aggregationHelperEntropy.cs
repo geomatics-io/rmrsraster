@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperEntropy : aggregationFunctionDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, double noDataValue)
+        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, float noDataValue)
         {
             return blockHelperStats.getBlockEntropy(bigArr, startClms, startRws, cells, noDataValue);
         }

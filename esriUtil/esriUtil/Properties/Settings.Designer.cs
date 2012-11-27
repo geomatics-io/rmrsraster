@@ -110,5 +110,17 @@ namespace esriUtil.Properties {
                 this["ConversionDir"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("yes")]
+        public string AutoUpdate {
+            get {
+                return ((string)(this["AutoUpdate"]));
+            }
+            set {
+                this["AutoUpdate"] = value;
+            }
+        }
     }
 }

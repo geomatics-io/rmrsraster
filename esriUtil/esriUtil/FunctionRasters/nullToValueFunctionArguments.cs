@@ -31,24 +31,12 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                inrs = rsUtil.returnRaster(value, rstPixelType.PT_DOUBLE);
-                IRasterProps rsP = (IRasterProps)inrs;
-                nodataArr = (System.Array)((System.Array)rsP.NoDataValue).Clone();
-                System.Array neNullData = (System.Array)rsP.NoDataValue;
-                for(int i = 0;i<neNullData.Length;i++)
-                {
-                    double oldNodataValue = System.Convert.ToDouble(neNullData.GetValue(i));
-
-                    neNullData.SetValue(oldNodataValue + 1, i);
-                }
-                rsP.NoDataValue = neNullData;
+                inrs = rsUtil.returnRaster(value);
             } 
         }
-        
-        private double newvalue = 0;
-        private System.Array nodataArr = null;
+        private double newvalue = 0d;
         public double NewValue { get { return newvalue; } set { newvalue = value;} }
-        public System.Array NoDataArray { get { return nodataArr; } }
+        public System.Array NoDataArray { get { return (System.Array)((IRasterProps)inrs).NoDataValue; } }
     }
 }
 

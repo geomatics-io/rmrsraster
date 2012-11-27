@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "servicesToolBar", "services
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmrsUtilitywebsite", "RmrsUtilitywebsite\RmrsUtilitywebsite.csproj", "{716A590C-797D-43DE-BF20-B44C35FF7ACC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "algLib", "..\alglib\algLib\algLib.csproj", "{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,16 @@ Global
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|x86.ActiveCfg = Debug|x86
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|x86.Build.0 = Debug|x86
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{75261585-5E84-4B0B-8C2A-7DA8E5F446FE}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

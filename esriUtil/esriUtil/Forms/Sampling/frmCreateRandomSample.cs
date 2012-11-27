@@ -135,7 +135,6 @@ namespace esriUtil.Forms.Sampling
             IDataset ds = (IDataset)rsBc.Item(0).RasterDataset;
             this.Visible = false;
             this.Refresh();
-            string rstPath = ds.Workspace.PathName + "\\" + ds.BrowseName;
             RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             rp.Show();
             rp.stepPGBar(20);
@@ -148,7 +147,7 @@ namespace esriUtil.Forms.Sampling
                     rp.addMessage("Creating random stratified sample. This could take a while...");
                     rp.stepPGBar(10);
                     rp.Refresh();
-                    ftrCls = rsUtil.createRandomSampleLocationsByClass(geoUtil.OpenWorkSpace(oWks), rstPath, numSample, 1, sNm);
+                    ftrCls = rsUtil.createRandomSampleLocationsByClass(geoUtil.OpenWorkSpace(oWks), rs, numSample, 1, sNm);
                     
                 }
                 else
@@ -156,9 +155,9 @@ namespace esriUtil.Forms.Sampling
                     rp.addMessage("Creating random sample. This could take a while...");
                     rp.stepPGBar(10);
                     rp.Refresh();
-                    ftrCls =rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rstPath, numSample,sNm);
+                    ftrCls =rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rs, numSample,sNm);
                 }
-                if (ftrCls != null)
+                if (mp!=null)
                 {
                     rp.addMessage("Adding Samples to the map");
                     rp.stepPGBar(20);

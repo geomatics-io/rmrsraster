@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>8/20/2012</Date>
+  <Date>11/16/2012</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -64,6 +64,13 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandZonalStats" class="commandZonalStats" message="Performs Zonal Statistics and outputs a table with specified values" caption="Zonal Statistics" tip="Click to open Zonal Statistics form" category="rasterUtilities" image="Images\commandZonalStats.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandBatchProcess" class="commandBatchProcess" message="performs batch processing" caption="Batch Processing" tip="click to open Batch Processing Form" category="rasterUtilities" image="Images\commandBatchProcess.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandFocalSample" class="commandFocalSample" message="Samples neighboring pixels given a focal cell and offsets. To include the focal cell  you must add a record with a distance of 0;" caption="Focal Sample" tip="click to open Focal Sample form" category="rasterUtilities" image="Images\commandFocalSample.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandNullDataToValue" class="commandNullDataToValue" message="Converts NullData to a specified value" caption="NullData to value" tip="click to open NullData to value Form" category="rasterUtilities" image="Images\commandNullDataToValue.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandShiftRaster" class="commandShiftRaster" message="moves a raster a predefined number of x and y cordinates" caption="Shift Raster" tip="click to open shift Raster form" category="rasterUtilities" image="Images\commandShiftRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCreateConstantRaster" class="commandCreateConstantRaster" message="Creates a constant raster" caption="Create Constant Raster" tip="Click to open Create Constant Raster Form" category="rasterUtilities" image="Images\commandCreateConstantRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandFlipRaster" class="commandFlipRaster" message="Flips the raster" caption="Flip Raster" tip="click to open Flip Raster" category="rasetrUtilities" image="Images\commandFlipRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandRotateRaster" class="commandRotateRaster" message="Rotates a raster" caption="Rotate Raster" tip="Click to open Rotate Raster" category="rasterUtilities" image="Images\commandRotateRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_RemoveRmrsRasterUtility" class="RemoveRmrsRasterUtility" message="Unistall RMRS RasterUtility" caption="Uninstall RMRS Raster Utility" tip="Click to Unistall RMRS RasterUtility" category="rasterUtilities" image="Images\RemoveRmrsRasterUtility.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSetupToolbar" class="commandSetupToolbar" message="steup the toolbar" caption="Toolbar Setup" tip="click to open setup form" category="rasterUtilities" image="Images\commandSetupToolbar.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

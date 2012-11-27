@@ -127,12 +127,14 @@
     <Compile Include="commandConditionalRaster.cs" />
     <Compile Include="commandConvertPixelTypes.cs" />
     <Compile Include="commandConvolutionRaster.cs" />
+    <Compile Include="commandCreateConstantRaster.cs" />
     <Compile Include="commandCreateMosaic.cs" />
     <Compile Include="commandDeleteFunctionModel.cs" />
     <Compile Include="commandExplodeSample.cs" />
     <Compile Include="commandExportToCsv.cs" />
     <Compile Include="commandExtractRasterBands.cs" />
     <Compile Include="commandFIABiomassSummary.cs" />
+    <Compile Include="commandFlipRaster.cs" />
     <Compile Include="commandFocalAnalysis.cs" />
     <Compile Include="commandFocalSample.cs" />
     <Compile Include="commandFunctionalModeling.cs" />
@@ -143,6 +145,7 @@
     <Compile Include="commandLogicalAnalysis.cs" />
     <Compile Include="commandMathRaster.cs" />
     <Compile Include="commandMergeRasters.cs" />
+    <Compile Include="commandNullDataToValue.cs" />
     <Compile Include="commandPLRClassification.cs" />
     <Compile Include="commandAddData.cs" />
     <Compile Include="commandAddRasterData.cs" />
@@ -154,11 +157,14 @@
     <Compile Include="commandRegRun.cs" />
     <Compile Include="commandRemap.cs" />
     <Compile Include="commandRescaleRaster.cs" />
+    <Compile Include="commandRotateRaster.cs" />
     <Compile Include="commandSampleRaster.cs" />
     <Compile Include="commandSampleRasterCluster.cs" />
     <Compile Include="commandSaveRaster.cs" />
     <Compile Include="commandSedByArival.cs" />
     <Compile Include="commandSetNull.cs" />
+    <Compile Include="commandSetupToolbar.cs" />
+    <Compile Include="commandShiftRaster.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
     <Compile Include="commandVersion.cs" />
@@ -169,6 +175,7 @@
       <DependentUpon>Config.esriaddinx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RemoveRmrsRasterUtility.cs" />
     <Compile Include="rmrsRasterUtilityExtension.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -429,6 +436,39 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandNullDataToValue.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandShiftRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandCreateConstantRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandFlipRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandRotateRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandSetupToolbar.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\RemoveRmrsRasterUtility.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
   <PropertyGroup>
     <ZipFileExtension>esriAddIn</ZipFileExtension>
     <AddInTargetProduct>Desktop</AddInTargetProduct>
@@ -443,6 +483,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>

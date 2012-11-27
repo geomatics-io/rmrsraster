@@ -44,6 +44,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -52,6 +53,9 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ESRI.ArcGIS.ArcMap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
@@ -232,6 +236,12 @@
     <Compile Include="Forms\RasterAnalysis\frmConvolutionRaster.Designer.cs">
       <DependentUpon>frmConvolutionRaster.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmCreateConstant.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmCreateConstant.Designer.cs">
+      <DependentUpon>frmCreateConstant.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmCreateMerge.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -249,6 +259,12 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmExtractBand.Designer.cs">
       <DependentUpon>frmExtractBand.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmFlipRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmFlipRaster.Designer.cs">
+      <DependentUpon>frmFlipRaster.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmFocalSample.cs">
       <SubType>Form</SubType>
@@ -280,6 +296,12 @@
     <Compile Include="Forms\RasterAnalysis\frmMathRaster.Designer.cs">
       <DependentUpon>frmMathRaster.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmNullToValue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmNullToValue.Designer.cs">
+      <DependentUpon>frmNullToValue.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmRegionGroup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -298,6 +320,12 @@
     <Compile Include="Forms\RasterAnalysis\frmRescaleRaster.Designer.cs">
       <DependentUpon>frmRescaleRaster.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmRotateRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmRotateRaster.Designer.cs">
+      <DependentUpon>frmRotateRaster.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSaveRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -309,6 +337,18 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSetNull.Designer.cs">
       <DependentUpon>frmSetNull.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSetupToolbar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSetupToolbar.Designer.cs">
+      <DependentUpon>frmSetupToolbar.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmShiftRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmShiftRaster.Designer.cs">
+      <DependentUpon>frmShiftRaster.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSummarizeRaster.cs">
       <SubType>Form</SubType>
@@ -455,6 +495,8 @@
     <Compile Include="FunctionRasters\glcmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\LandscapeFunctionArguments.cs" />
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\localAsmFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\localFunctionBase.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperASM.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperEntropy.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMax.cs" />
@@ -467,7 +509,6 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperUnique.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperVar.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\blockHelperStats.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\fastArrayManipulation.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperEntropy.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMax.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalHelperMean.cs" />
@@ -491,6 +532,7 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperUnique.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\focalSampleHelperVariance.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperASM.cs" />
+    <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperBase.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperContrast.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperCorrelation.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\glcmHelperCovariance.cs" />
@@ -508,7 +550,6 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMinRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\findUniqueRegions.cs" />
     <Compile Include="FunctionRasters\FocalFunctionArguments.cs" />
-    <Compile Include="FunctionRasters\focalFunctionDataset.cs" />
     <Compile Include="FunctionRasters\localDividFunctionDataset.cs" />
     <Compile Include="FunctionRasters\localEntropyFunctionDataset.cs" />
     <Compile Include="FunctionRasters\LocalFunctionArguments.cs" />
@@ -528,8 +569,6 @@
     <Compile Include="FunctionRasters\localVarianceFunctionDataset.cs" />
     <Compile Include="FunctionRasters\MathFunctionArguments.cs" />
     <Compile Include="FunctionRasters\mathFunctionBase.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodhelper.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperEntropyRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeEntropyEdgeRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeEntropyRatioRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMaxEdgeRectangle.cs" />
@@ -561,26 +600,20 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeVarianceAreaRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeVarianceEdgeRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeVarianceRatioRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperMaxRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperMeanRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperMedianRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperMinRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperModeRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperProbabilityRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperLandscapeMaxAreaRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperStdRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperSumRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperUniqueRectangle.cs" />
-    <Compile Include="FunctionRasters\NeighborhoodHelper\neighborhoodHelperVarianceRectangle.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\regionGroup.cs" />
     <Compile Include="FunctionRasters\nullToValueFunctionArguments.cs" />
     <Compile Include="FunctionRasters\nullToValueFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\polytomousLogisticFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\polytomousLogisticFunctionDataset.cs" />
     <Compile Include="FunctionRasters\radiansFunctionDataset.cs" />
     <Compile Include="FunctionRasters\regressionFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regressionFunctionDataset.cs" />
     <Compile Include="FunctionRasters\sinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\log10FunctionDataset.cs" />
     <Compile Include="FunctionRasters\logFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\sqrtFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\squaredFunctionDataset.cs" />
     <Compile Include="FunctionRasters\tanFunctionDataset.cs" />
     <Compile Include="FunctionRasters\zonalHelper.cs" />
     <Compile Include="geodatabaseutility.cs" />
@@ -652,6 +685,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmConvolutionRaster.resx">
       <DependentUpon>frmConvolutionRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmCreateConstant.resx">
+      <DependentUpon>frmCreateConstant.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmCreateMerge.resx">
       <DependentUpon>frmCreateMerge.cs</DependentUpon>
     </EmbeddedResource>
@@ -660,6 +696,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmExtractBand.resx">
       <DependentUpon>frmExtractBand.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmFlipRaster.resx">
+      <DependentUpon>frmFlipRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmFocalAnalysis.resx">
       <DependentUpon>frmFocalAnalysis.cs</DependentUpon>
@@ -679,6 +718,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmMathRaster.resx">
       <DependentUpon>frmMathRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmNullToValue.resx">
+      <DependentUpon>frmNullToValue.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRegionGroup.resx">
       <DependentUpon>frmRegionGroup.cs</DependentUpon>
     </EmbeddedResource>
@@ -688,11 +730,20 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRescaleRaster.resx">
       <DependentUpon>frmRescaleRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmRotateRaster.resx">
+      <DependentUpon>frmRotateRaster.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSaveRaster.resx">
       <DependentUpon>frmSaveRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSetNull.resx">
       <DependentUpon>frmSetNull.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmSetupToolbar.resx">
+      <DependentUpon>frmSetupToolbar.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmShiftRaster.resx">
+      <DependentUpon>frmShiftRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSummarizeRaster.resx">
       <DependentUpon>frmSummarizeRaster.cs</DependentUpon>

@@ -27,7 +27,7 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public double noDataValue = Double.MinValue;
+        public float noDataValue = Single.MinValue;
         public void Bind(object pArgument)
         {
             if (pArgument is aggregationFunctionArguments)
@@ -73,14 +73,14 @@ namespace esriUtil.FunctionRasters
                 orig.Read(pbBigLoc, (IPixelBlock)pbBig);
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
-                    noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
+                    noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            double outVl = System.Convert.ToDouble(getTransformedValue(pixelValuesBig,c,r,cells,noDataValue));
+                            float outVl = System.Convert.ToSingle(getTransformedValue(pixelValuesBig,c,r,cells,noDataValue));
                             //Console.WriteLine("summed value = " + outVl.ToString());
                             pixelValues.SetValue(outVl, c, r);
                         }
@@ -107,6 +107,6 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract object getTransformedValue(System.Array bigArr,int startClms,int startRws,int cells,double noDataValue);
+        public abstract object getTransformedValue(System.Array bigArr,int startClms,int startRws,int cells,float noDataValue);
     }
 }

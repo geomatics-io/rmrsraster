@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperMedian : aggregationFunctionDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, double noDataValue)
+        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, float noDataValue)
         {
             return blockHelperStats.getBlockMedian(bigArr, startClms, startRws, cells, noDataValue);
         }

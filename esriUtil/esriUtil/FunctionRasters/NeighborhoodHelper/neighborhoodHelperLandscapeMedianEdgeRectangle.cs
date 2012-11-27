@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeMedianEdgeRectangle:neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
+        public override float findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
             int cnt = (uniqueDic.Count + 1) / 2;
             List<int> areaLst = new List<int>();

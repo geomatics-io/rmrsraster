@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeMinEdgeRectangle:neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
+        public override float findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
             int minVl = Int32.MaxValue;
             foreach (int[] cntArr in uniqueDic.Values)

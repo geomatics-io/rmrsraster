@@ -31,15 +31,15 @@ namespace esriUtil.FunctionRasters
             set 
             {
                 IRaster temp = value;
-                if (((IRasterProps)temp).PixelType != rstPixelType.PT_DOUBLE)
+                if (((IRasterProps)temp).PixelType != rstPixelType.PT_FLOAT)
                 {
-                    temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_DOUBLE);
+                    temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
                 }
                 inrs = temp;
             } 
         }
-        private List<double[]> slopes = new List<double[]>();//double array = intercept followed by betas
-        public List<double[]> Slopes 
+        private List<float[]> slopes = new List<float[]>();//float array = intercept followed by betas
+        public List<float[]> Slopes 
         { 
             get 
             { 
@@ -50,56 +50,22 @@ namespace esriUtil.FunctionRasters
                 slopes = value;
             } 
         }
-        private IRaster seedRaster = null;
         public IRaster OutRaster
         {
             get
             {
-                IRaster rs = seedRaster;
-                if (rs == null)
-                {
-                    rs = rsUtil.getBand(inrs, 0);
-                    IRasterProps rsProp = (IRasterProps)rs;
-                    if (rsProp.PixelType != rstPixelType.PT_DOUBLE)
+                
+                    IRaster rs = rsUtil.getBand(inrs, 0);
+                    IRaster rsC = rsUtil.constantRasterFunction(rs, 0);
+                    IRasterBandCollection rsBc = new RasterClass();
+                    for (int i = 0; i < slopes.Count; i++)
                     {
-                        rs = rsUtil.convertToDifFormatFunction(rs, rstPixelType.PT_DOUBLE);
+                        rsBc.AppendBands((IRasterBandCollection)rsC);
                     }
-                    IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    for (int i = 1; i < slopes.Count; i++)
-                    {
-                        rsBc.AppendBand(rsBc.Item(0));
-                    }
-                }
-                else
-                {
-                    IRasterProps rsProp = (IRasterProps)rs;
-                    if (rsProp.PixelType != rstPixelType.PT_DOUBLE)
-                    {
-                        rs = rsUtil.convertToDifFormatFunction(rs, rstPixelType.PT_DOUBLE);
-                    }
-                    IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    int rsCnt = rsBc.Count;
-                    int slCnt = slopes.Count;
-                    int dif = rsCnt - slCnt;
-                    if (dif > 0)
-                    {
-                        for (int i = 0; i < dif; i++)
-                        {
-                            rsBc.Remove(0);
-                        }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < Math.Abs(dif); i++)
-                        {
-                            rsBc.AppendBand(rsBc.Item(0));
-                        }
-                    }
-                }
-                return rs;
+                
+                return (IRaster)rsBc;
 
             }
         }
-        public IRaster SeedRaster{get{return seedRaster;}set{seedRaster=value;}}
      }
 }

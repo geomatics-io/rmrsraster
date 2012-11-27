@@ -32,13 +32,8 @@ namespace esriUtil.FunctionRasters
             set 
             { 
                 IRaster inrsT = value;
-                IRasterProps rsProps = (IRasterProps)inrsT;
-                if(rsProps.PixelType!=rstPixelType.PT_DOUBLE)
-                {
-                    inrsT = rsUtil.convertToDifFormatFunction(inrsT, rstPixelType.PT_DOUBLE);
-                }
-                inrs = inrsT;
-                origRs = rsUtil.returnRaster(value);
+                inrs = rsUtil.constantRasterFunction(inrsT, 0);
+                origRs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
             } 
         }
         private rasterUtil.windowType windowtype = rasterUtil.windowType.RECTANGLE;

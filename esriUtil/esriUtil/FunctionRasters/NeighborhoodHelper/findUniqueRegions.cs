@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class findUniqueRegions
     {
-        public static Dictionary<int, int[]> getUniqueRegions(System.Array windowArr, int eC, int eR, int windowClms, int windowRows,int sc,int sr, double rsNoDataValue)
+        public static Dictionary<int, int[]> getUniqueRegions(System.Array windowArr, int eC, int eR, int windowClms, int windowRows,int sc,int sr, float rsNoDataValue)
         {
             Dictionary<int, int[]> outDic = new Dictionary<int, int[]>();
             int uniqueCnt = 1;
@@ -23,7 +23,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 {
                     int rSmall = r - sr;
                     
-                    double cvd = System.Convert.ToDouble(windowArr.GetValue(c, r));
+                    float cvd = System.Convert.ToSingle(windowArr.GetValue(c, r));
                     
                     if (rasterUtil.isNullData(cvd,rsNoDataValue))
                     {
@@ -50,7 +50,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             }
             return outDic;
         }
-        public static Dictionary<int, int[]> getUniqueRegions(System.Array windowArr, int eC, int eR, int windowClms, int windowRows,int sc,int sr, double rsNoDataValue, int[,] circleWindow)
+        public static Dictionary<int, int[]> getUniqueRegions(System.Array windowArr, int eC, int eR, int windowClms, int windowRows,int sc,int sr, float rsNoDataValue, int[,] circleWindow)
         {
             Dictionary<int, int[]> outDic = new Dictionary<int, int[]>();
             int uniqueCnt = 1;
@@ -62,7 +62,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 for (int r = sr; r < eR; r++)
                 {
                     int rSmall = r - sr;
-                    double cvd = System.Convert.ToDouble(windowArr.GetValue(c, r));
+                    float cvd = System.Convert.ToSingle(windowArr.GetValue(c, r));
                     if (rasterUtil.isNullData(cvd, rsNoDataValue))
                     {
                     }

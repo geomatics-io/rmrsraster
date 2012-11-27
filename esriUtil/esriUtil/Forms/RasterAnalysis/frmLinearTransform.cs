@@ -197,7 +197,7 @@ namespace esriUtil.Forms.RasterAnalysis
         private void btnExecute_Click(object sender, EventArgs e)
         {
             string rstNm = txtOutNm.Text;
-            double intercept = System.Convert.ToDouble(nudIntercept.Value);
+            float intercept = System.Convert.ToSingle(nudIntercept.Value);
             if (rstNm == null || rstNm == "")
             {
                 MessageBox.Show("You must specify a output name","No Output",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -210,7 +210,7 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             
             IRasterBandCollection rsBc = new RasterClass();
-            List<double> slopes = new List<double>();
+            List<float> slopes = new List<float>();
             slopes.Add(intercept);
             for (int i = 0; i < dgvRasterSlopes.Rows.Count; i++)
             {
@@ -220,9 +220,9 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     vl = 0;
                 }
-                slopes.Add(System.Convert.ToDouble(vl));
+                slopes.Add(System.Convert.ToSingle(vl));
             }
-            List<double[]> fslopes = new List<double[]>();
+            List<float[]> fslopes = new List<float[]>();
             fslopes.Add(slopes.ToArray());
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);

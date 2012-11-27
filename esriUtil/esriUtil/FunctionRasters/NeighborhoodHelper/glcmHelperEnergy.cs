@@ -10,11 +10,11 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
     {
         public override object getTransformedValue(Dictionary<string, int> glcmDic)
         {
-            double outVl = 0;
-            double n =  System.Convert.ToDouble(glcmDic.Values.Sum());
+            float outVl = 0;
+            float n =  System.Convert.ToSingle(glcmDic.Values.Sum());
             foreach (int i in glcmDic.Values)
             {
-                double prob =  System.Convert.ToDouble(i) / n;
+                float prob =  System.Convert.ToSingle(i) / n;
                 outVl = outVl + (prob * prob);
             }
             return Math.Sqrt(outVl);

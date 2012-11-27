@@ -39,9 +39,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                         object[,] clmsValues = new object[pBWidth, pBHeight];
                         for (int nBand = 0; nBand < pbBig.Planes; nBand++)
                         {
-                            double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
-                            System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
-                            System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
+                            float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                            float[,] pixelValues = (float[,])(ipPixelBlock.get_PixelData(nBand));
+                            float[,] pixelValuesBig = (float[,])(pbBig.get_PixelData(nBand));
                             for (int r = 0; r < pBHeight; r++)//coordinates in terms of the small pixel block
                             {
                                 int er = r + rws;
@@ -50,8 +50,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                                     int ec = c + clms;
                                     
                                     Dictionary<int, int[]> uDic = findUniqueRegions.getUniqueRegions(pixelValuesBig, ec,er,clms,rws,c,r, noDataValue); //key(int) = cell value value(int[2] = number of cells and number of edges)  
-                                   
-                                    double uniqueMax = findUniqueRegionsValue(uDic);
+                                    float uniqueMax = findUniqueRegionsValue(uDic);
                                     
                                     pixelValues.SetValue(uniqueMax, c, r);
                                 }
@@ -97,9 +96,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                         object[,] clmsValues = new object[pBWidth, pBHeight];
                         for (int nBand = 0; nBand < pbBig.Planes; nBand++)
                         {
-                            double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
-                            System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
-                            System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
+                            float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                            float[,] pixelValues = (float[,])(ipPixelBlock.get_PixelData(nBand));
+                            float[,] pixelValuesBig = (float[,])(pbBig.get_PixelData(nBand));
                             for (int r = 0; r < pBHeight; r++)
                             {
                                 int er = r + rws;
@@ -108,7 +107,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                                     int ec = c + clms;
                                     
                                     Dictionary<int, int[]> uDic = findUniqueRegions.getUniqueRegions(pixelValuesBig, ec, er,clms,rws,c,r, noDataValue, circleWindow); //key(int) = cell value value(int[2] = number of cells and number of edges)  
-                                    double uniqueMax = findUniqueRegionsValue(uDic);
+                                    float uniqueMax = findUniqueRegionsValue(uDic);
 
                                     
                                     try
@@ -137,6 +136,6 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 throw myExc;
             }
         }
-        public abstract double findUniqueRegionsValue(Dictionary<int,int[]> uniqueDic);
+        public abstract float findUniqueRegionsValue(Dictionary<int,int[]> uniqueDic);
     }
 }

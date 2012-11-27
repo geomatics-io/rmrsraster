@@ -27,7 +27,7 @@ namespace esriUtil
             {
                 try
                 {
-                    if (System.IO.Directory.Exists(curDir)) System.IO.Directory.Delete(curDir, true);
+                    removeRMRSRasterUtility(curDir);
                     System.Diagnostics.Process pc = new System.Diagnostics.Process();
                     string lcInstall = rmrsDir + "\\" + appFileName;
                     pc.StartInfo.FileName = lcInstall;
@@ -49,32 +49,35 @@ namespace esriUtil
         private bool checkHelpVersion()
         {
             bool sameV = true;
-            string currentHelpVersion = esriUtil.Properties.Settings.Default.HelpVersion;
-            string serverHelpVersion = getServerVersion(true);
-            //Console.WriteLine( serverHelpVersion);
-            if (serverHelpVersion == null)
+            if (!(UpdateCheck.ToLower()=="yes"))
             {
-                //System.Windows.Forms.MessageBox.Show("Can't access the server try again later server help == null");
-            }
-            else if (currentHelpVersion != serverHelpVersion)
-            {
-                if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility help on the server. Do you want to download the help?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                string currentHelpVersion = esriUtil.Properties.Settings.Default.HelpVersion;
+                string serverHelpVersion = getServerVersion(true);
+                //Console.WriteLine( serverHelpVersion);
+                if (serverHelpVersion == null)
                 {
-                    copyFileFromServer(HelpFileName);
-                    if (HelpFileName != null)
-                    {
-                        esriUtil.Properties.Settings.Default.HelpVersion = serverHelpVersion;
-                        esriUtil.Properties.Settings.Default.Save();
-                    }
-                    else
-                    {
-                        sameV = false;
-                    }
+                    //System.Windows.Forms.MessageBox.Show("Can't access the server try again later server help == null");
                 }
+                else if (currentHelpVersion != serverHelpVersion)
+                {
+                    if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility help on the server. Do you want to download the help?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        copyFileFromServer(HelpFileName);
+                        if (HelpFileName != null)
+                        {
+                            esriUtil.Properties.Settings.Default.HelpVersion = serverHelpVersion;
+                            esriUtil.Properties.Settings.Default.Save();
+                        }
+                        else
+                        {
+                            sameV = false;
+                        }
+                    }
 
-            }
-            else
-            {
+                }
+                else
+                {
+                }
             }
             return sameV;
 
@@ -82,24 +85,27 @@ namespace esriUtil
         private bool checkToolbarVersion()
         {
             bool sameV = true;
-            string currentAppVersion = toolbarVersion;
-            string serverAppVersion = getServerVersion(false);
-            //Console.WriteLine( serverHelpVersion);
-            if (serverAppVersion == null)
+            if (!(UpdateCheck.ToLower() == "yes"))
             {
-                //System.Windows.Forms.MessageBox.Show("Can't access the server try again later");
-            }
-            else if (currentAppVersion != serverAppVersion)
-            {
-                if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility on the server. Do you want to download?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                string currentAppVersion = toolbarVersion;
+                string serverAppVersion = getServerVersion(false);
+                //Console.WriteLine( serverHelpVersion);
+                if (serverAppVersion == null)
                 {
-                    copyFileFromServer(appFileName);
-                    sameV = false;
+                    //System.Windows.Forms.MessageBox.Show("Can't access the server try again later");
                 }
+                else if (currentAppVersion != serverAppVersion)
+                {
+                    if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility on the server. Do you want to download?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        copyFileFromServer(appFileName);
+                        sameV = false;
+                    }
 
-            }
-            else
-            {
+                }
+                else
+                {
+                }
             }
             return sameV;
 
@@ -192,6 +198,33 @@ namespace esriUtil
         }
         private string rmrsDownload = esriUtil.Properties.Settings.Default.AppDownLoad;
         private string rmrsDir = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\RmrsRasterUtilityHelp";
+        private string upDateCheck = esriUtil.Properties.Settings.Default.AutoUpdate;
+        public string UpdateCheck
+        {
+            get
+            {
+                return upDateCheck;
+            }
+            set
+            {
+                string vl = value;
+                if (vl.ToLower() == "yes")
+                {
+                    upDateCheck = "yes";
+                    
+                }
+                else
+                {
+                    upDateCheck = "no";
+                }
+                esriUtil.Properties.Settings.Default.AutoUpdate = upDateCheck;
+                esriUtil.Properties.Settings.Default.Save();
+            }
+        }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+        public void removeRMRSRasterUtility(string curDir)
+        {
+            if (System.IO.Directory.Exists(curDir)) System.IO.Directory.Delete(curDir, true);
+        }
     }
 }

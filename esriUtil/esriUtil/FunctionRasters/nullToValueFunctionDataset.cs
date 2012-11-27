@@ -19,7 +19,7 @@ namespace esriUtil.FunctionRasters
         private string myDescription = "Converts null values to a given value"; // Description of the log Function.
         private IRaster inrs = null;
         private double newvalue = 0;
-        System.Array noDataArr = null;
+        private System.Array noDataArr = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
@@ -38,9 +38,7 @@ namespace esriUtil.FunctionRasters
                 noDataArr = args.NoDataArray;
                 myFunctionHelper.Bind(inrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
-                //System.Windows.Forms.MessageBox.Show(rsProp.PixelType.ToString());
                 myPixeltype = myRasterInfo.PixelType;
-                //System.Windows.Forms.MessageBox.Show(myRasterInfo.PixelType.ToString());
                 myValidFlag = true;
             }
             else
@@ -60,32 +58,11 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                System.Array noDataValueArr = noDataArr;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                int pBHeight = pPixelBlock.Height;
-                int pBWidth = pPixelBlock.Width;
-                for (int nBand = 0; nBand < pPixelBlock.Planes; nBand++)
-                {
-                    noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
-                    System.Array pixelValues = (System.Array)(pPixelBlock.get_SafeArray(nBand));
-                    for (int r = 0; r < pBHeight; r++)
-                    {
-                        for (int c = 0; c < pBWidth; c++)
-                        {
-                            double outVl = System.Convert.ToDouble(pixelValues.GetValue(c, r));
-                            
-                            if (rasterUtil.isNullData(outVl,noDataValue))
-                            {
-                                //Console.WriteLine("Orig = " + outVl.ToString());
-                                outVl = newvalue;
-                                //Console.WriteLine("setting values to " + outVl.ToString());
-                            }
-                            
-                            pixelValues.SetValue(outVl, c, r);
-                        }  
-                    }
-                    pPixelBlock.set_SafeArray(nBand, pixelValues);
-                }
+                INoDataFilter ndFilt = new NoDataFilterClass();
+                ndFilt.NoDataToPixelValue = newvalue;
+                IPixelFilter pFilt = (IPixelFilter)ndFilt;
+                pFilt.Filter(pPixelBlock);
             }
             catch (Exception e)
             {

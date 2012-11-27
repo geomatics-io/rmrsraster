@@ -31,7 +31,7 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public double noDataValue = Double.MinValue;
+        public float noDataValue = Single.MinValue;
         public void Bind(object pArgument)
         {
             if (pArgument is glcmFunctionArguments)
@@ -85,7 +85,7 @@ namespace esriUtil.FunctionRasters
                 pbBigLoc.SetCoords((pTlc.X - l), (pTlc.Y - t));
                 IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
                 orig.Read(pbBigLoc, (IPixelBlock)pbBig);
-                noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(0));                
+                noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(0));                
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
                     System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
@@ -94,7 +94,7 @@ namespace esriUtil.FunctionRasters
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            double inVl = System.Convert.ToDouble(pixelValues.GetValue(c, r));
+                            float inVl = System.Convert.ToSingle(pixelValues.GetValue(c, r));
                             if (rasterUtil.isNullData(inVl, noDataValue))
                             {
                                 continue;
@@ -102,9 +102,9 @@ namespace esriUtil.FunctionRasters
                             else
                             {
                                 Dictionary<string,int> glcmDic = getGLCMDic(pixelValuesBig, c, r);
-                                double outVl = System.Convert.ToDouble(getTransformedValue(glcmDic));
-                                //Console.WriteLine(outVl.ToString());
-                                pixelValues.SetValue(outVl, c, r);
+                                float outVl = System.Convert.ToSingle(getTransformedValue(glcmDic));
+                                //Console.WriteLine("GLCM Value = " + outVl.ToString());
+                                pixelValues.SetValue(outVl,c,r);
                             }
                         }
 
@@ -130,7 +130,7 @@ namespace esriUtil.FunctionRasters
                 bool getNeighbor = (xy[2] == 1);
                 if (getNeighbor)
                 {
-                    double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
+                    float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
                     int cnt = 0;
                     if (horizontal)
                     {
@@ -140,7 +140,7 @@ namespace esriUtil.FunctionRasters
                     {
                         bRc2 = bRc - 1;
                     }
-                    double vl2 = System.Convert.ToDouble(bigArr.GetValue(bWc2, bRc2));
+                    float vl2 = System.Convert.ToSingle(bigArr.GetValue(bWc2, bRc2));
                     string pair = vl.ToString() + ":" + vl2.ToString();
                     if (countDic.TryGetValue(pair, out cnt))
                     {

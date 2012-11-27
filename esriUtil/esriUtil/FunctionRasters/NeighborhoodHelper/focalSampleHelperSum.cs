@@ -11,13 +11,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
         public override object getTransformedValue(System.Array bigArr, int startClm, int startRw)
         {
             //Console.WriteLine("Start CR = " + startClm.ToString()+":"+ startRw.ToString());
-            double db = 0;
+            float db = 0;
             foreach (int[] xy in offsetLst)
             {
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
                 //Console.WriteLine("\tOffset CR = " + bWc.ToString() + " : " + bRc.ToString());
-                double vl = System.Convert.ToDouble(bigArr.GetValue(bWc, bRc));
+                float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
                 //Console.WriteLine("\t"+vl.ToString());
                 if (rasterUtil.isNullData(vl, noDataValue))
                 {

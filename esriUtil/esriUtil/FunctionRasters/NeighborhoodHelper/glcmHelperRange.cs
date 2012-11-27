@@ -10,12 +10,12 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
     {
         public override object getTransformedValue(Dictionary<string, int> glcmDic)
         {
-            double maxVl = 0;
-            double minVl = 1;
-            double n = System.Convert.ToDouble(glcmDic.Values.Sum());
+            float maxVl = 0;
+            float minVl = 1;
+            float n = System.Convert.ToSingle(glcmDic.Values.Sum());
             foreach (int i in glcmDic.Values)
             {
-                double prob = System.Convert.ToDouble(i) / n;
+                float prob = System.Convert.ToSingle(i) / n;
                 if (prob > maxVl)
                 {
                     maxVl = prob;

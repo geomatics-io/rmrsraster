@@ -8,18 +8,18 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeStdRatioRectangle : neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
+        public override float findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            double sumR = 0;
-            double sumR2 = 0;
-            double n = uniqueDic.Count;
+            float sumR = 0;
+            float sumR2 = 0;
+            float n = uniqueDic.Count;
             foreach (int[] cntArr in uniqueDic.Values)
             {
-                double ratio = System.Convert.ToDouble(cntArr[1]) / System.Convert.ToDouble(cntArr[0]);
+                float ratio = System.Convert.ToSingle(cntArr[1]) / System.Convert.ToSingle(cntArr[0]);
                 sumR += ratio;
                 sumR2 += ratio * ratio;
             }
-            double std = Math.Sqrt((sumR2 - (Math.Pow(sumR, 2) / n)) / n);
+            float std = System.Convert.ToSingle(Math.Sqrt((sumR2 - (Math.Pow(sumR, 2) / n)) / n));
 
             return std;
         }

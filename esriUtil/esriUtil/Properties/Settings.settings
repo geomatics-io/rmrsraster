@@ -23,5 +23,8 @@
     <Setting Name="ConversionDir" Type="System.String" Scope="User">
       <Value Profile="(Default)">unknown</Value>
     </Setting>
+    <Setting Name="AutoUpdate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">yes</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

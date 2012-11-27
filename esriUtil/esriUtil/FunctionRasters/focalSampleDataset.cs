@@ -30,7 +30,7 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public double noDataValue = Double.MinValue;
+        public float noDataValue = Single.MinValue;
         public void Bind(object pArgument)
         {
             if (pArgument is focalSampleArguments)
@@ -108,14 +108,14 @@ namespace esriUtil.FunctionRasters
                 orig.Read(pbBigLoc, (IPixelBlock)pbBig);
                 for (int nBand = 0; nBand < pbBig.Planes; nBand++)
                 {
-                    noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(nBand));
+                    noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            double inVl = System.Convert.ToDouble(pixelValues.GetValue(c, r));
+                            float inVl = System.Convert.ToSingle(pixelValues.GetValue(c, r));
 
                             if (rasterUtil.isNullData(inVl, noDataValue))
                             {
@@ -123,9 +123,9 @@ namespace esriUtil.FunctionRasters
                             }
                             else
                             {
-                                double outVl = System.Convert.ToDouble(getTransformedValue(pixelValuesBig, c+l, r+t));
+                                float outVl = System.Convert.ToSingle(getTransformedValue(pixelValuesBig, c+l, r+t));
                                 //Console.WriteLine(outVl.ToString());
-                                pixelValues.SetValue(outVl, c, r);
+                                pixelValues.SetValue(outVl,c, r);
                             }
                         }
 

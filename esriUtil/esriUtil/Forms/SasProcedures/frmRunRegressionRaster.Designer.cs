@@ -43,7 +43,6 @@
             this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cmbModelDir = new System.Windows.Forms.ComboBox();
-            this.btnSeed = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -60,9 +59,9 @@
             // 
             this.btnViewOrder.Location = new System.Drawing.Point(12, 310);
             this.btnViewOrder.Name = "btnViewOrder";
-            this.btnViewOrder.Size = new System.Drawing.Size(74, 23);
+            this.btnViewOrder.Size = new System.Drawing.Size(44, 23);
             this.btnViewOrder.TabIndex = 48;
-            this.btnViewOrder.Text = "Parameters";
+            this.btnViewOrder.Text = "Order";
             this.btnViewOrder.UseVisualStyleBackColor = true;
             this.btnViewOrder.Click += new System.EventHandler(this.btnViewOrder_Click);
             // 
@@ -179,22 +178,11 @@
             this.cmbModelDir.TabIndex = 50;
             this.cmbModelDir.SelectedIndexChanged += new System.EventHandler(this.cmbModelDir_SelectedIndexChanged);
             // 
-            // btnSeed
-            // 
-            this.btnSeed.Location = new System.Drawing.Point(92, 310);
-            this.btnSeed.Name = "btnSeed";
-            this.btnSeed.Size = new System.Drawing.Size(43, 23);
-            this.btnSeed.TabIndex = 52;
-            this.btnSeed.Text = "Seed";
-            this.btnSeed.UseVisualStyleBackColor = true;
-            this.btnSeed.Click += new System.EventHandler(this.btnSeed_Click);
-            // 
             // frmRunRegressionRaster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(278, 337);
-            this.Controls.Add(this.btnSeed);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.cmbModelDir);
             this.Controls.Add(this.button1);
@@ -235,6 +223,5 @@
         private System.Windows.Forms.ComboBox cmbSampleFeatureClass;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cmbModelDir;
-        private System.Windows.Forms.Button btnSeed;
     }
 }

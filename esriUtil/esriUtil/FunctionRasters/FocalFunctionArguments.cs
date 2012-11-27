@@ -31,13 +31,8 @@ namespace esriUtil.FunctionRasters
             set 
             { 
                 IRaster inrsT = value;
-                IRasterProps rsProps = (IRasterProps)inrsT;
-                if(rsProps.PixelType!=rstPixelType.PT_DOUBLE)
-                {
-                    inrsT = rsUtil.convertToDifFormatFunction(inrsT, rstPixelType.PT_DOUBLE);
-                }
-                inrs = inrsT;
-                origRs = rsUtil.returnRaster(value);
+                inrs = rsUtil.constantRasterFunction(inrsT,0);
+                origRs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
             } 
         }
         public rasterUtil.focalType Operation { get; set; }
@@ -57,6 +52,45 @@ namespace esriUtil.FunctionRasters
                 windowtype = rasterUtil.windowType.CIRCLE;
             }
         }
+        private int[][] fastiter = null;
+        public int[][] Fastiter
+        {
+            get
+            {
+                fastiter = new int[rows][];
+                Dictionary<int,int[]> dic  = new Dictionary<int,int[]>();
+                foreach (int[] xyPair in GenericIterator)
+                {
+                    int c = xyPair[0];
+                    int r = xyPair[1];
+                    int[] clmsVls = new int[2];
+                    if(dic.TryGetValue(r,out clmsVls))
+                    {
+                        int min = clmsVls[0];
+                        int max = clmsVls[1];
+                        if (c < min) clmsVls[0] = c;
+                        if (c > max) clmsVls[1] = c;  
+                    }
+                    else
+                    {
+                        clmsVls = new int[2];
+                        clmsVls[0]=c;
+                        clmsVls[1]=c;
+                    }
+                    dic[r] = clmsVls;
+                }
+                for (int i=0;i<rows;i++)
+                {
+                    fastiter[i] = dic[i];
+                }
+                return fastiter;
+                
+
+            }
+
+        }
+        private float windowN = 9;
+        public float WindowCount { get { return windowN; } set { windowN = value; } }
         private List<int[]> genericiterator = new List<int[]>();
         public List<int[]> GenericIterator 
         { 
@@ -65,10 +99,11 @@ namespace esriUtil.FunctionRasters
                 if (windowtype == rasterUtil.windowType.RECTANGLE)
                 {
                     rsUtil.createFocalWindowRectangle(columns, rows, out genericiterator);
+                    windowN = rows * columns;
                 }
                 else
                 {
-                    rsUtil.createFocalWindowCircle(radius, out genericiterator);
+                    windowN = (from int v in (rsUtil.createFocalWindowCircle(radius, out genericiterator)) select v).Sum();
                 }
                 return genericiterator;
             }

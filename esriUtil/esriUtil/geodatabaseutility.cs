@@ -2379,14 +2379,7 @@ namespace esriUtil
             try
             {
                 IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
-                if(wks.get_NameExists(esriDatasetType.esriDTFeatureClass,polyFtrClsName))
-                {
-                    IDataset dSet = (IDataset)ftrWks.OpenFeatureClass(polyFtrClsName);
-                    if(dSet.CanDelete())
-                    {
-                        dSet.Delete();
-                    }
-                }
+                polyFtrClsName = getSafeOutputNameNonRaster((IWorkspace)wks, polyFtrClsName);
                 IFeatureClassDescription fcDescription = new FeatureClassDescriptionClass();
                 IObjectClassDescription ocDescription = (IObjectClassDescription)fcDescription;
                 IFields fields = ocDescription.RequiredFields;
@@ -2394,7 +2387,14 @@ namespace esriUtil
                 for (int i = 0; i < atrflds.FieldCount; i++)
                 {
                     IField fld = atrflds.get_Field(i);
-                    fieldsEdit.AddField(fld);
+                    IField nFld = new FieldClass();
+                    IFieldEdit nFldE = (IFieldEdit)nFld;
+                    nFldE.Name_2 = fld.Name;
+                    if (fld.Type != esriFieldType.esriFieldTypeOID)
+                    {
+                        nFldE.Type_2 = fld.Type;
+                        fieldsEdit.AddField(nFld);
+                    }                    
                 }
                 // Find the shape field in the required fields and modify its GeometryDef to// use point geometry and to set the spatial reference.int shapeFieldIndex = fields.FindField(fcDescription.ShapeFieldName);
                 IField field = fields.get_Field(fields.FindField(fcDescription.ShapeFieldName));

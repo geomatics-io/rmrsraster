@@ -244,7 +244,7 @@ namespace esriUtil
             
             rr.InRaster = rs1;
             rr.OutWorkspace = geoUtil.OpenRasterWorkspace(wksStr);
-            raster = rr.createModelRaster(null);
+            raster = rr.createModelRaster();
         }
 
         private void calcFocalSample(string[] prmArr, out string name, out IRaster raster)
@@ -497,9 +497,9 @@ namespace esriUtil
         private void calcLinearTransform(string[] prmArr, out string name, out IRaster raster)
         {
             name = prmArr[0].Split(new char[] { '@' })[1];
-            double intercept = System.Convert.ToDouble(prmArr[1].Split(new char[] { '@' })[1]);
+            float intercept = System.Convert.ToSingle(prmArr[1].Split(new char[] { '@' })[1]);
             string rasterSlopes = prmArr[2].Split(new char[] { '@' })[1];
-            List<double> slpLst = new List<double>();
+            List<float> slpLst = new List<float>();
             slpLst.Add(intercept);
             IRasterBandCollection rsBc = new RasterClass();
             foreach (string s in rasterSlopes.Split(new char[]{','}))
@@ -517,9 +517,9 @@ namespace esriUtil
                     rs = rsUtil.returnRaster(rsNm);
                 }
                 rsBc.AppendBands((IRasterBandCollection)rs);
-                slpLst.Add(System.Convert.ToDouble(s.Split(new char[]{'`'})[1]));
+                slpLst.Add(System.Convert.ToSingle(s.Split(new char[]{'`'})[1]));
             }
-            List<double[]> fLst = new List<double[]>();
+            List<float[]> fLst = new List<float[]>();
             fLst.Add(slpLst.ToArray());
             raster = rsUtil.calcRegressFunction((IRaster)rsBc, fLst);
         }

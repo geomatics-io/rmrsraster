@@ -32,15 +32,49 @@ namespace esriUtil.FunctionRasters
              {
                  IRaster temp = value;
                  IRasterProps rsProps = (IRasterProps)temp;
-                 if (rsProps.PixelType != rstPixelType.PT_DOUBLE)
+                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
                  {
-                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_DOUBLE);
+                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
                  }
                  conRs = temp;
              }
          }
-         public IRaster TrueRaster { get; set; }
-         public IRaster FalseRaster { get; set; }
+         private IRaster trs = null;
+         public IRaster TrueRaster
+         {
+             get
+             {
+                 return trs;
+             }
+             set
+             {
+                 IRaster temp = value;
+                 IRasterProps rsProps = (IRasterProps)temp;
+                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
+                 {
+                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
+                 }
+                 trs = temp;
+             }
+         }
+         private IRaster frs = null;
+         public IRaster FalseRaster
+         {
+             get
+             {
+                 return frs;
+             }
+             set
+             {
+                 IRaster temp = value;
+                 IRasterProps rsProps = (IRasterProps)temp;
+                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
+                 {
+                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
+                 }
+                 frs = temp;
+             }
+         }
      }
 }
 

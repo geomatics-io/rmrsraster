@@ -108,6 +108,7 @@
             this.btnOpenRaster.TabIndex = 41;
             this.btnOpenRaster.UseVisualStyleBackColor = true;
             this.btnOpenRaster.BackColorChanged += new System.EventHandler(this.btnOpenRaster_Click);
+            this.btnOpenRaster.Click += new System.EventHandler(this.btnOpenRaster_Click);
             // 
             // frmConvertPixelType
             // 

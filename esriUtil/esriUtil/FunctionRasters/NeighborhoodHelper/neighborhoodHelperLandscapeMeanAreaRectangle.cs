@@ -8,12 +8,12 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeMeanAreaRectangle : neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
+        public override float findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            double sum = 0;
+            float sum = 0;
             foreach (int[] cntArr in uniqueDic.Values)
             {
-                double vl = cntArr[0];
+                float vl = cntArr[0];
                 sum += vl;
 
             }

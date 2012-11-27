@@ -31,13 +31,9 @@ namespace esriUtil.FunctionRasters
              set 
              {
                  IRaster temp = value;
-                 inrs = temp;
-                 otrs = rsUtil.getBand(inrs, 0);
-                 IRasterProps rsProps = (IRasterProps)otrs;
-                 if (rsProps.PixelType != rstPixelType.PT_DOUBLE)
-                 {
-                     otrs = rsUtil.convertToDifFormatFunction(otrs, rstPixelType.PT_DOUBLE);
-                 }
+                 inrs = rsUtil.returnRaster(temp,rstPixelType.PT_FLOAT);
+                 IRaster rs = rsUtil.getBand(inrs, 0);
+                 otrs = rsUtil.constantRasterFunction(rs, 0);
              } 
          }
          private IRaster otrs = null;

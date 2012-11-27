@@ -8,19 +8,19 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class neighborhoodHelperLandscapeVarianceAreaRectangle: neighborhoodHelperLandscapeRectangleBase
     {
-        public override double findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
+        public override float findUniqueRegionsValue(Dictionary<int, int[]> uniqueDic)
         {
-            double n = uniqueDic.Count;
-            double sum = 0;
-            double sum2 = 0;
+            float n = uniqueDic.Count;
+            float sum = 0;
+            float sum2 = 0;
             foreach (int[] cntArr in uniqueDic.Values)
             {
-                double vl = cntArr[0];
+                float vl = cntArr[0];
                 sum += vl;
                 sum2 += (vl * vl);
             }
             sum = (sum * sum) / n;
-            double var = (sum2 - sum) / n;
+            float var = (sum2 - sum) / n;
             return var;
         }
     }

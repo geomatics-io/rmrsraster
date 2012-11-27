@@ -25,38 +25,19 @@ namespace esriUtil.Forms.SasProcedures
             }
             populateComboBox();
         }
-        private SasProcedure sP = SasProcedure.GENERLIZED_LOGISTIC;
         private IMap mp = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rstUtil = new rasterUtil();
         private viewUtility vUtil = null;
-        private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
+        private Dictionary<string, IWorkspace> ftrDic = new Dictionary<string, IWorkspace>();
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
         private polytomousLogisticRaster plrR = new polytomousLogisticRaster();
         private void populateComboBox()
         {
             if (mp != null)
             {
-                IEnumLayer ftrLyrs = vUtil.getActiveViewLayers(viewUtility.esriIFeatureLayer);
-                ILayer lyr = ftrLyrs.Next();
-                while (lyr != null)
-                {
-                    string lyrNm = lyr.Name;
-                    IFeatureLayer ftrLyr = (IFeatureLayer)lyr;
-                    IFeatureClass ftrCls = ftrLyr.FeatureClass;
-                    if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPoint)
-                    {
-                        if (!ftrDic.ContainsKey(lyrNm))
-                        {
-                            ftrDic.Add(lyrNm, ftrCls);
-                            cmbSampleFeatureClass.Items.Add(lyrNm);
-                        }
-                    }
-                    lyr = ftrLyrs.Next();
-
-                }
                 IEnumLayer rstLyrs = vUtil.getActiveViewLayers(viewUtility.esriIRasterLayer);
-                lyr = rstLyrs.Next();
+                ILayer lyr = rstLyrs.Next();
                 while (lyr != null)
                 {
                     string lyrNm = lyr.Name;
@@ -80,14 +61,15 @@ namespace esriUtil.Forms.SasProcedures
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
             if (featureClass)
             {
-                flt = new ESRI.ArcGIS.Catalog.GxFilterPointFeatureClassesClass();
+                flt = new ESRI.ArcGIS.Catalog.GxFilterWorkspacesClass();
+                gxDialog.Title = "Select a Workspace";
             }
             else
             {
                 flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+                gxDialog.Title = "Select a Raster";
             }
             gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a Feature";
             ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
             if (gxDialog.DoModalOpen(0, out eGxObj))
             {
@@ -98,12 +80,12 @@ namespace esriUtil.Forms.SasProcedures
                 {
                     if (!ftrDic.ContainsKey(outName))
                     {
-                        ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
+                        ftrDic.Add(outName, geoUtil.OpenWorkSpace(outPath));
                         cmbSampleFeatureClass.Items.Add(outName);
                     }
                     else
                     {
-                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
+                        ftrDic[outName] = geoUtil.OpenWorkSpace(outPath);
                     }
                     cmbSampleFeatureClass.SelectedItem = outName;
                 }
@@ -203,30 +185,23 @@ namespace esriUtil.Forms.SasProcedures
         private void cmbSampleFeatureClass_SelectedIndexChanged(object sender, EventArgs e)
         {
             string txt = cmbSampleFeatureClass.Text;
-            if(txt==""||txt==null)
+            if (txt == null || txt == "")
             {
                 return;
             }
-            IFeatureClass ftrCls = ftrDic[txt];
-            sasIntegration sInt = new sasIntegration(ftrCls, sP);
-            plrR.OutWorkspace = ((IDataset)ftrCls).Workspace;
-            string estm = sInt.OutEstimatesPath;
-            if (System.IO.File.Exists(estm))
+            IWorkspace wks = ftrDic[txt];
+            string wksPath = wks.PathName;
+            plrR.OutWorkspace = geoUtil.OpenRasterWorkspace(wksPath);
+            cmbModelDir.Items.Clear();
+            System.IO.DirectoryInfo dinfo = new System.IO.DirectoryInfo(wksPath + "\\SASOUTPUT");
+            foreach (System.IO.DirectoryInfo dInfo2 in dinfo.GetDirectories())
             {
-                using (System.IO.StreamReader sr = new System.IO.StreamReader(estm))
-                {
-                    string sF = sr.ReadLine();
-                    string sV = sr.ReadLine();
-                    plrR.Dependentfield = sV.Split(new char[] { ',' })[3];
-                }
-                plrR.SasOutputFile = estm;
+                cmbModelDir.Items.Add(dInfo2.Name);
             }
-            else
-            {
-                MessageBox.Show("A PLR model has not been developed for this feature class", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                cmbSampleFeatureClass.Items.Remove(txt);
-                cmbSampleFeatureClass.Text = "";
-            }
+            cmbModelDir.SelectedItem = "GENERLIZED_LOGISTIC";
+            
+            
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -264,31 +239,35 @@ namespace esriUtil.Forms.SasProcedures
             }
             this.Visible = false;
             plrR.InRaster = (IRaster)rsBc;
+            
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new esriUtil.Forms.RunningProcess.frmRunningProcessDialog(false);
             System.DateTime dt1 = System.DateTime.Now;
-            rp.addMessage("Creating PLR Classification Rasters.");
-            rp.addMessage("Location of the output workspace = " + plrR.OutWorkspace.PathName);
-            rp.addMessage("Name of the probablistic raster = Prob");
-            rp.addMessage("Name of the MLC raster = MLC");
+            rp.addMessage("Creating PLR Classification Raster.");
+            rp.addMessage("Bands are organized as follows:\n\tBand1=MLC\n\tBand2=BaseCategory");
+            int bcCnt = 3;
+            foreach (string c in plrR.Categories)
+            {
+                rp.addMessage("\tBand" + bcCnt.ToString() + "=" + c);
+                bcCnt += 1;
+            }
             rp.addMessage("This may take some time...");
             rp.Show();
             rp.TopMost = true;
             rp.stepPGBar(20);
             rp.Refresh();
-            IRaster[] rstArr = plrR.createModelRaster();
+            IRaster rst = plrR.createModelRaster(seed);
             if (mp != null)
             {
-                rp.addMessage("Adding Rasters to map");
+                rp.addMessage("Adding Raster to map");
                 rp.Refresh();
                 IRasterLayer rsLyr1 = new RasterLayerClass();
-                IRasterLayer rsLyr2 = new RasterLayerClass();
-                rsLyr1.CreateFromRaster(rstArr[0]);
+                rsLyr1.CreateFromRaster(rst);
+                rsLyr1.Name = "PLR_OUT";
+                rsLyr1.Visible = false;
                 mp.AddLayer(rsLyr1);
-                rsLyr2.CreateFromRaster(rstArr[1]);
-                mp.AddLayer(rsLyr2);
             }
             rp.stepPGBar(50);
-            rp.addMessage("Finished creating rasters");
+            rp.addMessage("Finished creating raster");
             rp.Refresh();
             System.DateTime dt2 = System.DateTime.Now;
             System.TimeSpan ts = dt2.Subtract(dt1);
@@ -299,6 +278,65 @@ namespace esriUtil.Forms.SasProcedures
             rp.enableClose();
             this.Close();
             return;
+        }
+
+        IRaster seed = null;
+        private void btnSeed_Click(object sender, EventArgs e)
+        {
+            seed = getSeedRaster();
+
+        }
+
+        private IRaster getSeedRaster()
+        {
+            IRaster rsOut = null;
+            string outPath = null;
+            string outName = "";
+            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
+            gxDialog.AllowMultiSelect = false;
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
+            flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+            gxDialog.ObjectFilter = flt;
+            gxDialog.Title = "Select a Seed Raster";
+            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
+            if (gxDialog.DoModalOpen(0, out eGxObj))
+            {
+                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
+                outPath = gxObj.FullName;
+                outName = gxObj.BaseName;
+                rsOut = rstUtil.returnRaster(outPath);
+            }
+            return rsOut;
+        }
+
+        private void cmbModelDir_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string txt = cmbModelDir.Text;
+            string estm = plrR.OutWorkspace.PathName + "\\SASOUTPUT\\" + txt + "\\outest.csv";
+            if (System.IO.File.Exists(estm))
+            {
+                using (System.IO.StreamReader sr = new System.IO.StreamReader(estm))
+                {
+                    string sF = sr.ReadLine();
+                    string sV = sr.ReadLine();
+                    List<string> depFlsLst = new List<string>();
+                    while (sV != null)
+                    {
+                        depFlsLst.Add(sV.Split(new char[] { ',' })[3]);
+                        sV = sr.ReadLine();
+                    }
+                    plrR.Dependentfield = String.Join(" ", depFlsLst.ToArray());
+                    sr.Close();
+
+                }
+                plrR.SasOutputFile = estm;
+            }
+            else
+            {
+                MessageBox.Show("A PLR Regression model has not been developed for this SAS run", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                cmbSampleFeatureClass.Items.Remove(txt);
+                cmbSampleFeatureClass.Text = "";
+            }
         }
 
 

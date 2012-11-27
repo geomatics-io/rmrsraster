@@ -21,7 +21,7 @@ namespace esriUtil.FunctionRasters
         private string myDescription = "Transforms a raster using regression transformation"; // Description of the log Function.
         private IRaster outrs = null;
         private IRaster inrsBandsCoef = null;
-        private List<double[]> slopes = null;
+        private List<float[]> slopes = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
@@ -64,7 +64,7 @@ namespace esriUtil.FunctionRasters
                 // Call Read method of the Raster Function Helper object.
 
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
-                double noDataVl = System.Convert.ToDouble(noDataValueArr.GetValue(0));
+                float noDataVl = System.Convert.ToSingle(noDataValueArr.GetValue(0));
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;//inrsBandsCoef
                 int pBHeight = pPixelBlock.Height;
@@ -90,19 +90,19 @@ namespace esriUtil.FunctionRasters
                         for (int k = pBColIndex; k < pBWidth; k++)
                         {
 
-                            double[] IntSlpArr = slopes[nBand];
-                            double sumVls = IntSlpArr[0];
+                            float[] IntSlpArr = slopes[nBand];
+                            float sumVls = IntSlpArr[0];
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
-                                double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
-                                double pixelValue = Convert.ToDouble(pArr[coefnBand].GetValue(k, i));
+                                float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
+                                float pixelValue = Convert.ToSingle(pArr[coefnBand].GetValue(k, i));
                                 if (rasterUtil.isNullData(pixelValue, noDataValue))
                                 {
                                     sumVls = noDataVl;
                                     break;
                                 }
                                 
-                                double slp = IntSlpArr[coefnBand + 1];
+                                float slp = System.Convert.ToSingle(IntSlpArr[coefnBand + 1]);
                                 //Console.WriteLine("x = " + pixelValue.ToString() + " slope = " + slp.ToString());
                                 sumVls += pixelValue * slp;
                             }

@@ -218,12 +218,12 @@ namespace esriUtil.Forms.Texture
             {
                 if(radius)
                 {
-                    rst = rstUtil.calcGLCMFunction(inRs,clms,horz,gm);
+                    rst = rstUtil.fastGLCMFunction(inRs,clms,horz,gm);
                 }
                 else
                 {
 
-                    rst = rstUtil.calcGLCMFunction(inRs, clms, rows, horz, gm);
+                    rst = rstUtil.fastGLCMFunction(inRs, clms, rows, horz, gm);
                 }
                 if (mp != null&&perm)
                 {
