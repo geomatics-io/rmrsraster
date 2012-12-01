@@ -135,9 +135,12 @@ namespace esriUtil.Forms.Texture
         {
             if (cmbWindowType.Text.ToUpper() == "CIRCLE")
             {
-                nudRows.Visible = false;
-                lblRows.Visible = false;
-                lblColumns.Text = "Radius";
+                //change back to rectangle until I can update Circular GLCM
+                //nudRows.Visible = false;
+                //lblRows.Visible = false;
+                //lblColumns.Text = "Radius";
+                MessageBox.Show("Circular GLCM are not currently available. Converting window to rectangle.");
+                cmbWindowType.SelectedItem = "RECTANGLE";
             }
             else
             {

@@ -5,6 +5,7 @@ using System.Text;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesRaster;
+using ESRI.ArcGIS.DataSourcesNetCDF;
 using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.Geometry;
 
@@ -188,11 +189,49 @@ namespace esriUtil
             }
             else
             {
-                IRasterWorkspace rsWks = (IRasterWorkspace)wks;
-                rstDset = rsWks.OpenRasterDataset(rsDset);
+                if (System.IO.Path.GetExtension(wks.PathName).ToLower() == ".nc")
+                {
+                    INetCDFWorkspace rsWks = (INetCDFWorkspace)wks;
+                    IMDWorkspace mdWks = (IMDWorkspace)wks;
+                    NetCDFRasterDatasetName rsDsetName = new NetCDFRasterDatasetNameClass();
+                    IMDRasterDatasetView rsDsetV = (IMDRasterDatasetView)rsDsetName;
+                    string xDim, yDim, bandDim;
+                    getDeminsions(rsWks, out xDim, out yDim, out bandDim);
+                    rsDsetV.Variable = rsDset;
+                    rsDsetV.XDimension = xDim;
+                    rsDsetV.YDimension = yDim;
+                    rsDsetV.BandDimension = bandDim;
+                    rstDset = (IRasterDataset)mdWks.CreateView(rsDset, (IMDDatasetView)rsDsetV);
+                }
+                else
+                {
+                    IRasterWorkspace rsWks = (IRasterWorkspace)wks;
+                    rstDset = rsWks.OpenRasterDataset(rsDset);
+                }
             }
             return rstDset;
 
+        }
+
+        private void getDeminsions(INetCDFWorkspace rsWks, out string xDim, out string yDim, out string bandDim)
+        {
+            string lonDim = "x";
+            string latDim = "y";
+            xDim = null;
+            yDim = null;
+            IStringArray sArr = rsWks.GetDimensions();
+            bandDim = sArr.get_Element(2);
+            for (int i = 0; i < sArr.Count; i++)
+            {
+                string el = sArr.get_Element(i);
+                string ell = el.ToLower();
+                if (ell.Contains("lon")) lonDim = el;
+                else if (ell.Contains("lat")) latDim = el;
+                else if (ell.Contains("x")) xDim = el;
+                else if (ell.Contains("y")) yDim = el;
+            }
+            if (xDim == null) xDim = lonDim;
+            if (yDim == null) yDim = latDim;
         }
 
         private IWorkspace openRasterDatasetRec(string rasterPath)
@@ -2144,7 +2183,7 @@ namespace esriUtil
             args.InRasterCoefficients = rRst;
             args.Slopes = slopes;
             frDset.Init(rsFunc, args);
-            IRaster outRs = createRaster((IRasterDataset)frDset);
+            IRaster outRs = returnRaster((IRasterDataset)frDset);
             return outRs;
 
         }
@@ -2414,7 +2453,7 @@ namespace esriUtil
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new ConstantFunction();
             frDset.Init(rsFunc, rasterFunctionArguments);
-            IRaster outRs = createRaster((IRasterDataset)frDset);
+            IRaster outRs = returnRaster((IRasterDataset)frDset);
             //functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
@@ -4200,31 +4239,27 @@ namespace esriUtil
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset.Workspace);
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset);
         }
-        public static bool isNullData(double inValue, double noDataValue)
+        public static bool isNullData(object inValue, object noDataValue)
         {
-            
-            if (inValue==noDataValue|| Double.IsNaN(inValue) || Double.IsInfinity(inValue))
+            try
             {
-                return true;
+                double inVl = System.Convert.ToDouble(inValue);
+                double ndVl = System.Convert.ToDouble(noDataValue);
+                if (inVl.Equals(ndVl) || Double.IsNaN(inVl) || Double.IsInfinity(inVl))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            catch
             {
-                return false;
+                Console.WriteLine("failed isNullData " + inValue.ToString());
+                return true;
             }
 
         }
-        public static bool isNullData(float inValue, float noDataValue)
-        {
-            if (inValue == noDataValue || Single.IsNaN(inValue) || Single.IsInfinity(inValue))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
-
     }
 }

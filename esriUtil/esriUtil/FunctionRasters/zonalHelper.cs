@@ -497,114 +497,145 @@ namespace esriUtil.FunctionRasters
         {
             bool makeDic = (ZoneTypes.Contains(rasterUtil.zoneType.VARIETY)||ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY)||ZoneTypes.Contains(rasterUtil.zoneType.ASM)||ZoneTypes.Contains(rasterUtil.zoneType.MINORITY)||ZoneTypes.Contains(rasterUtil.zoneType.MODE)||ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
             double zNoDataVl = System.Convert.ToDouble(((System.Array)zProps.NoDataValue).GetValue(0));
+            IPnt zMeanCellSize = zProps.MeanCellSize();
+            IPnt vMeanCellSize = vProps.MeanCellSize();
+            int intersectWidthCells = System.Convert.ToInt32(intEnv.Width / zMeanCellSize.X);
+            int intersectHeightCells = System.Convert.ToInt32(intEnv.Height / zMeanCellSize.Y);
+            IPoint tl = intEnv.UpperLeft;
+            int bH = 512;
+            int bW = 512;
+            int wCellsMax = intersectWidthCells;
+            int hCellsMax = intersectHeightCells;
+            IPnt zPntLoc = new PntClass();
             IPnt vPntLoc = new PntClass();
             IPnt zPntSize = new PntClass();
-            IPnt vPntSize = new PntClass();
             IRaster2 zr = (IRaster2)InZoneRaster;
             IRaster2 vr = (IRaster2)InValueRaster;
-            zPntSize.SetCoords(512, 512);
-            IRasterCursor zCur = zr.CreateCursorEx(zPntSize);
-            do
+            int zclm, zrw, vclm, vrw;
+            zr.MapToPixel(tl.X+(zMeanCellSize.X/2), tl.Y-(zMeanCellSize.Y/2), out zclm, out zrw);
+            vr.MapToPixel(tl.X + (zMeanCellSize.X / 2), tl.Y - (zMeanCellSize.Y / 2), out vclm, out vrw);
+            int ozclm = zclm;
+            int ozrw = zrw;
+            int ovclm = vclm;
+            int ovrw = vrw;
+            zPntLoc.SetCoords(zclm, zrw);
+            vPntLoc.SetCoords(vclm, vrw);
+            for (int brw = 0; brw < hCellsMax; brw += bH)
             {
-                IPixelBlock zPb = zCur.PixelBlock;
-                IPnt zPnt = zCur.TopLeft;
-                int wd = zPb.Width;
-                int ht = zPb.Height;
-                vPntSize.SetCoords(wd,ht);
-                IPixelBlock vPb = InValueRaster.CreatePixelBlock(vPntSize);
-                InValueRaster.Read(zPnt, vPb);
-                System.Array zPix = (System.Array)zPb.get_SafeArray(0);
-                for (int i = 0; i < vPb.Planes; i++)
+                int rH = hCellsMax-brw;//Height of block
+                if (rH > bH) rH = bH;
+                
+                for (int bclm = 0; bclm < wCellsMax; bclm += bW)
                 {
-                    zoneValueDic = zoneValueDicArr[i];
-                    double vNoDataVl = System.Convert.ToDouble(((System.Array)vProps.NoDataValue).GetValue(i));
-                    System.Array vPix = (System.Array)vPb.get_SafeArray(i);
-                    for (int r = 0; r < ht; r++)
+                    int cW = wCellsMax - bclm;//Width of block
+                    if (cW > bW) cW = bW;
+                    zPntSize.SetCoords(cW, rH);
+                    IPixelBlock zPb = InZoneRaster.CreatePixelBlock(zPntSize);
+                    IPixelBlock vPb = InValueRaster.CreatePixelBlock(zPntSize);
+                    InZoneRaster.Read(zPntLoc, zPb);
+                    InValueRaster.Read(vPntLoc, vPb);
+                    System.Array zPix = (System.Array)zPb.get_SafeArray(0);
+                    for (int i = 0; i < vPb.Planes; i++)
                     {
-                        for (int c = 0; c < wd; c++)
+                        zoneValueDic = zoneValueDicArr[i];
+                        double vNoDataVl = System.Convert.ToDouble(((System.Array)vProps.NoDataValue).GetValue(i));
+                        System.Array vPix = (System.Array)vPb.get_SafeArray(i);
+                        for (int r = 0; r < rH; r++)
                         {
-                            double z = System.Convert.ToDouble(zPix.GetValue(c, r));
-                            if (rasterUtil.isNullData(z,zNoDataVl))
+                            for (int c = 0; c < cW; c++)
                             {
-                                continue;
-                            }
-                            else
-                            {
-                                double v = System.Convert.ToDouble(vPix.GetValue(c, r));
-                                if (rasterUtil.isNullData(v,vNoDataVl))
+                                double z = System.Convert.ToDouble(zPix.GetValue(c, r));
+
+                                if (rasterUtil.isNullData(z, zNoDataVl))
                                 {
                                     continue;
                                 }
                                 else
                                 {
-                                    //Console.WriteLine(z.ToString());
-                                    //int vi = System.Convert.ToInt32(v);
-                                    object[] zoneValue;
-                                    if (zoneValueDic.TryGetValue(z, out zoneValue))
+
+                                    double v = System.Convert.ToDouble(vPix.GetValue(c, r));
+                                    if (rasterUtil.isNullData(v, vNoDataVl))
                                     {
-                                        double cnt = System.Convert.ToDouble(zoneValue[0]);
-                                        zoneValue[0] = cnt += 1;
-                                        double maxVl = System.Convert.ToDouble(zoneValue[1]);
-                                        if (v > maxVl)
-                                        {
-                                            maxVl = v;
-                                            zoneValue[1] = maxVl;
-                                        }
-                                        double minVl = System.Convert.ToDouble(zoneValue[2]);
-                                        if (v < minVl)
-                                        {
-                                            minVl = v;
-                                            zoneValue[2] = minVl;
-                                        }
-                                        double s = System.Convert.ToDouble(zoneValue[3]);
-                                        zoneValue[3] = s + v;
-                                        double s2 = System.Convert.ToDouble(zoneValue[4]);
-                                        zoneValue[4] = s2 + v * v;
-                                        if (makeDic)
-                                        {
-                                            Dictionary<double, int> uDic = (Dictionary<double, int>)zoneValue[5];
-                                            int cntVl = 0;
-                                            if (uDic.TryGetValue(v, out cntVl))
-                                            {
-                                                uDic[v] = cntVl += 1;
-                                            }
-                                            else
-                                            {
-                                                uDic.Add(v, 1);
-                                            }
-                                            zoneValue[5] = uDic;
-                                        }
-                                        zoneValueDic[z] = zoneValue;
+                                        continue;
                                     }
                                     else
                                     {
-                                        zoneValue = new object[6];
-                                        zoneValue[0] = 1d;
-                                        zoneValue[1] = v;
-                                        zoneValue[2] = v;
-                                        zoneValue[3] = v;
-                                        zoneValue[4] = v * v;
-                                        if (makeDic)
+                                        object[] zoneValue;
+                                        if (zoneValueDic.TryGetValue(z, out zoneValue))
                                         {
-                                            Dictionary<double, int> uDic = new Dictionary<double, int>();
-                                            uDic.Add(v, 1);
-                                            zoneValue[5] = uDic;
+                                            double cnt = System.Convert.ToDouble(zoneValue[0]);
+                                            zoneValue[0] = cnt += 1;
+                                            double maxVl = System.Convert.ToDouble(zoneValue[1]);
+                                            if (v > maxVl)
+                                            {
+                                                maxVl = v;
+                                                zoneValue[1] = maxVl;
+                                            }
+                                            double minVl = System.Convert.ToDouble(zoneValue[2]);
+                                            if (v < minVl)
+                                            {
+                                                minVl = v;
+                                                zoneValue[2] = minVl;
+                                            }
+                                            double s = System.Convert.ToDouble(zoneValue[3]);
+                                            zoneValue[3] = s + v;
+                                            double s2 = System.Convert.ToDouble(zoneValue[4]);
+                                            zoneValue[4] = s2 + v * v;
+                                            if (makeDic)
+                                            {
+                                                Dictionary<double, int> uDic = (Dictionary<double, int>)zoneValue[5];
+                                                int cntVl = 0;
+                                                if (uDic.TryGetValue(v, out cntVl))
+                                                {
+                                                    uDic[v] = cntVl += 1;
+                                                }
+                                                else
+                                                {
+                                                    uDic.Add(v, 1);
+                                                }
+                                                zoneValue[5] = uDic;
+                                            }
+                                            zoneValueDic[z] = zoneValue;
                                         }
-                                        zoneValueDic.Add(z, zoneValue);
+                                        else
+                                        {
+                                            zoneValue = new object[6];
+                                            zoneValue[0] = 1d;
+                                            zoneValue[1] = v;
+                                            zoneValue[2] = v;
+                                            zoneValue[3] = v;
+                                            zoneValue[4] = v * v;
+                                            if (makeDic)
+                                            {
+                                                Dictionary<double, int> uDic = new Dictionary<double, int>();
+                                                uDic.Add(v, 1);
+                                                zoneValue[5] = uDic;
+                                            }
+                                            zoneValueDic.Add(z, zoneValue);
+                                        }
                                     }
-
                                 }
                             }
                         }
                     }
+                    
+                    //do this at the end
+                    zclm = zclm + cW;
+                    vclm = vclm + cW;
+                    zPntLoc.SetCoords(zclm, zrw);
+                    vPntLoc.SetCoords(vclm, vrw);
                 }
-
-
+                zrw = zrw + rH;
+                vrw = vrw + rH;
+                //reset PixelBlock columns
+                zclm = ozclm;
+                vclm = ovclm;
+                zPntLoc.SetCoords(zclm, zrw);
+                vPntLoc.SetCoords(vclm, vrw);
             }
-            while (zCur.Next()==true);
-            
 
         }
+        IEnvelope intEnv = null;
         public bool checkExtents()
         {
             IEnvelope zenv = zProps.Extent;
@@ -619,10 +650,13 @@ namespace esriUtil.FunctionRasters
                 if (!rsOp.Equals(venv))
                 {
                     zenv.Intersect(venv);
-                    InZoneRaster = rsUtil.clipRasterFunction(InZoneRaster,zenv,esriRasterClippingType.esriRasterClippingOutside);
-                    InValueRaster = rsUtil.clipRasterFunction(InValueRaster,zenv,esriRasterClippingType.esriRasterClippingOutside);              
+                    //InZoneRaster = rsUtil.clipRasterFunction(InZoneRaster, zenv, esriRasterClippingType.esriRasterClippingOutside);
+                    //InValueRaster = rsUtil.clipRasterFunction(InValueRaster, zenv, esriRasterClippingType.esriRasterClippingOutside);
+                    //Console.WriteLine(zProps.Width + ":" + zProps.Height);
+                    //Console.WriteLine(vProps.Width + ":" + vProps.Height);
 
                 }
+                intEnv = zenv;
                 return true;
             }
 

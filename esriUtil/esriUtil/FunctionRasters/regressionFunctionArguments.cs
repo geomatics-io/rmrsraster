@@ -30,12 +30,7 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                IRaster temp = value;
-                if (((IRasterProps)temp).PixelType != rstPixelType.PT_FLOAT)
-                {
-                    temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
-                }
-                inrs = temp;
+                inrs = rsUtil.returnRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         private List<float[]> slopes = new List<float[]>();//float array = intercept followed by betas

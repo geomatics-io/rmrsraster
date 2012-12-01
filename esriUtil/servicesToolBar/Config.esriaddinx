@@ -2,7 +2,7 @@
   <Name>servicesToolBar</Name>
   <AddInID>{00ebf4c7-7068-4ef2-a175-a79568a85cb9}</AddInID>
   <Description>Toolbar for Raster Processing</Description>
-  <Version>1.2</Version>
+  <Version>1.3</Version>
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>

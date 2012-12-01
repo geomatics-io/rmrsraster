@@ -6,6 +6,7 @@ using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.DataSourcesGDB;
+using ESRI.ArcGIS.DataSourcesNetCDF;
 using ESRI.ArcGIS.Controls;
 using System.Windows.Forms;
 using System.Data.SqlClient;
@@ -176,6 +177,7 @@ namespace esriUtil
                     {
                         case ".mdb":
                         case ".sde":
+                        case ".nc":
                             System.IO.FileInfo flinfo = new System.IO.FileInfo(dir);
                             exst = flinfo.Exists;
                             if (!exst)
@@ -218,6 +220,9 @@ namespace esriUtil
                         break;
                     case ".sde":
                         wsFact = (IWorkspaceFactory2)new SdeWorkspaceFactoryClass();
+                        break;
+                    case ".nc":
+                        wsFact = (IWorkspaceFactory2)new NetCDFWorkspaceFactoryClass();
                         break;
                     default:
                         wsFact = (IWorkspaceFactory2)new ESRI.ArcGIS.DataSourcesRaster.RasterWorkspaceFactoryClass();

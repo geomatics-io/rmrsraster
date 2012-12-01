@@ -91,22 +91,21 @@ namespace esriUtil.FunctionRasters
                         {
 
                             float[] IntSlpArr = slopes[nBand];
-                            float sumVls = IntSlpArr[0];
+                            double sumVls = IntSlpArr[0];
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
-                                float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
-                                float pixelValue = Convert.ToSingle(pArr[coefnBand].GetValue(k, i));
+                                double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
+                                double pixelValue = Convert.ToDouble(pArr[coefnBand].GetValue(k, i));
                                 if (rasterUtil.isNullData(pixelValue, noDataValue))
                                 {
                                     sumVls = noDataVl;
                                     break;
                                 }
                                 
-                                float slp = System.Convert.ToSingle(IntSlpArr[coefnBand + 1]);
-                                //Console.WriteLine("x = " + pixelValue.ToString() + " slope = " + slp.ToString());
+                                double slp = System.Convert.ToDouble(IntSlpArr[coefnBand + 1]);
                                 sumVls += pixelValue * slp;
                             }
-                            outArr.SetValue(sumVls, k, i);
+                            outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
                         }
                     }
                     ipPixelBlock.set_PixelData(nBand, outArr);
