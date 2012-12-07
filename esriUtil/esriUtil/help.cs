@@ -30,6 +30,14 @@ namespace esriUtil
                     try
                     {
                         System.Windows.Forms.MessageBox.Show("Can't find help files. Trying to download from the internet.");
+                        string cuSet = up.UpdateCheck;
+                        if (cuSet.ToLower() != "yes")
+                        {
+                            up.UpdateCheck = "yes";
+
+                        }
+                        Properties.Settings.Default.HelpVersion = "unknown";
+                        Properties.Settings.Default.Save();
                         if (up.updateHelp())
                         {
                             pr.Start();
@@ -38,10 +46,11 @@ namespace esriUtil
                         {
                             System.Windows.Forms.MessageBox.Show("Can't find help files on the internet. Try again later.");
                         }
+                        up.UpdateCheck = cuSet;
                     }
                     catch
                     {
-                        System.Windows.Forms.MessageBox.Show("Can't find help files on the internet. Try again later.");
+                        System.Windows.Forms.MessageBox.Show("Error in updating help. Try again later.");
                     }
                 }
 

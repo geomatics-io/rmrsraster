@@ -44,8 +44,8 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -489,6 +489,7 @@
     <Compile Include="FunctionRasters\asinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\atanFunctionDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\mathFunctionBase2.cs" />
     <Compile Include="FunctionRasters\cosFunctionDataset.cs" />
     <Compile Include="FunctionRasters\absFunctionDataset.cs" />
     <Compile Include="FunctionRasters\exp10FunctionDataset.cs" />

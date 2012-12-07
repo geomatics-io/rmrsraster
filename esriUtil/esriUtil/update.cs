@@ -49,11 +49,13 @@ namespace esriUtil
         private bool checkHelpVersion()
         {
             bool sameV = true;
-            if (!(UpdateCheck.ToLower()=="yes"))
+            
+            if ((UpdateCheck.ToLower()=="yes"))
             {
+                
                 string currentHelpVersion = esriUtil.Properties.Settings.Default.HelpVersion;
                 string serverHelpVersion = getServerVersion(true);
-                //Console.WriteLine( serverHelpVersion);
+                //Console.WriteLine(serverHelpVersion);
                 if (serverHelpVersion == null)
                 {
                     //System.Windows.Forms.MessageBox.Show("Can't access the server try again later server help == null");
@@ -85,7 +87,7 @@ namespace esriUtil
         private bool checkToolbarVersion()
         {
             bool sameV = true;
-            if (!(UpdateCheck.ToLower() == "yes"))
+            if ((UpdateCheck.ToLower() == "yes"))
             {
                 string currentAppVersion = toolbarVersion;
                 string serverAppVersion = getServerVersion(false);
@@ -203,6 +205,7 @@ namespace esriUtil
         {
             get
             {
+                //System.Windows.Forms.MessageBox.Show(upDateCheck);
                 return upDateCheck;
             }
             set

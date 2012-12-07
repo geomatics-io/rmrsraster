@@ -2,7 +2,7 @@
   <Name>servicesToolBar</Name>
   <AddInID>{00ebf4c7-7068-4ef2-a175-a79568a85cb9}</AddInID>
   <Description>Toolbar for Raster Processing</Description>
-  <Version>1.3</Version>
+  <Version>1.4</Version>
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
@@ -67,7 +67,7 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandNullDataToValue" class="commandNullDataToValue" message="Converts NullData to a specified value" caption="NullData to value" tip="click to open NullData to value Form" category="rasterUtilities" image="Images\commandNullDataToValue.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandShiftRaster" class="commandShiftRaster" message="moves a raster a predefined number of x and y cordinates" caption="Shift Raster" tip="click to open shift Raster form" category="rasterUtilities" image="Images\commandShiftRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandCreateConstantRaster" class="commandCreateConstantRaster" message="Creates a constant raster" caption="Create Constant Raster" tip="Click to open Create Constant Raster Form" category="rasterUtilities" image="Images\commandCreateConstantRaster.bmp" />
-        <Button id="USDA_Forest_Service_servicesToolBar_commandFlipRaster" class="commandFlipRaster" message="Flips the raster" caption="Flip Raster" tip="click to open Flip Raster" category="rasetrUtilities" image="Images\commandFlipRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandFlipRaster" class="commandFlipRaster" message="Flips the raster" caption="Flip Raster" tip="click to open Flip Raster" category="rasterUtilities" image="Images\commandFlipRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandRotateRaster" class="commandRotateRaster" message="Rotates a raster" caption="Rotate Raster" tip="Click to open Rotate Raster" category="rasterUtilities" image="Images\commandRotateRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_RemoveRmrsRasterUtility" class="RemoveRmrsRasterUtility" message="Unistall RMRS RasterUtility" caption="Uninstall RMRS Raster Utility" tip="Click to Unistall RMRS RasterUtility" category="rasterUtilities" image="Images\RemoveRmrsRasterUtility.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSetupToolbar" class="commandSetupToolbar" message="steup the toolbar" caption="Toolbar Setup" tip="click to open setup form" category="rasterUtilities" image="Images\commandSetupToolbar.bmp" />
