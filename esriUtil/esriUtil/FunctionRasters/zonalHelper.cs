@@ -780,6 +780,7 @@ namespace esriUtil.FunctionRasters
             }
             IWorkspace wksTemp = geoUtil.OpenRasterWorkspace(tempWksStr);
             IRaster rs = rsUtil.convertFeatureClassToRaster(InFeatureClass, rasterUtil.rasterType.IMAGINE, wksTemp, outRsNm, vProps.MeanCellSize().X, ((IRaster2)vRs).RasterDataset);
+            rs = rsUtil.returnRaster(rs, rstPixelType.PT_FLOAT);
             int fieldIndex = InFeatureClass.FindField(fldName);
             if(fieldIndex == -1)
             {
@@ -805,6 +806,7 @@ namespace esriUtil.FunctionRasters
                     }
                     else
                     {
+                        //Console.WriteLine("adding oid = " + id.ToString() + " and value = " + nVl.ToString());
                         rFilt.AddClass(id, id + 1, nVl);
                         ftr = ftrCur.NextFeature();
                     }

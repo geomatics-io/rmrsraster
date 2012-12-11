@@ -35,19 +35,15 @@ namespace TestConsole
             System.DateTime dt = System.DateTime.Now;
             System.DateTime dt2;
             TimeSpan ts;
-            update u = new update();
-            u.UpdateCheck = "yes";
-            u.updateHelp();
-            //rasterUtil rsUtil = new rasterUtil();
-            //geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            //IRasterLayer rsLyr = new RasterLayerClass();
-            ////string wksStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\MAGIP\MAGIP_Presentation.gdb";
-            //string zoneFtr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\MAGIP\HandsOnDemo\FunctionModeling.gdb\ManagementUnit";
-            //string valueRst = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\MAGIP\HandsOnDemo\FunctionModeling.gdb\TotalBoleBiomass";
-            //IRaster vRs = rsUtil.returnRaster(valueRst);
-            //IFeatureClass ftrCls = geoUtil.getFeatureClass(zoneFtr);
-            //rasterUtil.zoneType[] zt = {rasterUtil.zoneType.SUM};
-            //rsUtil.zonalStats(ftrCls, "OBJECTID", vRs, "testPr1", zt, null);
+            rasterUtil rsUtil = new rasterUtil();
+            geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+            //string wksStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\MAGIP\MAGIP_Presentation.gdb";
+            string zoneFtr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\Reeves\countieswgs.shp";
+            string valueRst = @"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\Reeves\Cgcm2_b2_12_09_mavg.img";
+            IRaster vRs = rsUtil.returnRaster(valueRst);
+            IFeatureClass ftrCls = geoUtil.getFeatureClass(zoneFtr);
+            rasterUtil.zoneType[] zt = {rasterUtil.zoneType.SUM};
+            rsUtil.zonalStats(ftrCls, "Allu", vRs, "testPr1", zt, null);
             ////esriUtil.Forms.Texture.frmCreateGlcmSurface frm = new esriUtil.Forms.Texture.frmCreateGlcmSurface(null, ref rsUtil, false);// esriUtil.Forms.SasProcedures.frmRunPolytomousLogisticRegression(null);// esriUtil.Forms.RasterAnalysis.frmBatchProcess();
             ////System.Windows.Forms.Application.Run(frm); 
             
