@@ -10,18 +10,19 @@ using ESRI.ArcGIS.Geometry;
 
 namespace esriUtil.FunctionRasters
 {
-    class regressionFunctionDataset : IRasterFunction
+    class tobitFunctionDataset: IRasterFunction
     {
-        public regressionFunctionDataset()
+        public tobitFunctionDataset()
         {
         }
-        private IRasterInfo myRasterInfo; // Raster Info for the Tobit Function
-        private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the Tobit Function.
-        private string myName = "Regression Function"; // Name of the log Function.
-        private string myDescription = "Transforms a raster using regression transformation"; // Description of the log Function.
+        private IRasterInfo myRasterInfo; // Raster Info for the log Function
+        private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
+        private string myName = "tobit Function"; // Name of the log Function.
+        private string myDescription = "Transforms a raster using tobit censored transformation"; // Description of the log Function.
         private IRaster outrs = null;
         private IRaster inrsBandsCoef = null;
         private List<float[]> slopes = null;
+        private double censored = 0;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
@@ -31,12 +32,13 @@ namespace esriUtil.FunctionRasters
         public bool Valid { get { return myValidFlag; } }
         public void Bind(object pArgument)
         {
-            if (pArgument is regressionFunctionArguments)
+            if (pArgument is tobitFunctionArguments)
             {
-                regressionFunctionArguments arg = (regressionFunctionArguments)pArgument;
+                tobitFunctionArguments arg = (tobitFunctionArguments)pArgument;
                 inrsBandsCoef = arg.InRasterCoefficients;
                 slopes = arg.Slopes;
                 outrs = arg.OutRaster;
+                censored = arg.CensoredValue;
                 IRasterProps rsProp = (IRasterProps)outrs;
                 myFunctionHelper.Bind(outrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
@@ -45,7 +47,7 @@ namespace esriUtil.FunctionRasters
             }
             else
             {
-                throw new System.Exception("Incorrect arguments object. Expected: regressionFunctionArguments");
+                throw new System.Exception("Incorrect arguments object. Expected: tobitnFunctionArguments");
             }
         }
 
@@ -94,8 +96,6 @@ namespace esriUtil.FunctionRasters
                             double sumVls = IntSlpArr[0];
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
-                                double slp = System.Convert.ToDouble(IntSlpArr[coefnBand + 1]);
-                                if (slp == 0) continue;
                                 double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
                                 double pixelValue = Convert.ToDouble(pArr[coefnBand].GetValue(k, i));
                                 if (rasterUtil.isNullData(pixelValue, noDataValue))
@@ -103,8 +103,11 @@ namespace esriUtil.FunctionRasters
                                     sumVls = noDataVl;
                                     break;
                                 }
+                                
+                                double slp = System.Convert.ToDouble(IntSlpArr[coefnBand + 1]);
                                 sumVls += pixelValue * slp;
                             }
+                            if (sumVls < censored) sumVls = censored;
                             outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
                         }
                     }
@@ -124,7 +127,7 @@ namespace esriUtil.FunctionRasters
             }
             catch (Exception exc)
             {
-                System.Exception myExc = new System.Exception("Exception caught in Update method of abs Function", exc);
+                System.Exception myExc = new System.Exception("Exception caught in Update method of Tobit Function", exc);
                 throw myExc;
             }
         }

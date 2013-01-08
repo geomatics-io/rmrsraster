@@ -2187,6 +2187,42 @@ namespace esriUtil
             return outRs;
 
         }
+        public IRaster calcCensoredRegressFunction(object inRaster, List<float[]> slopes,float lowerLimit=0)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.tobitFunctionDataset();
+            FunctionRasters.tobitFunctionArguments args = new FunctionRasters.tobitFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.Slopes = slopes;
+            args.CensoredValue = lowerLimit;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = returnRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
+        public IRaster calcTobitRegressFunction(object inRaster, string modelPath, float lowerLimit = 0)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.tobitFunctionDataset();
+            FunctionRasters.tobitFunctionArguments args = new FunctionRasters.tobitFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.TobitModelPath = modelPath;
+            args.CensoredValue = lowerLimit;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = returnRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
         /// <summary>
         /// Remaps values greater than or equal to the input vl to 1. Values less than vl =0
         /// </summary>

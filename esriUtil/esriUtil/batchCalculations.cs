@@ -21,7 +21,7 @@ namespace esriUtil
             rsUtil = rasterUtility;
             if (rp != null) rp = runningDialog;
         }
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, ADDRASTERTOMAP, ADDFEATURECLASSTOMAP, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, CREATEREGRESSIONRASTER, CREATEPLRRASTER };
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, ADDRASTERTOMAP, ADDFEATURECLASSTOMAP, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, CREATEREGRESSIONRASTER, CREATEPLRRASTER, CREATETOBITRASTER };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -243,6 +243,9 @@ namespace esriUtil
                                     case batchGroups.CREATEPLRRASTER:
                                         rstDic[outName] = createPlrRaster(paramArr);
                                         break;
+                                    case batchGroups.CREATETOBITRASTER:
+                                        rstDic[outName] = createTobitRaster(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -272,6 +275,22 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IRaster createTobitRaster(string[] paramArr)
+        {
+            string tbStrRs = paramArr[0];
+            string tPath = paramArr[1];
+            string lLimitStr = paramArr[2];
+            float lLimit = 0f;
+            if (rsUtil.isNumeric(lLimitStr)) lLimit = System.Convert.ToSingle(lLimitStr);
+            IRasterBandCollection rsBC = new RasterClass();
+            foreach (string s in tbStrRs.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                //Console.WriteLine("Appending " + s.ToString());
+                rsBC.AppendBands((IRasterBandCollection)getRaster(s.Trim()));
+            }
+            return rsUtil.calcTobitRegressFunction((IRaster)rsBC, tPath, lLimit);
         }
 
         private IRaster createPlrRaster(string[] paramArr)
@@ -897,6 +916,9 @@ namespace esriUtil
                     break;
                 case batchGroups.CREATEPLRRASTER:
                     msg = "outRS = " + batchFunction.ToString() + "(slopeRaster1,slopeRaster2,slopeRaster3;<pathToSASOutputEstimates e.g. c:\\temp\\outest.csv>)";
+                    break;
+                case batchGroups.CREATETOBITRASTER:
+                    msg = "outRS = " + batchFunction.ToString() + "(slopeRaster1,slopeRaster2,slopeRaster3;<pathToSASOutputEstimates e.g. c:\\temp\\outest.csv>;LeftCensoredValue e.g., 0)";
                     break;
                 default:
                     break;

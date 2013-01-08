@@ -622,6 +622,8 @@
     <Compile Include="FunctionRasters\sqrtFunctionDataset.cs" />
     <Compile Include="FunctionRasters\squaredFunctionDataset.cs" />
     <Compile Include="FunctionRasters\tanFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\tobitFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\tobitFunctionDataset.cs" />
     <Compile Include="FunctionRasters\zonalHelper.cs" />
     <Compile Include="geodatabaseutility.cs" />
     <Compile Include="geoprocessor.cs" />
