@@ -20,7 +20,7 @@ namespace servicesToolBar
         {
             IMxDocument mxDoc = ArcMap.Document;
             IMap map = mxDoc.FocusMap;
-            esriUtil.Forms.SasProcedures.frmRunPolytomousLogisticRegression frmPly = new esriUtil.Forms.SasProcedures.frmRunPolytomousLogisticRegression(map);
+            esriUtil.Forms.Stats.frmRunPolytomousLogisticRegression frmPly = new esriUtil.Forms.Stats.frmRunPolytomousLogisticRegression(map);
             frmPly.Show();
 
         }

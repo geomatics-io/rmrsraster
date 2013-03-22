@@ -21,7 +21,7 @@ namespace esriUtil.FunctionRasters
         private string myDescription = "Transforms a raster using Polytomous Logistic regression transformation"; // Description of the log Function.
         private IRaster outrs = null;
         private IRaster inrsBandsCoef = null;
-        private Dictionary<string,float[]> slopes = null;
+        private double[][] slopes = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
@@ -51,7 +51,7 @@ namespace esriUtil.FunctionRasters
 
         /// <summary>
         /// Read pixels from the input Raster and fill the PixelBlock provided with processed pixels.
-        /// The RasterFunctionHelper object is used to handle pixel type conversion and resampling.
+        /// The RasterFunctionHelper object is used to handle pixel type conversion and resampeling.
         /// The log raster is the natural log of the raster. 
         /// </summary>
         /// <param name="pTlc">Point to start the reading from in the Raster</param>
@@ -96,12 +96,12 @@ namespace esriUtil.FunctionRasters
                 {
                     for (int k = pBColIndex; k < pBWidth; k++)
                     {
-                        float[] expArr = new float[slopes.Count];
-                        float sumExp = 0;
+                        double[] expArr = new double[slopes.Length];
+                        double sumExp = 0;
                         int catCnts = 0;
-                        foreach (float[] IntSlpArr in slopes.Values)
+                        foreach (double[] IntSlpArr in slopes)
                         {
-                            float sumVls = IntSlpArr[0];
+                            double sumVls = IntSlpArr[0];
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
                                 float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
@@ -113,46 +113,32 @@ namespace esriUtil.FunctionRasters
                                     break;
                                 }
 
-                                float slp = IntSlpArr[coefnBand + 1];
+                                double slp = IntSlpArr[coefnBand + 1];
                                 //Console.WriteLine("x = " + pixelValue.ToString() + " slope = " + slp.ToString());
                                 sumVls += pixelValue * slp;
                             }
                             //Console.WriteLine("sumVls = " + sumVls.ToString());
-                            float expSum = System.Convert.ToSingle(Math.Exp(sumVls));
+                            double expSum = Math.Exp(sumVls);
                             
                             expArr[catCnts] = expSum;
                             sumExp += expSum;
                             catCnts +=1 ;
                         }
                         sumExp += 1;
-                        float sumProb = 0;
-                        float maxProbBand = 1;
-                        float maxProb = 0;
-                        catCnts = 2;
-                        foreach (float expVl in expArr)
+                        double sumProb = 0;
+                        catCnts = 1;
+                        foreach (double expVl in expArr)
                         {
-                            float prob = expVl / sumExp;
+                            double prob = expVl / sumExp;
                             //Console.WriteLine("Probability = " + prob.ToString());
                             sumProb += prob;
-                            if (prob > maxProb)
-                            {
-                                maxProb = prob;
-                                maxProbBand = catCnts;
-                            }
-                            cArr[catCnts].SetValue(prob, k, i);
+                            cArr[catCnts].SetValue(System.Convert.ToSingle(prob), k, i);
                             //Console.WriteLine("Probability = " + cArr[catCnts].GetValue(k,i).ToString());
                             catCnts += 1;
                             
                         }
-                        float lProb = 1-sumProb;
-                        cArr[1].SetValue(lProb,k,i);//base category
-                        if (lProb > maxProb)
-                        {
-                            maxProb = lProb;
-                            maxProbBand = 1;
-                        }
-                        cArr[0].SetValue(maxProbBand, k, i);//most likely class
-                            
+                        double lProb = 1-sumProb;
+                        cArr[0].SetValue(System.Convert.ToSingle(lProb),k,i);//base category     
                     }
                 }
                 for(int i=0;i<ipPixelBlock.Planes;i++)

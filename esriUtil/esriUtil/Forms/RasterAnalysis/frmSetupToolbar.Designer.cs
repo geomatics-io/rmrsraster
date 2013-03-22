@@ -37,11 +37,11 @@
             this.chbAutoUpdate.AutoSize = true;
             this.chbAutoUpdate.Checked = true;
             this.chbAutoUpdate.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chbAutoUpdate.Location = new System.Drawing.Point(12, 21);
+            this.chbAutoUpdate.Location = new System.Drawing.Point(3, 22);
             this.chbAutoUpdate.Name = "chbAutoUpdate";
-            this.chbAutoUpdate.Size = new System.Drawing.Size(83, 17);
+            this.chbAutoUpdate.Size = new System.Drawing.Size(125, 17);
             this.chbAutoUpdate.TabIndex = 0;
-            this.chbAutoUpdate.Text = "AutoUpdate";
+            this.chbAutoUpdate.Text = "Auto Update Toolbar";
             this.chbAutoUpdate.UseVisualStyleBackColor = true;
             this.chbAutoUpdate.Click += new System.EventHandler(this.chbAutoUpdate_Click);
             // 
@@ -49,7 +49,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(243, 59);
+            this.ClientSize = new System.Drawing.Size(263, 56);
             this.Controls.Add(this.chbAutoUpdate);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

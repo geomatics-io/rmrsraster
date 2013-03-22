@@ -205,9 +205,25 @@ namespace esriUtil.Forms.RasterAnalysis
 
         private void btnMinus_Click(object sender, EventArgs e)
         {
-            object itVl = lsbRaster.SelectedItem;
-            cmbInRaster1.Items.Add(itVl);
-            lsbRaster.Items.Remove(itVl);
+            ListBox.SelectedObjectCollection s = lsbRaster.SelectedItems;
+            int cnt = s.Count;
+            List<string> rLst = new List<string>();
+            for (int i = 0; i < cnt; i++)
+            {
+                string txt = s[i].ToString();
+                rLst.Add(txt);
+                if (txt != null && txt != "")
+                {
+                    if (!cmbInRaster1.Items.Contains(txt))
+                    {
+                        cmbInRaster1.Items.Add(txt);
+                    }
+                }
+            }
+            foreach (string r in rLst)
+            {
+                lsbRaster.Items.Remove(r);
+            }
 
         }
 

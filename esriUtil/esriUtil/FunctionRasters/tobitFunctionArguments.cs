@@ -61,6 +61,7 @@ namespace esriUtil.FunctionRasters
                 List<string> fldNames = (from string s in oFlds select s.ToUpper()).ToList();
                 int intIndex = fldNames.IndexOf("\"INTERCEPT\"");
                 int intName = fldNames.IndexOf("\"NAME OF VARIABLE\"");
+                if (intName == -1) intName = fldNames.IndexOf("\"DEPENDENT VARIABLE\"");
                 List<string> fn = new List<string>();
                 for (int i = intIndex; i < oFlds.Count(); i++)
                 {
@@ -79,6 +80,7 @@ namespace esriUtil.FunctionRasters
                         string vl = sVls[i];
                         if (!rsUtil.isNumeric(vl)) vl = "0";
                         fVls.Add(System.Convert.ToSingle(vl));
+
                     }
                     slopes.Add(fVls.ToArray());
                     ln = sR.ReadLine();

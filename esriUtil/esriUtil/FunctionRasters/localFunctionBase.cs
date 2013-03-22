@@ -99,5 +99,6 @@ namespace esriUtil.FunctionRasters
                 throw myExc;
             }
         }
+       
     }
 }

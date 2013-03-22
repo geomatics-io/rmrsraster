@@ -135,9 +135,9 @@ namespace esriUtil.Forms.FIA
                 MessageBox.Show("You must have a sample file and FIA database selected", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (plotFldNm == "" || plotFldNm == null || subPlotFldNm == "" || subPlotFldNm == null)
+            if (plotFldNm == "" || plotFldNm == null)
             {
-                MessageBox.Show("You must have a plot and subplot fields selected", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must have a plot field selected", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (clbBiomassTypes.CheckedItems.Count < 1)

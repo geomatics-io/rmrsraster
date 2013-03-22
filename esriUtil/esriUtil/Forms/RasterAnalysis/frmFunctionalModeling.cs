@@ -52,6 +52,7 @@ namespace esriUtil.Forms.RasterAnalysis
             if (frmSN != null) frmSN.Dispose();
             if (frmFS != null) frmFS.Dispose();
             if (frmRR != null) frmRR.Dispose();
+            if (frmAg != null) frmAg.Dispose();
         }
         private void populateLstBox()
         {
@@ -182,9 +183,10 @@ namespace esriUtil.Forms.RasterAnalysis
         private frmMathRaster frmM = null;
         private frmSetNull frmSN = null;
         private frmFocalSample frmFS = null;
-        private Forms.SasProcedures.frmRunRegressionRaster frmRR = null;
+        private Forms.Stats.frmLinearRegressionRaster frmRR = null;
         private Texture.frmLandscapeMetrics frmLand = null;
         private Texture.frmCreateGlcmSurface frmT = null;
+        private frmAggregationRaster frmAg = null;
         private string funcDirNm = "functionDatasets";
         private string funcExt = ".fds";
         private string outFunctionDatasetDir = null;
@@ -533,21 +535,21 @@ namespace esriUtil.Forms.RasterAnalysis
                         addRowsToDataGrid(ob);
                     }
                     break;
-                case functionModel.functionGroups.RegressionRaster:
-                    if (frmRR == null)
+                case functionModel.functionGroups.Aggregation:
+                    if (frmAg == null)
                     {
-                        frmRR = new Forms.SasProcedures.frmRunRegressionRaster(mp, ref rsUtil, false);
+                        frmAg = new frmAggregationRaster(mp, ref rsUtil, false);
                     }
                     foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
                     {
-                        frmRR.addRasterToComboBox(kVp.Key, kVp.Value);
+                        frmAg.addRasterToComboBox(kVp.Key,kVp.Value);
                     }
-                    dRslt = frmRR.ShowDialog(this);
-                    mo = frmRR.OutRaster;
-                    nm = frmRR.OutRasterName;
+                    dRslt = frmAg.ShowDialog(this);
+                    mo = frmAg.OutRaster;
+                    nm = frmAg.OutRasterName;
                     if (mo != null && nm != null && nm != "" && dRslt == System.Windows.Forms.DialogResult.OK)
                     {
-                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmRR).ToArray()) + ")";
+                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmAg).ToArray()) + ")";
                         rsultDic[nm] = mo;
                         object[] ob = { nm, false, desc };
                         addRowsToDataGrid(ob);
@@ -1350,10 +1352,10 @@ namespace esriUtil.Forms.RasterAnalysis
                                         fullPath = getFeaturePath(vl, false);
                                     }
                                     break;
-                                case functionModel.functionGroups.RegressionRaster:
-                                    if (frmRR.RasterDictionary.ContainsKey(vl))
+                                case functionModel.functionGroups.Aggregation:
+                                    if (frmAg.RasterDictionary.ContainsKey(vl))
                                     {
-                                        rs2 = (IRaster2)frmRR.RasterDictionary[vl];
+                                        rs2 = (IRaster2)frmAg.RasterDictionary[vl];
                                         rsDset = rs2.RasterDataset;
                                         dSet = (IDataset)rsDset;
                                         int vlIndex = vl.IndexOf("Band_");
@@ -1374,14 +1376,13 @@ namespace esriUtil.Forms.RasterAnalysis
                                             fullPath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
                                         }
                                     }
-                                    else if (frmRR.WorkspaceDictionary.ContainsKey(vl))
+                                    else if (rsUtil.isNumeric(vl) || vl == "")
                                     {
-                                        IWorkspace rrWks = frmRR.WorkspaceDictionary[vl];
-                                        fullPath = rrWks.PathName;
+                                        checkReplace = false;
                                     }
                                     else
                                     {
-                                        checkReplace = false;
+                                        fullPath = getFeaturePath(vl, false);
                                     }
                                     break;
                                 default:

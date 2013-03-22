@@ -120,13 +120,17 @@ namespace esriUtil
                     ln = sR.ReadLine();
                 }
             }
+            bool intCheck = false;
+            bool modelCheck = false;
             for (int i = 0; i < oFlds.Length; i++)
             {
                 string fld = oFlds.GetValue(i).ToString().Trim('"');
                 string[] splFlds = fld.Split(new char[] { ':' });
                 string param = splFlds[0].Trim();
+                if (param.ToLower() == "intercept") intCheck = true;
+                if(param.ToLower()=="model log likelihood") modelCheck=true;
                 string category = splFlds[splFlds.GetUpperBound(0)].TrimStart(new char[] { ' ' });
-                if (category.ToLower().StartsWith(dependentfield.ToLower().TrimEnd(new char[] { ' ' })))
+                if (category.ToLower().StartsWith(dependentfield.ToLower().TrimEnd(new char[] { ' ' }))) //"PLR format"
                 {
                     category = category.Split(new char[] { '=' })[1];
                     string vl = bVls[i];
@@ -151,6 +155,29 @@ namespace esriUtil
                             Console.WriteLine(e);
                         }
                     }
+                }
+                else if (intCheck&&!modelCheck) //logistic format
+                {
+                    string vl = bVls[i];
+                    if (vl != "" && vl != null && vl != ".")
+                    {
+                        try
+                        {
+                            float vld = System.Convert.ToSingle(vl);
+                            KeyValuePair<string, Dictionary<string, float>> cdic = cBetas.ElementAt(0);
+                            betas = cdic.Value;
+                            category = cdic.Key;
+                            betas.Add(param, vld);
+                            cBetas[category] = betas;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+                    }
+                }
+                else
+                {
                 }
             }
             return cBetas;

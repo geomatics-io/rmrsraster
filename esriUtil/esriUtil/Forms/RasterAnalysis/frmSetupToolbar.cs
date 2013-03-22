@@ -27,8 +27,7 @@ namespace esriUtil.Forms.RasterAnalysis
             else
             {
                 chbAutoUpdate.Checked = false;
-            }
-           
+            }          
         }
 
         private void chbAutoUpdate_Click(object sender, EventArgs e)

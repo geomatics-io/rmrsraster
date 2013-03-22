@@ -7,6 +7,7 @@ using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.DataSourcesGDB;
 using ESRI.ArcGIS.DataSourcesNetCDF;
+using ESRI.ArcGIS.DataSourcesOleDB;
 using ESRI.ArcGIS.Controls;
 using System.Windows.Forms;
 using System.Data.SqlClient;
@@ -30,6 +31,7 @@ namespace esriUtil
         private string pVersion = "";
         private string mode = "";
         private string user = "";
+        private enum tblType { xls, xlsx, txt, csv };
         private object pass;
         /// <summary>
         /// default server
@@ -258,6 +260,16 @@ namespace esriUtil
         /// <returns></returns>
         public IWorkspace OpenWorkSpace(string dbPath)
         {
+            return OpenWorkSpace(dbPath, null);
+        }
+        /// <summary>
+        /// opens a workspace based on database path and a file extension (file extension is for text files and excel files)
+        /// </summary>
+        /// <param name="dbPath">the full path to the database</param>
+        /// <param name="ex">the extension if applicable .txt if not applicable the value can be null</param>
+        /// <returns></returns>
+        public IWorkspace OpenWorkSpace(string dbPath, string ex)
+        {
             //dbPath = System.IO.Path.GetFullPath(dbPath);
             IWorkspace wks = null;
             try
@@ -282,6 +294,8 @@ namespace esriUtil
                     {
                         case ".mdb":
                         case ".sde":
+                        case ".xls":
+                        case ".xlsx":
                             System.IO.FileInfo flinfo = new System.IO.FileInfo(dir);
                             exst = flinfo.Exists;
                             if (!exst)
@@ -312,6 +326,10 @@ namespace esriUtil
                         Console.WriteLine("database " + dir + " does not exist 94");
                         return wks;
                     }
+                    if (ex != null)
+                    {
+                        ext = ex.ToLower();
+                    }
                 }
                 IWorkspaceFactory2 wsFact;
                 switch (ext)
@@ -325,25 +343,33 @@ namespace esriUtil
                     case ".sde":
                         wsFact = (IWorkspaceFactory2)new SdeWorkspaceFactoryClass();
                         break;
+                    case ".txt":
+                    case ".csv":
+                        wsFact = (IWorkspaceFactory2)new TextFileWorkspaceFactoryClass();
+                        break;
+                    case ".xls":
+                    case ".xlsx":
+                        wsFact = (IWorkspaceFactory2)new ExcelWorkspaceFactoryClass();
+                        break;
                     default:
                         wsFact = (IWorkspaceFactory2)new ShapefileWorkspaceFactoryClass();
                         //wsFact = (IWorkspaceFactory2)new ESRI.ArcGIS.DataSourcesRaster.RasterWorkspaceFactoryClass();
                         //Console.WriteLine(dir);
-                        wks = wsFact.OpenFromFile(dir, 0);
+                        //wks = wsFact.OpenFromFile(dir, 0);
                         break;
                 }
-                if (wsFact.IsWorkspace(dir))
-                {
-                    try
-                    {
-                        wks = wsFact.OpenFromFile(dir, 0);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Error " + e.ToString());
-                        wks = null;
-                    }
-                }
+                //if (wsFact.IsWorkspace(dir))
+                //{
+                //try
+                //{
+                wks = wsFact.OpenFromFile(dir, 0);
+                //}
+                //catch (Exception e)
+                //{
+                    //Console.WriteLine("Error " + e.ToString());
+                   //wks = null;
+                //}
+                //}
                 
             }
             catch (Exception e)
@@ -418,11 +444,13 @@ namespace esriUtil
             esriDatasetType x = esriDatasetType.esriDTAny;
             bool y = false;
             IWorkspace wks;
-            string ftrname = System.IO.Path.GetFileName(ftr).Replace(".shp","").Replace(".dbf","").ToLower();
+            string ex = System.IO.Path.GetExtension(ftr).ToLower();
+            string ftrname = System.IO.Path.GetFileNameWithoutExtension(ftr);
+            if (ex == ".csv" || ex == ".txt") ftrname = ftrname + ex;
             if (ftrExists(ftr))
             {
                 string db = parseDbStr(ftr);
-                wks = OpenWorkSpace(db);
+                wks = OpenWorkSpace(db,ex);
                
                 IEnumDatasetName dtsne = wks.get_DatasetNames(esriDatasetType.esriDTAny);
                 IDatasetName dtsn = dtsne.Next();
@@ -817,9 +845,11 @@ namespace esriUtil
             try
             {
                 string db = parseDbStr(ftr);
-                string ftrname = System.IO.Path.GetFileName(ftr).Replace(".shp","").Replace(".dbf","");
+                string ex = System.IO.Path.GetExtension(ftr).ToLower();
+                string ftrname = System.IO.Path.GetFileNameWithoutExtension(ftr);
+                if (ex == ".txt" || ex == ".csv") ftrname = ftrname + ex;
                 //Console.WriteLine(ftrname);
-                IWorkspace wks = OpenWorkSpace(db);
+                IWorkspace wks = OpenWorkSpace(db,ex);
                 if (wks != null)
                 {
                     return ftrExists(wks, ftrname);
@@ -920,7 +950,8 @@ namespace esriUtil
             IFeatureClass nftrclass = null;
             try
             {
-                if (ftrExists(ftr) & getDataType(ftr) == esriDatasetType.esriDTFeatureClass)
+                //Console.WriteLine(getDataType(ftr).ToString());
+                if (ftrExists(ftr))// & getDataType(ftr) == esriDatasetType.esriDTFeatureClass)
                 {
                     IWorkspace wks = null;
                     IFeatureWorkspace fwks = null;
@@ -947,14 +978,17 @@ namespace esriUtil
             ITable ntbl = null;
             try
             {
-                if (ftrExists(tbl) & getDataType(tbl) == esriDatasetType.esriDTTable)
+                if (ftrExists(tbl))// & getDataType(tbl) == esriDatasetType.esriDTTable)
                 {
                     IWorkspace wks = null;
                     IFeatureWorkspace fwks = null;
                     string db = parseDbStr(tbl);
-                    string ftrname = System.IO.Path.GetFileName(tbl).Replace(".shp", "").Replace(".dbf", "");
+                    string ex = System.IO.Path.GetExtension(tbl).ToLower();
+                    string ftrname = System.IO.Path.GetFileNameWithoutExtension(tbl);
+                    if (ex == ".csv" || ex == ".txt") ftrname = ftrname + ex;
                     //get the correct workspace
-                    wks = OpenWorkSpace(db);
+                    wks = OpenWorkSpace(db,ex);
+                    //Console.WriteLine((wks == null).ToString());
                     fwks = wks as IFeatureWorkspace;
                     ntbl = fwks.OpenTable(ftrname);
                 }
@@ -1906,6 +1940,7 @@ namespace esriUtil
             try
             {
                 ICursor scur = getSearchCursor(lyrPath);
+                Console.WriteLine("Cursor is Null " + (scur==null).ToString());
                 int fldIndex = scur.FindField(Fld);
                 if (fldIndex == -1) return x;
                 IRow srow = scur.NextRow();
@@ -2429,39 +2464,50 @@ namespace esriUtil
         /// <param name="inFtr">A valid feature class</param>
         /// <param name="nm">A string name</param>
         /// <param name="esriFieldType"> An ESRI field type</param>
-        public string createField(IFeatureClass inFtr, string nm, esriFieldType FieldType)
+        public string createField(IFeatureClass inFtr, string nm, esriFieldType FieldType, bool renameFldname=true)
         {
-            return createField((ITable)inFtr, nm, FieldType);
+            return createField((ITable)inFtr, nm, FieldType,renameFldname);
         }
-        public string createField(ITable inFtr, string nm, esriFieldType FieldType)
+        public string createField(ITable inFtr, string nm, esriFieldType FieldType,bool renameFldName=true)
         {
             string snm = getSafeFieldName(inFtr, nm);
-            ISchemaLock schemaLock = (ISchemaLock)inFtr;
-            try
+            bool fieldWasRenamed = false;
+            if(snm.StartsWith("_"))fieldWasRenamed=true;
+            bool checkSettings = true;
+            if(fieldWasRenamed&&!renameFldName)
             {
-                // A try block is necessary, as an exclusive lock might not be available.
-                schemaLock.ChangeSchemaLock(esriSchemaLock.esriExclusiveSchemaLock);
-                IField fld = new FieldClass();
-                IFieldEdit fldE = (IFieldEdit)fld;
-                fldE.AliasName_2 = nm;
-                fldE.Name_2 = snm;
-                fldE.Type_2 = FieldType;
-                if (FieldType == esriFieldType.esriFieldTypeSmallInteger || FieldType == esriFieldType.esriFieldTypeSingle || FieldType == esriFieldType.esriFieldTypeInteger || FieldType == esriFieldType.esriFieldTypeDouble)
+                checkSettings=false;
+                snm = nm;
+            }
+            if (checkSettings)
+            {
+                ISchemaLock schemaLock = (ISchemaLock)inFtr;
+                try
                 {
-                    fldE.DefaultValue_2 = 0;
+                    // A try block is necessary, as an exclusive lock might not be available.
+                    schemaLock.ChangeSchemaLock(esriSchemaLock.esriExclusiveSchemaLock);
+                    IField fld = new FieldClass();
+                    IFieldEdit fldE = (IFieldEdit)fld;
+                    fldE.AliasName_2 = nm;
+                    fldE.Name_2 = snm;
+                    fldE.Type_2 = FieldType;
+                    if (FieldType == esriFieldType.esriFieldTypeSmallInteger || FieldType == esriFieldType.esriFieldTypeSingle || FieldType == esriFieldType.esriFieldTypeInteger || FieldType == esriFieldType.esriFieldTypeDouble)
+                    {
+                        fldE.DefaultValue_2 = 0;
+                    }
+                    inFtr.AddField(fldE);
                 }
-                inFtr.AddField(fldE);
-            }
-            catch (Exception exc)
-            {
-                // Handle appropriately for your application.
-                Console.WriteLine(exc.Message);
-                //MessageBox.Show(exc.Message);
-            }
-            finally
-            {
-                // Set the lock to shared, whether or not an error occurred.
-                schemaLock.ChangeSchemaLock(esriSchemaLock.esriSharedSchemaLock);
+                catch (Exception exc)
+                {
+                    // Handle appropriately for your application.
+                    Console.WriteLine(exc.Message);
+                    //MessageBox.Show(exc.Message);
+                }
+                finally
+                {
+                    // Set the lock to shared, whether or not an error occurred.
+                    schemaLock.ChangeSchemaLock(esriSchemaLock.esriSharedSchemaLock);
+                }
             }
             return nm;
 
@@ -2568,6 +2614,10 @@ namespace esriUtil
                     for (int i = 0; i < fldCnt; i++)
                     {
                         vl = srow.get_Value(i).ToString();
+                        if (vl.ToLower() == "nan")
+                        {
+                            vl = "1";
+                        }
                         vlLst.Add(vl);
                     }
                     sW.WriteLine(String.Join(",", vlLst.ToArray()));

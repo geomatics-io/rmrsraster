@@ -28,14 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmRunningProcessDialog));
             this.rtbMessages = new System.Windows.Forms.RichTextBox();
             this.btnClose = new System.Windows.Forms.Button();
             this.pgbProcess = new System.Windows.Forms.ProgressBar();
+            this.btnSave = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // rtbMessages
             // 
             this.rtbMessages.Enabled = false;
+            this.rtbMessages.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbMessages.Location = new System.Drawing.Point(-1, 29);
             this.rtbMessages.Name = "rtbMessages";
             this.rtbMessages.Size = new System.Drawing.Size(295, 246);
@@ -55,10 +58,21 @@
             // 
             // pgbProcess
             // 
-            this.pgbProcess.Location = new System.Drawing.Point(-1, 0);
+            this.pgbProcess.Location = new System.Drawing.Point(51, 1);
             this.pgbProcess.Name = "pgbProcess";
-            this.pgbProcess.Size = new System.Drawing.Size(241, 23);
+            this.pgbProcess.Size = new System.Drawing.Size(190, 23);
             this.pgbProcess.TabIndex = 2;
+            // 
+            // btnSave
+            // 
+            this.btnSave.Enabled = false;
+            this.btnSave.Location = new System.Drawing.Point(-1, 1);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(48, 23);
+            this.btnSave.TabIndex = 3;
+            this.btnSave.Text = "Save";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // frmRunningProcessDialog
             // 
@@ -66,14 +80,16 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 273);
             this.ControlBox = false;
+            this.Controls.Add(this.btnSave);
             this.Controls.Add(this.pgbProcess);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.rtbMessages);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmRunningProcessDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Running Process";
             this.TopMost = true;
+            this.ResizeEnd += new System.EventHandler(this.frmRunningProcessDialog_ResizeEnd);
             this.ResumeLayout(false);
 
         }
@@ -83,5 +99,6 @@
         private System.Windows.Forms.RichTextBox rtbMessages;
         private System.Windows.Forms.Button btnClose;
         public System.Windows.Forms.ProgressBar pgbProcess;
+        private System.Windows.Forms.Button btnSave;
     }
 }

@@ -19,7 +19,7 @@ namespace servicesToolBar
         {
             IMxDocument doc = ArcMap.Document;
             IMap map = doc.FocusMap;
-            esriUtil.Forms.SasProcedures.frmAccuracyAssessment frm = new esriUtil.Forms.SasProcedures.frmAccuracyAssessment(map);
+            esriUtil.Forms.Stats.frmAccuracyAssessment frm = new esriUtil.Forms.Stats.frmAccuracyAssessment(map);
             frm.Show();
         }
 

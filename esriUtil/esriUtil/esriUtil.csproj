@@ -60,6 +60,39 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Accord, Version=2.8.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\accord\bin\Release (3.5)\Accord.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.MachineLearning">
+      <HintPath>..\..\..\accord\bin\Release (3.5)\Accord.MachineLearning.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.MachineLearning.GPL">
+      <HintPath>..\..\..\accord\bin\Release (3.5)\GPL\Accord.MachineLearning.GPL.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.Math, Version=2.8.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\accord\bin\Release (3.5)\Accord.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.Neuro">
+      <HintPath>..\..\..\accord\bin\Release (3.5)\Accord.Neuro.dll</HintPath>
+    </Reference>
+    <Reference Include="Accord.Statistics, Version=2.8.2.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\accord\bin\Release (3.5)\Accord.Statistics.dll</HintPath>
+    </Reference>
+    <Reference Include="AForge">
+      <HintPath>..\..\..\accord\Externals\AForge.NET\AForge.dll</HintPath>
+    </Reference>
+    <Reference Include="AForge.Math">
+      <HintPath>..\..\..\accord\Externals\AForge.NET\AForge.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="AForge.Neuro">
+      <HintPath>..\..\..\accord\Externals\AForge.NET\AForge.Neuro.dll</HintPath>
+    </Reference>
+    <Reference Include="alglibnet2">
+      <HintPath>..\..\..\alglib\alglibnet2.dll</HintPath>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.ArcMap, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -99,6 +132,10 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="ESRI.ArcGIS.DataSourcesNetCDF, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="ESRI.ArcGIS.DataSourcesOleDB, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -178,7 +215,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="accuracyAssessment.cs" />
     <Compile Include="batchCalculations.cs" />
     <Compile Include="fiaIntegration.cs" />
     <Compile Include="Forms\FIA\frmFiaBiomass.cs">
@@ -194,6 +230,12 @@
       <DependentUpon>frmSummarizeGraphSedimentByArivalTime.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\OptFuels\graphSedimentByArivalTime.cs" />
+    <Compile Include="Forms\RasterAnalysis\frmAggregationRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmAggregationRaster.Designer.cs">
+      <DependentUpon>frmAggregationRaster.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmArithmeticRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -386,29 +428,83 @@
     <Compile Include="Forms\Sampling\frmExportSampleToCsv.Designer.cs">
       <DependentUpon>frmExportSampleToCsv.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmAccuracyAssessment.cs">
+    <Compile Include="Forms\Stats\frmAccuracyAssessment.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmAccuracyAssessment.Designer.cs">
+    <Compile Include="Forms\Stats\frmAccuracyAssessment.Designer.cs">
       <DependentUpon>frmAccuracyAssessment.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmBuildRegressionRaster.cs">
+    <Compile Include="Forms\Stats\frmCluster.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmBuildRegressionRaster.Designer.cs">
-      <DependentUpon>frmBuildRegressionRaster.cs</DependentUpon>
+    <Compile Include="Forms\Stats\frmCluster.Designer.cs">
+      <DependentUpon>frmCluster.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmRunRegressionRaster.cs">
+    <Compile Include="Forms\Stats\frmFormatZoneData.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmRunRegressionRaster.Designer.cs">
-      <DependentUpon>frmRunRegressionRaster.cs</DependentUpon>
+    <Compile Include="Forms\Stats\frmFormatZoneData.Designer.cs">
+      <DependentUpon>frmFormatZoneData.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmLinearRegressionRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmLinearRegressionRaster.Designer.cs">
+      <DependentUpon>frmLinearRegressionRaster.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\OptFuels\frmLandfireSegmentation.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\OptFuels\frmLandfireSegmentation.Designer.cs">
       <DependentUpon>frmLandfireSegmentation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmLogisticRegression.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmLogisticRegression.Designer.cs">
+      <DependentUpon>frmLogisticRegression.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmMultivariateLinearRegression.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmMultivariateLinearRegression.Designer.cs">
+      <DependentUpon>frmMultivariateLinearRegression.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmPcaAnalysis.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmPcaAnalysis.Designer.cs">
+      <DependentUpon>frmPcaAnalysis.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmPredictNewData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmPredictNewData.Designer.cs">
+      <DependentUpon>frmPredictNewData.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmRandomForest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmRandomForest.Designer.cs">
+      <DependentUpon>frmRandomForest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmRasterFromModel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmRasterFromModel.Designer.cs">
+      <DependentUpon>frmRasterFromModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSoftMaxNnet.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSoftMaxNnet.Designer.cs">
+      <DependentUpon>frmSoftMaxNnet.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmVarCovCorr.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmVarCovCorr.Designer.cs">
+      <DependentUpon>frmVarCovCorr.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\Texture\frmCreateGlcmSurface.cs">
       <SubType>Form</SubType>
@@ -458,17 +554,11 @@
     <Compile Include="Forms\Sampling\frmSampleRaster.Designer.cs">
       <DependentUpon>frmSampleRaster.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmBuildPolytomousLogisticRegressionModel.cs">
+    <Compile Include="Forms\Stats\frmPolytomousLogisticRegression.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\SasProcedures\frmBuildPolytomousLogisticRegressionModel.Designer.cs">
-      <DependentUpon>frmBuildPolytomousLogisticRegressionModel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Forms\SasProcedures\frmRunPolytomousLogisticRegression.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\SasProcedures\frmRunPolytomousLogisticRegression.Designer.cs">
-      <DependentUpon>frmRunPolytomousLogisticRegression.cs</DependentUpon>
+    <Compile Include="Forms\Stats\frmPolytomousLogisticRegression.Designer.cs">
+      <DependentUpon>frmPolytomousLogisticRegression.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmFocalAnalysis.cs">
       <SubType>Form</SubType>
@@ -488,8 +578,9 @@
     <Compile Include="FunctionRasters\aggregationFunctionDataset.cs" />
     <Compile Include="FunctionRasters\asinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\atanFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\clusterFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\clusterFunctionDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionArguments.cs" />
-    <Compile Include="FunctionRasters\mathFunctionBase2.cs" />
     <Compile Include="FunctionRasters\cosFunctionDataset.cs" />
     <Compile Include="FunctionRasters\absFunctionDataset.cs" />
     <Compile Include="FunctionRasters\exp10FunctionDataset.cs" />
@@ -504,6 +595,10 @@
     <Compile Include="FunctionRasters\landscapeFunctionDataset.cs" />
     <Compile Include="FunctionRasters\localAsmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\localFunctionBase.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\mosaicFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\mosaicFunctionDataset.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperASM.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperEntropy.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperMax.cs" />
@@ -611,9 +706,15 @@
     <Compile Include="FunctionRasters\NeighborhoodHelper\regionGroup.cs" />
     <Compile Include="FunctionRasters\nullToValueFunctionArguments.cs" />
     <Compile Include="FunctionRasters\nullToValueFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\pcaArguments.cs" />
+    <Compile Include="FunctionRasters\pcaDataset.cs" />
     <Compile Include="FunctionRasters\polytomousLogisticFunctionArguments.cs" />
     <Compile Include="FunctionRasters\polytomousLogisticFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\softMaxFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\softMaxFunctionDataset.cs" />
     <Compile Include="FunctionRasters\radiansFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\randomForestArguments.cs" />
+    <Compile Include="FunctionRasters\randomForestDataset.cs" />
     <Compile Include="FunctionRasters\regressionFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regressionFunctionDataset.cs" />
     <Compile Include="FunctionRasters\sinFunctionDataset.cs" />
@@ -632,7 +733,6 @@
     <Compile Include="Forms\OptFuels\landFire.cs" />
     <Compile Include="mapserviceutility.cs" />
     <Compile Include="msofficeHelper.cs" />
-    <Compile Include="polytomousLogisticRaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -645,9 +745,19 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="rasterUtil.cs" />
-    <Compile Include="regressionRaster.cs" />
-    <Compile Include="sasIntegration.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Statistics\dataPrepCluster.cs" />
+    <Compile Include="Statistics\dataPrepLogisticRegression.cs" />
+    <Compile Include="Statistics\dataPrepMultivariateLinearRegression.cs" />
+    <Compile Include="Statistics\dataPrepPrincipleComponents.cs" />
+    <Compile Include="Statistics\dataPrepVarCovCorr.cs" />
+    <Compile Include="Statistics\ModelHelper.cs" />
+    <Compile Include="Statistics\dataGeneralConfusionMatirx.cs" />
+    <Compile Include="Statistics\dataPrepBase.cs" />
+    <Compile Include="Statistics\dataPrepLinearReg.cs" />
+    <Compile Include="Statistics\dataPrepMultinomialLogisticRegression.cs" />
+    <Compile Include="Statistics\dataPrepSoftMaxPlr.cs" />
+    <Compile Include="Statistics\dataPrepRandomForest.cs" />
     <Compile Include="update.cs" />
     <Compile Include="viewutility.cs" />
   </ItemGroup>
@@ -669,6 +779,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\OptFuels\frmSummarizeGraphSedimentByArivalTime.resx">
       <DependentUpon>frmSummarizeGraphSedimentByArivalTime.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmAggregationRaster.resx">
+      <DependentUpon>frmAggregationRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmArithmeticRaster.resx">
       <DependentUpon>frmArithmeticRaster.cs</DependentUpon>
@@ -778,23 +891,47 @@
     <EmbeddedResource Include="Forms\Sampling\frmSampleRaster.resx">
       <DependentUpon>frmSampleRaster.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SasProcedures\frmAccuracyAssessment.resx">
+    <EmbeddedResource Include="Forms\Stats\frmAccuracyAssessment.resx">
       <DependentUpon>frmAccuracyAssessment.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SasProcedures\frmBuildPolytomousLogisticRegressionModel.resx">
-      <DependentUpon>frmBuildPolytomousLogisticRegressionModel.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\Stats\frmCluster.resx">
+      <DependentUpon>frmCluster.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SasProcedures\frmBuildRegressionRaster.resx">
-      <DependentUpon>frmBuildRegressionRaster.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\Stats\frmFormatZoneData.resx">
+      <DependentUpon>frmFormatZoneData.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SasProcedures\frmRunPolytomousLogisticRegression.resx">
-      <DependentUpon>frmRunPolytomousLogisticRegression.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\Stats\frmLogisticRegression.resx">
+      <DependentUpon>frmLogisticRegression.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SasProcedures\frmRunRegressionRaster.resx">
-      <DependentUpon>frmRunRegressionRaster.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\Stats\frmMultivariateLinearRegression.resx">
+      <DependentUpon>frmMultivariateLinearRegression.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmPcaAnalysis.resx">
+      <DependentUpon>frmPcaAnalysis.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmPolytomousLogisticRegression.resx">
+      <DependentUpon>frmPolytomousLogisticRegression.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmLinearRegressionRaster.resx">
+      <DependentUpon>frmLinearRegressionRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\OptFuels\frmLandfireSegmentation.resx">
       <DependentUpon>frmLandfireSegmentation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmPredictNewData.resx">
+      <DependentUpon>frmPredictNewData.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmRandomForest.resx">
+      <DependentUpon>frmRandomForest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmRasterFromModel.resx">
+      <DependentUpon>frmRasterFromModel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmSoftMaxNnet.resx">
+      <DependentUpon>frmSoftMaxNnet.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmVarCovCorr.resx">
+      <DependentUpon>frmVarCovCorr.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Texture\frmCreateGlcmSurface.resx">
       <DependentUpon>frmCreateGlcmSurface.cs</DependentUpon>
@@ -812,6 +949,17 @@
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Libraries\Accord.dll" />
+    <Content Include="Libraries\Accord.MachineLearning.dll" />
+    <Content Include="Libraries\Accord.MachineLearning.GPL.dll" />
+    <Content Include="Libraries\Accord.Math.dll" />
+    <Content Include="Libraries\Accord.Neuro.dll" />
+    <Content Include="Libraries\Accord.Statistics.dll" />
+    <Content Include="Libraries\AForge.dll" />
+    <Content Include="Libraries\AForge.Genetic.dll" />
+    <Content Include="Libraries\AForge.Math.dll" />
+    <Content Include="Libraries\AForge.Neuro.dll" />
+    <Content Include="Libraries\alglibnet2.dll" />
     <None Include="Help\HTML\DeleteFunctionModel.htm" />
     <None Include="Help\HTML\Help.htm" />
     <None Include="Help\HTML\OpenFunctionModelForm.htm" />
@@ -821,6 +969,12 @@
     <None Include="Help\HTML\SaveRasterForm.htm" />
     <None Include="Help\HTML\StatisticalModeling.htm" />
     <None Include="Help\HTML\WebServicesMenu.htm" />
+    <Content Include="gpl2.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="gpl3.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Help\HTML\accuracyAssessmentForm.htm" />
     <Content Include="Help\HTML\addArcgisConnectionForm.htm" />
     <Content Include="Help\HTML\addFeatureClassForm.htm" />

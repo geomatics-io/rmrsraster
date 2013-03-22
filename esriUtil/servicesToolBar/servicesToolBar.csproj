@@ -121,8 +121,10 @@
     <Compile Include="commandAddTiledImageServer.cs" />
     <Compile Include="commandArithmeticRaster.cs" />
     <Compile Include="commandBatchProcess.cs" />
+    <Compile Include="commandBuildRasterFromModel.cs" />
     <Compile Include="commandCalculateRasterStatistics.cs" />
     <Compile Include="commandClipRaster.cs" />
+    <Compile Include="commandCluster.cs" />
     <Compile Include="commandCompositeRaster.cs" />
     <Compile Include="commandConditionalRaster.cs" />
     <Compile Include="commandConvertPixelTypes.cs" />
@@ -130,6 +132,7 @@
     <Compile Include="commandCreateConstantRaster.cs" />
     <Compile Include="commandCreateMosaic.cs" />
     <Compile Include="commandDeleteFunctionModel.cs" />
+    <Compile Include="commandDeleteModel.cs" />
     <Compile Include="commandExplodeSample.cs" />
     <Compile Include="commandExportToCsv.cs" />
     <Compile Include="commandExtractRasterBands.cs" />
@@ -143,18 +146,21 @@
     <Compile Include="commandLandscapeMetrics.cs" />
     <Compile Include="commandLinearTransformRaster.cs" />
     <Compile Include="commandLogicalAnalysis.cs" />
+    <Compile Include="commandLogisticRegression.cs" />
     <Compile Include="commandMathRaster.cs" />
     <Compile Include="commandMergeRasters.cs" />
+    <Compile Include="commandMultivariateRegression.cs" />
     <Compile Include="commandNullDataToValue.cs" />
-    <Compile Include="commandPLRClassification.cs" />
     <Compile Include="commandAddData.cs" />
     <Compile Include="commandAddRasterData.cs" />
     <Compile Include="commandCreateGLCM.cs" />
     <Compile Include="commandLoad.cs" />
+    <Compile Include="commandPCA.cs" />
     <Compile Include="commandPLRModel.cs" />
+    <Compile Include="commandPredictNewData.cs" />
+    <Compile Include="commandRandomForest.cs" />
     <Compile Include="commandRandomSample.cs" />
     <Compile Include="commandRegModel.cs" />
-    <Compile Include="commandRegRun.cs" />
     <Compile Include="commandRemap.cs" />
     <Compile Include="commandRescaleRaster.cs" />
     <Compile Include="commandRotateRaster.cs" />
@@ -165,10 +171,14 @@
     <Compile Include="commandSetNull.cs" />
     <Compile Include="commandSetupToolbar.cs" />
     <Compile Include="commandShiftRaster.cs" />
+    <Compile Include="commandShowReport.cs" />
+    <Compile Include="commandSoftMaxNnet.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
+    <Compile Include="commandVarCov.cs" />
     <Compile Include="commandVersion.cs" />
     <Compile Include="commandWebSite.cs" />
+    <Compile Include="commandZonalFormat.cs" />
     <Compile Include="commandZonalStats.cs" />
     <Compile Include="Config.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -228,9 +238,6 @@
     <AddInContent Include="Images\commandCreateGLCM.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
-    <AddInContent Include="Images\commandPlrClassification.bmp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AddInContent>
     <AddInContent Include="Images\commandPlrModel.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
@@ -259,9 +266,6 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\commandRegModel.bmp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AddInContent>
-    <AddInContent Include="Images\commandRegRun.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>
@@ -466,6 +470,64 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <AddInContent Include="Images\RemoveRmrsRasterUtility.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandBuildRasterFromModel.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandShowReport.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandRandomForest.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandPredictNewData.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandDeleteModel.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandMultivariateRegression.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandLogisticRegression.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandVarCov.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandPCA.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandZonalFormat.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandSoftMaxNnet.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandCluster.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>

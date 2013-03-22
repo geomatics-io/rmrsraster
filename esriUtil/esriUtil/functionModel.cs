@@ -24,7 +24,7 @@ namespace esriUtil
         {
         }
         public enum dem { NorthSouth, EastWest, Slope, Aspect }
-        public enum functionGroups { Arithmetic, Math, SetNull, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape, FocalSample, RegressionRaster };
+        public enum functionGroups { Arithmetic, Math, SetNull, Logical, Clip, Conditional, Convolution, Focal, LocalStatistics, LinearTransform, Rescale, Remap, Composite, ExtractBand, GLCM, Landscape, FocalSample, Aggregation };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
@@ -87,15 +87,24 @@ namespace esriUtil
         public void addFunctionRasterToMap(IMap map)
         {
             ofd.Title = "Add Function Model to map";
-            ofd.Filter = "Function Dataset|*.fds";
+            ofd.Filter = "Function Dataset|*.fds|Batch Datasets|*.bch";
             ofd.Multiselect = false;
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 FunctionDatasetPath = ofd.FileName;
+                int fIndex = ofd.FilterIndex;
+                System.Windows.Forms.MessageBox.Show("Filter Index = " + fIndex.ToString());
                 string outName = "";
                 IRaster outRs = null;
                 string outDesc = "";
-                createFunctionRaster(out outName, out outRs, out outDesc);
+                if (fIndex == 1)
+                {
+                    createFunctionRaster(out outName, out outRs, out outDesc);
+                }
+                else
+                {
+                    createBatchRaster(out outName, out outRs, out outDesc);
+                }
                 IRasterLayer rsLyr = new RasterLayerClass();
                 rsLyr.CreateFromRaster(outRs);
                 rsLyr.Name = outName;
@@ -104,6 +113,31 @@ namespace esriUtil
             }
             
 
+        }
+
+        private void createBatchRaster(out string nm, out IRaster rs, out string desc)
+        {
+            nm = null;
+            rs = null;
+            desc = null;
+            if (path == "" || !System.IO.File.Exists(path))
+            {
+                return;
+            }
+            try
+            {
+                batchCalculations btch = new batchCalculations(rsUtil, new Forms.RunningProcess.frmRunningProcessDialog(true));
+                btch.BatchPath = path;
+                btch.loadBatchFile();
+                btch.runBatch();
+                btch.GetFinalRaster(out nm, out rs, out desc);
+            }
+            catch
+            {
+            }
+            finally
+            {
+            }
         }
 
         public void deleteFunctionModel()
@@ -189,62 +223,35 @@ namespace esriUtil
                 case functionGroups.FocalSample:
                     calcFocalSample(prmArr, out otNm, out otRs);
                     break;
-                case functionGroups.RegressionRaster:
-                    calcRegressionRaster(prmArr, out otNm, out otRs);
+                case functionGroups.Aggregation:
+                    calcAggregation(prmArr, out otNm, out otRs);
                     break;
                 default:
                     break;
             }
-
+            
 
         }
 
-        private void calcRegressionRaster(string[] prmArr, out string name, out IRaster raster)
+        private void calcAggregation(string[] prmArr, out string name, out IRaster raster)
         {
-            name = prmArr[0].Split(new char[] { '@' })[1];
-            string inRastersStr = prmArr[1].Split(new char[] { '@' })[1];
-            string wksStr = prmArr[3].Split(new char[] { '@' })[1];
-
-            IRaster rs1 = null;
-            IRasterBandCollection rsBc = new RasterClass();
-            foreach(string s in inRastersStr.Split(new char[]{','}))
+            name = prmArr[1].Split(new char[] { '@' })[1];
+            string inRaster1 = prmArr[3].Split(new char[] { '@' })[1];
+            int clm = System.Convert.ToInt32(prmArr[2].Split(new char[] { '@' })[1]);
+            string fTyp = prmArr[0].Split(new char[] { '@' })[1];
+            object rs1 = null;
+            raster = null;
+            if (rstDic.ContainsKey(inRaster1))
             {
-                IRaster rsObj = null;
-                if (rstDic.ContainsKey(s))
-                {
-                    rsObj = rstDic[s];
-                }
-                else
-                {
-                    rsObj = rsUtil.returnRaster(s);
-                }
-                rsBc.AppendBands((IRasterBandCollection)rsObj);
+                rs1 = rstDic[inRaster1];
             }
-            regressionRaster rr = new regressionRaster(ref rsUtil);
-            rs1 = (IRaster)rsBc;
-            string outEst = wksStr + "\\SASOUTPUT\\" + name + "\\outest.csv";
-            if (System.IO.File.Exists(outEst))
+            else
             {
-                using (System.IO.StreamReader sr = new System.IO.StreamReader(outEst))
-                {
-                    string sF = sr.ReadLine();
-                    string sV = sr.ReadLine();
-                    List<string> depFlsLst = new List<string>();
-                    while (sV != null)
-                    {
-                        depFlsLst.Add(sV.Split(new char[] { ',' })[2]);
-                        sV = sr.ReadLine();
-                    }
-                    rr.Dependentfield = String.Join(" ", depFlsLst.ToArray());
-                    sr.Close();
-
-                }
-                rr.SasOutputFile = outEst;
+                rs1 = inRaster1;
             }
+            rasterUtil.focalType fcType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), fTyp);
             
-            rr.InRaster = rs1;
-            rr.OutWorkspace = geoUtil.OpenRasterWorkspace(wksStr);
-            raster = rr.createModelRaster();
+            raster = rsUtil.calcAggregationFunction(rs1,clm,fcType);
         }
 
         private void calcFocalSample(string[] prmArr, out string name, out IRaster raster)

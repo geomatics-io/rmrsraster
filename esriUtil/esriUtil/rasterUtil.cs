@@ -1408,8 +1408,10 @@ namespace esriUtil
             IRasterDataset rsDset = null;
             try
             {
+                
                 ISaveAs sv = (ISaveAs)inRaster;
                 rsDset = (IRasterDataset)sv.SaveAs(outName, wks, rsTypeStr);
+                
                 IRaster2 rs2 = (IRaster2)calcStatsAndHist(rsDset);
                 ITable vat = rs2.AttributeTable;
                 int rwCnt = 0;
@@ -2140,11 +2142,7 @@ namespace esriUtil
             return createRaster((IRasterDataset)frDset);
 
         }
-        public IRaster calcPolytomousLogisticRegressFunction(object inRaster, Dictionary<string,float[]> slopes)
-        {
-            return calcPolytomousLogisticRegressFunction(inRaster, slopes, null);
-        }
-        public IRaster calcPolytomousLogisticRegressFunction(object inRaster, Dictionary<string,float[]> slopes, IRaster SeedRaster)
+        public IRaster calcPolytomousLogisticRegressFunction(object inRaster, double[][] slopes)
         {
             IRaster rRst = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
@@ -2156,7 +2154,86 @@ namespace esriUtil
             FunctionRasters.polytomousLogisticFunctionArguments args = new FunctionRasters.polytomousLogisticFunctionArguments(this);
             args.InRasterCoefficients = rRst;
             args.Slopes = slopes;
-            args.SeedRaster = SeedRaster;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
+        public IRaster calcSoftMaxNnetFunction(object inRaster, Statistics.dataPrepSoftMaxPlr sm)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.softMaxFunctionDataset();
+            FunctionRasters.softMaxFunctionArguments args = new FunctionRasters.softMaxFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.LogitModel = sm;           
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
+        public IRaster calcPrincipleComponentsFunction(IRaster inRaster, Statistics.dataPrepPrincipleComponents pca)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.pcaDataset();
+            FunctionRasters.pcaArguments args = new FunctionRasters.pcaArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.PCA = pca;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcMosaicFunction(IRaster[] inRasters)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.mergeFunctionDataset();
+            FunctionRasters.mergeFunctionArguments args = new FunctionRasters.mergeFunctionArguments(this);
+            args.InRaster = inRasters;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcClustFunction(IRaster inRaster, Statistics.dataPrepCluster clus)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.clusterFunctionDataset();
+            FunctionRasters.clusterFunctionArguments args = new FunctionRasters.clusterFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.ClusterModel = clus;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcRandomForestFunction(object inRaster, Statistics.dataPrepRandomForest rf)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.randomForestDataset();
+            FunctionRasters.randomForestArguments args = new FunctionRasters.randomForestArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.RandomForestModel = rf;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
@@ -2166,8 +2243,7 @@ namespace esriUtil
         /// regresses sums an intercept value to the sum product of a series of raster bands and corresponding slope values. Number of bands and slope values must match
         /// </summary>
         /// <param name="inRaster">string IRaster, or IRasterDataset that has the same number of bands as the slopes array has values</param>
-        /// <param name="intercept">double representing the intercept of the regression equation</param>
-        /// <param name="slopes">double[] representing the corresponding slope values</param>
+        /// <param name="slopes">double[] representing the corresponding slope values the first value in the array is the intercept</param>
         /// <returns></returns>
         public IRaster calcRegressFunction(object inRaster, List<float[]> slopes)
         {
@@ -2177,8 +2253,7 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc =  new FunctionRasters.regressionFunctionDataset();
-                   
+            IRasterFunction rsFunc =  new FunctionRasters.regressionFunctionDataset();      
             FunctionRasters.regressionFunctionArguments args = new FunctionRasters.regressionFunctionArguments(this);
             args.InRasterCoefficients = rRst;
             args.Slopes = slopes;
@@ -4234,9 +4309,9 @@ namespace esriUtil
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
             zH.InValueRaster = returnRaster(inValueRaster);
-            zH.convertFeatureToRaster(inFeatureClass, fieldName);
-            //zH.InZoneFeatureClass = inFeatureClass;
-            //zH.InZoneField = fieldName;
+            //zH.convertFeatureToRaster(inFeatureClass, fieldName);
+            zH.InZoneFeatureClass = inFeatureClass;
+            zH.InZoneField = fieldName;
             zH.ZoneTypes = zoneTypes;
             zH.OutTableName = outTableName;
             zH.setZoneValues();
@@ -4297,5 +4372,7 @@ namespace esriUtil
             }
 
         }
+
+        
     }
 }

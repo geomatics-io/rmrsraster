@@ -35,8 +35,8 @@ namespace esriUtil.FunctionRasters
                 inrs = rsUtil.returnRaster(temp, rstPixelType.PT_FLOAT);
             } 
         }
-        private Dictionary<string,float[]> slopes = new Dictionary<string,float[]>();//dictionary of classes and float array = intercept followed by betas
-        public Dictionary<string,float[]> Slopes 
+        private double[][] slopes = null;//dictionary of classes and float array = intercept followed by betas
+        public double[][] Slopes 
         { 
             get 
             { 
@@ -58,7 +58,7 @@ namespace esriUtil.FunctionRasters
                     rs = rsUtil.getBand(inrs, 0);
                     rs = rsUtil.constantRasterFunction(rs, 0);
                     IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    for (int i = 0; i < slopes.Count+1; i++)
+                    for (int i = 0; i < slopes.Length; i++)
                     {
                         rsBc.AppendBand(rsBc.Item(0));
                     }
@@ -68,7 +68,7 @@ namespace esriUtil.FunctionRasters
                     rs = rsUtil.returnRaster(rs, rstPixelType.PT_FLOAT);
                     IRasterBandCollection rsBc = (IRasterBandCollection)rs;
                     int rsCnt = rsBc.Count;
-                    int slCnt = slopes.Count + 2;
+                    int slCnt = slopes.Length + 1;
                     int dif = rsCnt - slCnt;
                     if (dif > 0)
                     {

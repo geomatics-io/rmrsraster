@@ -96,6 +96,10 @@ namespace esriUtil
                 string treeWhereClause = "Tree.Plt_CN = " + ps + String.Join(ps + " or Tree.PLT_CN = " + ps, unCn.ToArray()) + ps;
                 string sqlTreeAGB = "SELECT TREE.PLT_CN, TREE.PLOT, TREE.SUBP, TREE.TREE, TREE.INVYR, TREE.STATUSCD, TREE.SPCD, REF_SPECIES.COMMON_NAME, TREE.DIA, TREE.ACTUALHT, Exp(REF_SPECIES.JENKINS_TOTAL_B1+REF_SPECIES.JENKINS_TOTAL_B2*Log(TREE.DIA*2.54))*2.2046 AS J_TBM, J_TBM*Exp(REF_SPECIES.JENKINS_STEM_WOOD_RATIO_B1+(REF_SPECIES.JENKINS_STEM_WOOD_RATIO_B2/(2.54*TREE.DIA))) AS J_SBM, J_TBM*Exp(REF_SPECIES.JENKINS_STEM_BARK_RATIO_B1+(REF_SPECIES.JENKINS_STEM_BARK_RATIO_B2/(2.54*TREE.DIA))) AS J_BBM, J_TBM*Exp(REF_SPECIES.JENKINS_FOLIAGE_RATIO_B1+(REF_SPECIES.JENKINS_FOLIAGE_RATIO_B2/(2.54*TREE.DIA))) AS J_FBM, J_TBM-J_SBM-J_BBM-J_FBM AS J_TPBM, 0.005454*DIA^2 AS BA FROM TREE INNER JOIN REF_SPECIES ON TREE.SPCD = REF_SPECIES.SPCD WHERE (TREE.DIA >= 5 and (" + treeWhereClause + ")) ORDER BY TREE.PLT_CN, TREE.SUBP, TREE.TREE";
                 string sqlAGBPlot = "SELECT qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME, ((Sum([BA]))*(43560/(3.141592654*24^2))) AS BAA, (Count([DIA]))*(43560/(3.141592654*24^2)) AS TPA, ((Sum([J_TBM]))*(43560/(3.141592654*24^2)))/2000 AS J_AGB, (Sum([J_SBM])*(43560/(3.141592654*24^2)))/2000 AS J_SAGB, (Sum([J_BBM])*(43560/(3.141592654*24^2)))/2000 AS J_BAGB, (Sum([J_FBM])*(43560/(3.141592654*24^2)))/2000 AS J_FAGB, (Sum([J_TPBM])*(43560/(3.141592654*24^2)))/2000 AS J_TPAGB FROM (" + sqlTreeAGB + ") AS qryLbsByTree GROUP BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME ORDER BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR;";
+                if (SubPlotField == "" || SubPlotField == null)
+                {
+                    sqlAGBPlot = "SELECT qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME, ((Sum([BA]))*(43560/(3.141592654*24^2)))/4 AS BAA, (Count([DIA]))*(43560/(3.141592654*24^2))/4 AS TPA, (((Sum([J_TBM]))*(43560/(3.141592654*24^2)))/2000)/4 AS J_AGB, ((Sum([J_SBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_SAGB, ((Sum([J_BBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_BAGB, ((Sum([J_FBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_FAGB, ((Sum([J_TPBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_TPAGB FROM (" + sqlTreeAGB + ") AS qryLbsByTree GROUP BY qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME ORDER BY qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR;";
+                }
                 //esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
                 //rd.addMessage(sqlAGBPlot);
                 //rd.enableClose();
@@ -165,13 +169,23 @@ namespace esriUtil
             string fldNm = "";
             IFeatureCursor ftrCur = null;
             IFeature ftr = null;
+            bool subCheck = true;
+            if (SubPlotField == null || SubPlotField == "") subCheck = false;
             for (int i = 0; i < rCnt; i++)
             {
                 DataRow dr = dTbl.Rows[i];
                 string spCd = dr["SPCD"].ToString();
                 string pltCn = dr["PLT_CN"].ToString();
-                string subPlt = dr["SUBP"].ToString();
-                qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "' and " + SubPlotField + " = " + subPlt;
+                string subPlt = null;
+                if (subCheck)
+                {
+                    subPlt = dr["SUBP"].ToString();
+                    qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "' and " + SubPlotField + " = " + subPlt;
+                }
+                else
+                {
+                    qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "'";
+                }
                 ftrCur = SampleFeatureClass.Search(qryFlt,false);
                 ftr = ftrCur.NextFeature();
                 foreach (biomassTypes s in fldArr)

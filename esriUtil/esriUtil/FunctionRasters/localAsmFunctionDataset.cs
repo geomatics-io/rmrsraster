@@ -10,7 +10,7 @@ using ESRI.ArcGIS.Geometry;
 
 namespace esriUtil.FunctionRasters
 {
-    class localAsmFunctionDataset : localFunctionBase
+    public class localAsmFunctionDataset : localFunctionBase
     {
         public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
         {

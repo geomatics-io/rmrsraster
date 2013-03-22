@@ -17,7 +17,6 @@ using ESRI.ArcGIS.DataSourcesNetCDF;
 using System.Windows.Forms;
 using esriUtil;
 using System.Threading;
-using System.Windows.Forms.DataVisualization;
 
 
 
@@ -37,32 +36,16 @@ namespace TestConsole
             TimeSpan ts;
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            //string mPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\projects\Uncompahgre Plateau\ImageAnalysis\ImageAnalysis.gdb\SASOUTPUT\MVR_SPDF\outest.csv";
-            //IRaster b1 = rsUtil.getBand(@"C:\Documents and Settings\jshogland\My Documents\JOHN\projects\Uncompahgre Plateau\ImageAnalysis\ImageAnalysis.gdb\PROB",1);
-            //IRasterBandCollection nRsBc = new RasterClass();
-            //for (int i = 0; i < 8; i++)
-            //{
-            //    nRsBc.AppendBands((IRasterBandCollection)b1);
-			 
-            //}
-            //rsUtil.calcTobitRegressFunction((IRaster)nRsBc,mPath,0);
-
-            esriUtil.Forms.RunningProcess.frmRunningProcessDialog frp = new esriUtil.Forms.RunningProcess.frmRunningProcessDialog(false);
-            frp.Show();
-            batchCalculations btc = new batchCalculations(rsUtil, frp);
-            btc.BatchPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\projects\Uncompahgre Plateau\ImageAnalysis\ImageAnalysis.gdb\functionDatasets\FinalSpDf2.bch";
-            btc.loadBatchFile();
-            btc.runBatch();
-            //string wksStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\MAGIP\MAGIP_Presentation.gdb";
-            //string zoneFtr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\Reeves\countieswgs.shp";
-            //string valueRst = @"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\Reeves\Cgcm2_b2_12_09_mavg.img";
-            //IRaster vRs = rsUtil.returnRaster(valueRst);
-            //IFeatureClass ftrCls = geoUtil.getFeatureClass(zoneFtr);
-            //rasterUtil.zoneType[] zt = {rasterUtil.zoneType.SUM};
-            //rsUtil.zonalStats(ftrCls, "Allu", vRs, "testPr1", zt, null);
-            ////esriUtil.Forms.Texture.frmCreateGlcmSurface frm = new esriUtil.Forms.Texture.frmCreateGlcmSurface(null, ref rsUtil, false);// esriUtil.Forms.SasProcedures.frmRunPolytomousLogisticRegression(null);// esriUtil.Forms.RasterAnalysis.frmBatchProcess();
-            ////System.Windows.Forms.Application.Run(frm); 
-            
+            string ftrClsPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\m7001_RSA";
+            string zoneValuePath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\m7001";
+            IRaster vRs = rsUtil.returnRaster(zoneValuePath);
+            IFeatureClass ftrCls = geoUtil.getFeatureClass(ftrClsPath);
+            Console.WriteLine((ftrCls == null).ToString());
+            esriUtil.FunctionRasters.zonalHelper zH = new esriUtil.FunctionRasters.zonalHelper();
+            zH.InValueRaster = vRs;
+            zH.InZoneFeatureClass = ftrCls;
+            zH.InZoneField = "GRIDCODE";
+            zH.reprojectInFeatureClass(ftrCls, ((IRasterProps)vRs).SpatialReference);
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Pointer Total Seconds = " + ts.TotalSeconds.ToString());

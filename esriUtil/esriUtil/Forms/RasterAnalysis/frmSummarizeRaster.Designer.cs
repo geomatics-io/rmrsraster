@@ -93,6 +93,7 @@
             this.lsbRaster.FormattingEnabled = true;
             this.lsbRaster.Location = new System.Drawing.Point(12, 56);
             this.lsbRaster.Name = "lsbRaster";
+            this.lsbRaster.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.lsbRaster.Size = new System.Drawing.Size(211, 108);
             this.lsbRaster.TabIndex = 40;
             // 

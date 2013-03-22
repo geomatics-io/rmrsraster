@@ -57,6 +57,7 @@ namespace esriUtil.Forms.RunningProcess
         public void enableClose()
         {
             btnClose.Enabled = true;
+            btnSave.Enabled = true;
             rtbMessages.Enabled = true;
             this.pgbProcess.Style = ProgressBarStyle.Blocks;
             this.Refresh();
@@ -71,6 +72,36 @@ namespace esriUtil.Forms.RunningProcess
         {
             Thread t = new Thread(() => Application.Run(this));
             t.Start();
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.AddExtension = true;
+            sd.DefaultExt = "txt";
+            sd.Filter = "Text|*.txt";
+            if (sd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(sd.FileName))
+                {
+                    foreach (string s in rtbMessages.Lines)
+                    {
+                        sw.WriteLine(s);
+                    }
+                    sw.Close();
+                }
+                if (System.Windows.Forms.MessageBox.Show("Report has been saved. Do you want to open it?", "Open", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    System.Diagnostics.Process.Start(sd.FileName);
+                }
+            }
+        }
+
+        private void frmRunningProcessDialog_ResizeEnd(object sender, EventArgs e)
+        {
+            
+            rtbMessages.Width = this.Size.Width - 3;
+            rtbMessages.Height = this.Size.Height - 59;
         }
 
     }

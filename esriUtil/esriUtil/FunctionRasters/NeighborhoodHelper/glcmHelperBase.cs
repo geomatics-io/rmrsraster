@@ -194,12 +194,16 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             IRaster mRs = RasterUtility.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
             IRaster mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
             IRaster cov = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            //IRaster cov2 = RasterUtility.calcEqualFunction(cov1, 0);
+            //IRaster cov = RasterUtility.calcArithmaticFunction(cov2, cov1, esriRasterArithmeticOperation.esriRasterPlus);
             //Var
             IRaster x2 = RasterUtility.calcArithmaticFunction(InRaster, 2,esriRasterArithmeticOperation.esriRasterPower);
             IRaster mvRst2 = getShiftedRaster(x2);
             pRs2 = RasterUtility.calcArithmaticFunction(x2, mvRst2, esriRasterArithmeticOperation.esriRasterPlus);
             mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
             IRaster var = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            //IRaster var2 = RasterUtility.calcEqualFunction(var1, 0);
+            //IRaster var = RasterUtility.calcArithmaticFunction(var2, var1, esriRasterArithmeticOperation.esriRasterPlus);
             IRaster cor = RasterUtility.calcArithmaticFunction(cov, var, esriRasterArithmeticOperation.esriRasterDivide);
             return RasterUtility.setnullToValueFunction(cor, 1);
         }

@@ -265,7 +265,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 else
                 {
-                    rp.addMessage("Converting feature class to raster...");
+                    rp.addMessage("Running Zonal Statistics on feature class...");
                     rp.Refresh();
                     IFeatureClass zFtr = ftrDic[zNm];
                     outTbl = rsUtil.zonalStats(zFtr,zFld,vRs,oTbl,rsLst.ToArray(),rp);
@@ -298,9 +298,25 @@ namespace esriUtil.Forms.RasterAnalysis
 
         private void btnMinus_Click(object sender, EventArgs e)
         {
-            object itVl = lsbStats.SelectedItem;
-            cmbZonalStat.Items.Add(itVl);
-            lsbStats.Items.Remove(itVl);
+            ListBox.SelectedObjectCollection s = lsbStats.SelectedItems;
+            int cnt = s.Count;
+            List<string> rLst = new List<string>();
+            for (int i = 0; i < cnt; i++)
+            {
+                string txt = s[i].ToString();
+                rLst.Add(txt);
+                if (txt != null && txt != "")
+                {
+                    if (!cmbZonalStat.Items.Contains(txt))
+                    {
+                        cmbZonalStat.Items.Add(txt);
+                    }
+                }
+            }
+            foreach (string r in rLst)
+            {
+                lsbStats.Items.Remove(r);
+            }
 
         }
 

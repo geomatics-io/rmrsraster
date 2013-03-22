@@ -20,7 +20,7 @@ namespace servicesToolBar
         {
             IMxDocument mxDoc = ArcMap.Document;
             IMap map = mxDoc.FocusMap;
-            esriUtil.Forms.SasProcedures.frmRunRegressionRaster frm = new esriUtil.Forms.SasProcedures.frmRunRegressionRaster(map);
+            esriUtil.Forms.Stats.frmRunRegressionRaster frm = new esriUtil.Forms.Stats.frmRunRegressionRaster(map);
             frm.Show();
         }
 

@@ -156,6 +156,7 @@
             this.lsbStats.FormattingEnabled = true;
             this.lsbStats.Location = new System.Drawing.Point(14, 140);
             this.lsbStats.Name = "lsbStats";
+            this.lsbStats.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.lsbStats.Size = new System.Drawing.Size(211, 108);
             this.lsbStats.TabIndex = 43;
             // 
