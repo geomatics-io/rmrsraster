@@ -37,6 +37,7 @@ namespace esriUtil.Forms.Sampling
             {
                 this.Text = "Create Stratified Random Sample";
                 lblNS.Text = "Samples per Strata";
+                btnOpenModel.Visible = true;
             }
         }
         private bool strata = false;
@@ -125,7 +126,18 @@ namespace esriUtil.Forms.Sampling
             string rst = cmbRst.Text;
             string oWks = txtOutWorkspace.Text;
             string sNm = txtSampleName.Text;
-            int numSample = System.Convert.ToInt32(nudSamples.Value);
+            string mPath = txtSampleSize.Text;
+            int[] numSample = null;
+            double prop = System.Convert.ToDouble(nudProp.Value);
+            double alpha = System.Convert.ToDouble(nudAlpha.Value);
+            if (rsUtil.isNumeric(mPath))
+            {
+                numSample = new int[]{System.Convert.ToInt32(mPath)};
+            }
+            else
+            {
+                numSample = esriUtil.Statistics.dataPrepSampleSize.sampleSizeMaxCluster(mPath, prop, alpha);
+            }
             if (rst == null || rst == "" || oWks == null || oWks == "")
             {
                 MessageBox.Show("You must specify a raster, an output workspace, and a output file name!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -155,7 +167,7 @@ namespace esriUtil.Forms.Sampling
                     rp.addMessage("Creating random sample. This could take a while...");
                     rp.stepPGBar(10);
                     rp.Refresh();
-                    ftrCls =rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rs, numSample,sNm);
+                    ftrCls =rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rs, numSample[0],sNm);
                 }
                 if (mp!=null)
                 {
@@ -185,6 +197,29 @@ namespace esriUtil.Forms.Sampling
                 rp.enableClose();
                 //rp.TopLevel = false;
                 this.Close();
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            txtSampleSize.Text = esriUtil.Statistics.ModelHelper.openModelFileDialog();
+        }
+
+        private void txtSampleSize_TextChanged(object sender, EventArgs e)
+        {
+            if (System.IO.File.Exists(txtSampleSize.Text))
+            {
+                nudProp.Visible = true;
+                nudAlpha.Visible = true;
+                lblAlpha.Visible = true;
+                lblProp.Visible = true;
+            }
+            else
+            {
+                nudProp.Visible = false;
+                nudAlpha.Visible = false;
+                lblAlpha.Visible = false;
+                lblProp.Visible = false;
             }
         }
     }

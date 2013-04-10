@@ -158,95 +158,101 @@ namespace esriUtil.FunctionRasters
             {
                 IGeometry geo = ftr.Shape;
                 double z = System.Convert.ToDouble(ftr.get_Value(zoneIndex));
-                IRaster rs = rsUtil.clipRasterFunction(vRs, geo, esriRasterClippingType.esriRasterClippingOutside);
-                IEnvelope rsEnv = ((IRasterProps)rs).Extent;
-                Console.WriteLine((rsEnv.Width/30).ToString() + ", " + (rsEnv.Height/30).ToString());
-                IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);        
-                do
+                IPolygon4 poly = (IPolygon4)geo;
+                IGeometryBag geoBag = poly.ExteriorRingBag;
+                IGeometryCollection geoColl = (IGeometryCollection)geoBag;
+                for (int g = 0; g < geoColl.GeometryCount; g++)
                 {
-                    IPixelBlock pb = rsCur.PixelBlock;
-                    for (int p = 0; p < pb.Planes; p++)
+                    IGeometry geo2 = geoColl.Geometry[g];
+                    IRaster rs = rsUtil.clipRasterFunction(vRs, geo2, esriRasterClippingType.esriRasterClippingOutside);
+                    IEnvelope rsEnv = ((IRasterProps)rs).Extent;
+                    //Console.WriteLine((rsEnv.Width / 30).ToString() + ", " + (rsEnv.Height / 30).ToString());
+                    IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
+                    do
                     {
-                        zoneValueDic = zoneValueDicArr[p];
-                        object[] zoneValue;
-                        double cnt = 0;
-                        double maxVl = Double.MinValue;
-                        double minVl = Double.MaxValue;
-                        double s = 0;
-                        double s2 = 0;
-                        Dictionary<double,int> uDic = null;
-                        if(zoneValueDic.TryGetValue(z,out zoneValue))
+                        IPixelBlock pb = rsCur.PixelBlock;
+                        for (int p = 0; p < pb.Planes; p++)
                         {
-                            cnt = System.Convert.ToDouble(zoneValue[0]);
-                            maxVl = System.Convert.ToDouble(zoneValue[1]);
-                            minVl = System.Convert.ToDouble(zoneValue[2]);
-                            s = System.Convert.ToDouble(zoneValue[3]);
-                            s2 = System.Convert.ToDouble(zoneValue[4]);
-                            uDic = (Dictionary<double,int>)zoneValue[5];
-                        }
-                        else
-                        {
-                            zoneValue = new object[6];
+                            zoneValueDic = zoneValueDicArr[p];
+                            object[] zoneValue;
+                            double cnt = 0;
+                            double maxVl = Double.MinValue;
+                            double minVl = Double.MaxValue;
+                            double s = 0;
+                            double s2 = 0;
+                            Dictionary<double, int> uDic = null;
+                            if (zoneValueDic.TryGetValue(z, out zoneValue))
+                            {
+                                cnt = System.Convert.ToDouble(zoneValue[0]);
+                                maxVl = System.Convert.ToDouble(zoneValue[1]);
+                                minVl = System.Convert.ToDouble(zoneValue[2]);
+                                s = System.Convert.ToDouble(zoneValue[3]);
+                                s2 = System.Convert.ToDouble(zoneValue[4]);
+                                uDic = (Dictionary<double, int>)zoneValue[5];
+                            }
+                            else
+                            {
+                                zoneValue = new object[6];
+                                zoneValue[0] = cnt;
+                                zoneValue[1] = maxVl;
+                                zoneValue[2] = minVl;
+                                zoneValue[3] = s;
+                                zoneValue[4] = s2;
+                                uDic = null;
+                                if (makeDic)
+                                {
+                                    uDic = new Dictionary<double, int>();
+                                }
+                                zoneValue[5] = uDic;
+                            }
+                            for (int r = 0; r < pb.Height; r++)
+                            {
+                                for (int c = 0; c < pb.Width; c++)
+                                {
+                                    object vlo = pb.GetVal(p, c, r);
+                                    if (vlo == null)
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        double vl = System.Convert.ToDouble(vlo);
+                                        cnt++;
+                                        if (vl > maxVl) maxVl = vl;
+                                        if (vl < minVl) minVl = vl;
+                                        s += vl;
+                                        s2 += vl * vl;
+                                        if (makeDic)
+                                        {
+                                            int cntVl = 0;
+                                            if (uDic.TryGetValue(vl, out cntVl))
+                                            {
+                                                uDic[vl] = cntVl += 1;
+                                            }
+                                            else
+                                            {
+                                                uDic.Add(vl, 1);
+                                            }
+
+                                        }
+                                    }
+
+
+                                }
+
+
+                            }
                             zoneValue[0] = cnt;
                             zoneValue[1] = maxVl;
                             zoneValue[2] = minVl;
                             zoneValue[3] = s;
                             zoneValue[4] = s2;
-                            uDic = null;
-                            if (makeDic)
-                            {
-                                uDic = new Dictionary<double, int>();
-                            }
                             zoneValue[5] = uDic;
+                            zoneValueDic[z] = zoneValue;
+
                         }
-                        for (int r = 0; r < pb.Height; r++)
-                        {
-                            for (int c = 0; c < pb.Width; c++)
-                            {
-                                object vlo = pb.GetVal(p,c,r);
-                                if (vlo==null)
-                                {
-                                    continue;
-                                }
-                                else
-                                {
-                                    double vl = System.Convert.ToDouble(vlo);
-                                    cnt++;
-                                    if (vl > maxVl) maxVl = vl;
-                                    if (vl < minVl) minVl = vl;
-                                    s += vl;
-                                    s2 += vl * vl;
-                                    if (makeDic)
-                                    {
-                                        int cntVl = 0;
-                                        if (uDic.TryGetValue(vl, out cntVl))
-                                        {
-                                            uDic[vl] = cntVl += 1;
-                                        }
-                                        else
-                                        {
-                                            uDic.Add(vl, 1);
-                                        }
-
-                                    }
-                                }
-
-
-                            }
-                            
-                            
-                        }
-                        zoneValue[0] = cnt;
-                        zoneValue[1] = maxVl;
-                        zoneValue[2] = minVl;
-                        zoneValue[3] = s;
-                        zoneValue[4] = s2;
-                        zoneValue[5] = uDic;
-                        zoneValueDic[z] = zoneValue;
-                        
-                    }
-                }while (rsCur.Next());
-                
+                    } while (rsCur.Next());
+                }
                 ftr = fCur.NextFeature();
             }
             
@@ -319,17 +325,13 @@ namespace esriUtil.FunctionRasters
                     geoUtil.createField(oTbl, fldNm, esriFieldType.esriFieldTypeDouble);
                 }
             }
-            bool weStartEdit = true;
             IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
             if (wksE.IsBeingEdited())
             {
-                weStartEdit = false;
+                wksE.StopEditing(true);
             }
-            else
-            {
-                wksE.StartEditing(false);
-            }
-            wksE.StartEditOperation();
+            //ITransactions trs = (ITransactions)wks;
+            //trs.StartTransaction();
             try
             {
                 int bdIndex = oTbl.FindField("Band");
@@ -389,18 +391,15 @@ namespace esriUtil.FunctionRasters
                     }
                     bndCnt += 1;
                 }
+                //trs.CommitTransaction();
             }
             catch(Exception e)
             {
                 Console.WriteLine(e.ToString());
+                //trs.AbortTransaction();
             }
             finally
             {
-                wksE.StopEditOperation();
-                if (weStartEdit)
-                {
-                    wksE.StopEditing(true);
-                }
             }
 
         }
@@ -542,7 +541,6 @@ namespace esriUtil.FunctionRasters
             {
                 int rH = hCellsMax-brw;//Height of block
                 if (rH > bH) rH = bH;
-                
                 for (int bclm = 0; bclm < wCellsMax; bclm += bW)
                 {
                     int cW = wCellsMax - bclm;//Width of block
@@ -860,6 +858,12 @@ namespace esriUtil.FunctionRasters
 
         public static void transformData(ITable zoneTable, string linkFieldName, ITable zonalSummaryTable)
         {
+            IObjectClassInfo2 oi2 = (IObjectClassInfo2)zoneTable;
+            if (!oi2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Table has a composite relationship. Please export data to a simple object and try again.");
+                return;
+            }
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
             IFields zsFlds = zonalSummaryTable.Fields;
             IFields zFlds = zoneTable.Fields;
@@ -884,7 +888,7 @@ namespace esriUtil.FunctionRasters
             en.MoveNext();
             do
             {
-                Console.WriteLine(en.Current.ToString());
+                //Console.WriteLine(en.Current.ToString());
                 unqCnt++;
             } while (en.MoveNext());
             int exRwCnt = zoneTable.RowCount(null) * unqCnt;
@@ -935,7 +939,7 @@ namespace esriUtil.FunctionRasters
             IQueryFilter qfzs = new QueryFilterClass();
             IQueryFilterDefinition qfzsD = (IQueryFilterDefinition)qfzs;
             qfzsD.PostfixClause = "ORDER BY Zone, Band";
-            ICursor curZ = zoneTable.Search(qfz, false);
+            ICursor curZ = zoneTable.Update(qfz, false);
             ICursor curZs = zonalSummaryTable.Search(qfzs, false);
             IRow rwZ = curZ.NextRow();
             while (rwZ != null)
@@ -953,7 +957,7 @@ namespace esriUtil.FunctionRasters
                         rwZ.set_Value(newZNameIndex, zsVl);
                     }
                 }
-                rwZ.Store();
+                curZ.UpdateRow(rwZ);
                 rwZ = curZ.NextRow();
             }
             

@@ -88,11 +88,24 @@ namespace esriUtil.Statistics
         double[][]inputMatrix = null;
         private int k = 2;
         public int Classes { get { return k; } }
+        private List<string> lbl = null;
+        public List<string> Labels
+        {
+            get
+            {
+                return lbl;
+            }
+        }
         private void buildModel()
         {
             if (inputMatrix == null) getMatrix();
             kmeans = new KMeans(k);
             kmeans.Compute(inputMatrix,0.0001);
+            lbl = new List<string>();
+            for (int i = 0; i < k; i++)
+            {
+                lbl.Add(i.ToString());
+            }
         }
         private double prop = 1;
         private void getMatrix()
@@ -229,6 +242,7 @@ namespace esriUtil.Statistics
             rd.addMessage("Input path = " + InPath);
             rd.addMessage("Sample size = " + n.ToString() + " proportion of total records = " + prop.ToString() );
             rd.addMessage("Number of Cluster = " + k.ToString());
+            rd.addMessage("Labels = " + String.Join(", ", lbl.ToArray()));
             rd.addMessage("Variables: " + String.Join(" ,", VariableFieldNames));
             KMeansClusterCollection gCol = kmeans.Clusters;
             for (int i = 0; i < gCol.Count; i++)
@@ -236,7 +250,7 @@ namespace esriUtil.Statistics
                 KMeansCluster gClust = gCol[i];
                 double[] mns = gClust.Mean;
                 double[,] cov = gClust.Covariance;
-                rd.addMessage("\n\nCluster " + (i+1).ToString() + ":\nMeans: " + String.Join(", ", (from double d in mns select d.ToString()).ToArray()) + "\nCovariance:"); 
+                rd.addMessage("\n\nCluster " + Labels[i] + ":\nMeans: " + String.Join(", ", (from double d in mns select d.ToString()).ToArray()) + "\nCovariance:"); 
                 for (int j = 0; j < VariableFieldNames.Length; j++)
                 {
                     string[] covStrArr = new string[VariableFieldNames.Length];
@@ -263,6 +277,7 @@ namespace esriUtil.Statistics
                 sw.WriteLine(n.ToString());
                 sw.WriteLine(prop.ToString());
                 sw.WriteLine(k.ToString());
+                sw.WriteLine(String.Join(",", lbl.ToArray()));
                 KMeansClusterCollection gCol = kmeans.Clusters;
                 for (int i = 0; i < gCol.Count; i++)
                 {
@@ -291,6 +306,7 @@ namespace esriUtil.Statistics
                 n = System.Convert.ToInt32(sr.ReadLine());
                 prop = System.Convert.ToDouble(sr.ReadLine());
                 k = System.Convert.ToInt32(sr.ReadLine());
+                lbl = sr.ReadLine().Split(new char[] { ',' }).ToList();
                 kmeans = new KMeans(k);
                 KMeansClusterCollection kmeansColl = kmeans.Clusters;
                 for (int i = 0; i < k; i++)

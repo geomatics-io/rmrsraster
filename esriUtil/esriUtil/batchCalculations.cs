@@ -499,7 +499,15 @@ namespace esriUtil
 
         private IRaster createLocalFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IRasterBandCollection rsBC = new RasterClass();
+            string rstStr = paramArr[0];
+            rasterUtil.localType lType = (rasterUtil.localType)Enum.Parse(typeof(rasterUtil.localType),paramArr[1]);
+            foreach (string s in rstStr.Split(new char[] { ',' }))
+            {
+                IRaster rs = getRaster(s);
+                rsBC.AppendBands((IRasterBandCollection)rs);
+            }
+            return rsUtil.localStatisticsfunction((IRaster)rsBC,lType);
         }
 
         private IRaster createFocalFunction(string[] paramArr)
@@ -773,6 +781,7 @@ namespace esriUtil
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;width;height;focalStat)\noutRS = " + batchFunction.ToString() + "(in_Raster1;radius;focalStat)";
                     break;
                 case batchGroups.LOCALSTATISTICS:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster1,inRaster2;localType)";
                     break;
                 case batchGroups.LINEARTRANSFORM:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;betas{0.12,2.25,1,6.3}; intercept should be the first number)";

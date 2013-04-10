@@ -131,9 +131,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(12, 74);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(102, 13);
+            this.label3.Size = new System.Drawing.Size(106, 13);
             this.label3.TabIndex = 44;
-            this.label3.Text = "Indipendent Rasters";
+            this.label3.Text = "Independent Rasters";
             // 
             // cmbInRaster1
             // 

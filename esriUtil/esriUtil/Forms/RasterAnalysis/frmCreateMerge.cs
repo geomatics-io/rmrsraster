@@ -126,11 +126,11 @@ namespace esriUtil.Forms.RasterAnalysis
                     lyr = rstLyrs.Next();
                 }
             }
-            foreach (string s in Enum.GetNames(typeof(rstMosaicOperatorType)))
+            foreach (string s in Enum.GetNames(typeof(rasterUtil.mergeType)))
             {
-                if(s != "MT_CUSTOM") cmbMergeType.Items.Add(s);
+                cmbMergeType.Items.Add(s);
             }
-            cmbMergeType.SelectedItem = rstMosaicOperatorType.MT_MAX.ToString();
+            cmbMergeType.SelectedItem = rasterUtil.mergeType.FIRST.ToString();
         }
 
          private void btnOpenRaster_Click(object sender, EventArgs e)
@@ -163,7 +163,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must specify a merge type","No merge type",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
-            rstMosaicOperatorType mType = (rstMosaicOperatorType)Enum.Parse(typeof(rstMosaicOperatorType),mtypStr);
+            rasterUtil.mergeType mType = (rasterUtil.mergeType)Enum.Parse(typeof(rasterUtil.mergeType),mtypStr);
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
@@ -173,7 +173,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.Show();
             try
             {
-                outraster = rsUtil.mergeRasterFunction(rsArr, mType, rstNm);//rsUtil.calcMosaicFunction(rsArr, mType);//
+                outraster = rsUtil.calcMosaicFunction(rsArr,mType);//rsUtil.mergeRasterFunction(rsArr, mType, rstNm);//
                 if (mp != null&&addToMap)
                 {
                     rp.Refresh();

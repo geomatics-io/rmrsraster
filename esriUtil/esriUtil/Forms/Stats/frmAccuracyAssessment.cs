@@ -30,7 +30,7 @@ namespace esriUtil.Forms.Stats
         private viewUtility vUtil = null;
         private Dictionary<string, ITable> ftrDic = new Dictionary<string, ITable>();
         private IFields flds = null;
-        private string weight = null;
+        private string weight = "";
         private string WEIGHT { get { return weight; } set { weight = value; } }
         private List<string> lstCategoricalFlds = new List<string>();
         private void populateComboBox()
@@ -162,6 +162,10 @@ namespace esriUtil.Forms.Stats
             this.Visible = false;
             ITable ftrCls = ftrDic[smpFtrNm];
             Statistics.dataGeneralConfusionMatirx aa = new Statistics.dataGeneralConfusionMatirx(ftrCls,refFld,mapFld);
+            if (WEIGHT != "")
+            {
+                aa.WeightFeild = WEIGHT;
+            }
             aa.writeXTable(outModelPath);
             aa.getReport(alpha);
             this.Close();

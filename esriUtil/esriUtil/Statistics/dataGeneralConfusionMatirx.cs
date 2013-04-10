@@ -27,6 +27,8 @@ namespace esriUtil.Statistics
             IndependentFieldNames = new string[]{independentField};
             ClassFieldNames = new string[]{dependentField,independentField};
         }
+        private string weightfld = "";
+        public string WeightFeild { get { return weightfld; } set { weightfld = value; } }
         private GeneralConfusionMatrix gConf = null;
         public GeneralConfusionMatrix GeneralConfusionMatrix
         {
@@ -53,7 +55,7 @@ namespace esriUtil.Statistics
             return unVlDic[classVariable].ToArray();
         }
         List<string> labels;
-        public string[] Labels { get { return Labels; } }
+        public string[] Labels { get { return labels.ToArray(); } }
         public override double[,] getMatrix()
         {
             if (unVlDic == null) unVlDic = UniqueClassValues;
@@ -64,6 +66,7 @@ namespace esriUtil.Statistics
                 aVlLst.AddRange(vlLst);
             }
             labels = aVlLst.Distinct().ToList();
+            double[] weights = new double[labels.Count];
             int clms = labels.Count();
             int rws = clms;
             xtable = new int[clms, rws];
@@ -72,18 +75,48 @@ namespace esriUtil.Statistics
             ICursor cur = InTable.Search(qf, false);
             int depIndex = cur.FindField(DependentFieldNames[0]);
             int indIndex = cur.FindField(IndependentFieldNames[0]);
+            int wIndex = -1;
+            if (weightfld != "")
+            {
+                wIndex = cur.FindField(weightfld);
+            }
             IRow rw = cur.NextRow();
             while (rw != null)
             {
                 string dVl = rw.get_Value(depIndex).ToString();
                 string iVl = rw.get_Value(indIndex).ToString();
+                double w = 1;
+                if (wIndex != -1)
+                {
+                    w = System.Convert.ToDouble(rw.get_Value(wIndex));
+                }
                 int mClm = labels.IndexOf(iVl);
                 int mRws = labels.IndexOf(dVl);
+                weights[mClm] = w;
                 xtable[mClm, mRws] += 1;
                 rw = cur.NextRow();
             }
+            if (wIndex != -1)
+            {
+                updateXTable(weights);
+            }
             return null;
             
+        }
+
+        private void updateXTable(double[] weights)
+        {
+            for (int r = 0; r < weights.Length; r++)
+            {
+                for (int c = 0; c < weights.Length; c++)
+                {
+                    double w = weights[c];
+                    int vl = System.Convert.ToInt32(xtable[c, r] * w);
+                    xtable[c, r] = vl;
+                }
+
+            }
+        
         }
         public override double[] getArray(string varName)
         {

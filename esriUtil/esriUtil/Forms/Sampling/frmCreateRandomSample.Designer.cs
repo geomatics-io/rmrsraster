@@ -31,7 +31,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmCreateRandomSample));
             this.cmbRst = new System.Windows.Forms.ComboBox();
             this.txtOutWorkspace = new System.Windows.Forms.TextBox();
-            this.nudSamples = new System.Windows.Forms.NumericUpDown();
             this.lblNS = new System.Windows.Forms.Label();
             this.btnCreateSamples = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -40,7 +39,14 @@
             this.label4 = new System.Windows.Forms.Label();
             this.btnOpenWorkspace = new System.Windows.Forms.Button();
             this.btnOpenRaster = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.nudSamples)).BeginInit();
+            this.txtSampleSize = new System.Windows.Forms.TextBox();
+            this.btnOpenModel = new System.Windows.Forms.Button();
+            this.nudProp = new System.Windows.Forms.NumericUpDown();
+            this.nudAlpha = new System.Windows.Forms.NumericUpDown();
+            this.lblProp = new System.Windows.Forms.Label();
+            this.lblAlpha = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProp)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlpha)).BeginInit();
             this.SuspendLayout();
             // 
             // cmbRst
@@ -58,37 +64,10 @@
             this.txtOutWorkspace.Size = new System.Drawing.Size(226, 20);
             this.txtOutWorkspace.TabIndex = 2;
             // 
-            // nudSamples
-            // 
-            this.nudSamples.Increment = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            this.nudSamples.Location = new System.Drawing.Point(15, 164);
-            this.nudSamples.Maximum = new decimal(new int[] {
-            200000,
-            0,
-            0,
-            0});
-            this.nudSamples.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.nudSamples.Name = "nudSamples";
-            this.nudSamples.Size = new System.Drawing.Size(120, 20);
-            this.nudSamples.TabIndex = 4;
-            this.nudSamples.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
-            // 
             // lblNS
             // 
             this.lblNS.AutoSize = true;
-            this.lblNS.Location = new System.Drawing.Point(12, 147);
+            this.lblNS.Location = new System.Drawing.Point(12, 146);
             this.lblNS.Name = "lblNS";
             this.lblNS.Size = new System.Drawing.Size(99, 13);
             this.lblNS.TabIndex = 5;
@@ -96,7 +75,7 @@
             // 
             // btnCreateSamples
             // 
-            this.btnCreateSamples.Location = new System.Drawing.Point(162, 187);
+            this.btnCreateSamples.Location = new System.Drawing.Point(162, 192);
             this.btnCreateSamples.Name = "btnCreateSamples";
             this.btnCreateSamples.Size = new System.Drawing.Size(105, 23);
             this.btnCreateSamples.TabIndex = 6;
@@ -159,11 +138,104 @@
             this.btnOpenRaster.UseVisualStyleBackColor = true;
             this.btnOpenRaster.Click += new System.EventHandler(this.btnOpenRaster_Click);
             // 
+            // txtSampleSize
+            // 
+            this.txtSampleSize.Location = new System.Drawing.Point(12, 163);
+            this.txtSampleSize.Name = "txtSampleSize";
+            this.txtSampleSize.Size = new System.Drawing.Size(100, 20);
+            this.txtSampleSize.TabIndex = 12;
+            this.txtSampleSize.TextChanged += new System.EventHandler(this.txtSampleSize_TextChanged);
+            // 
+            // btnOpenModel
+            // 
+            this.btnOpenModel.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnOpenModel.Location = new System.Drawing.Point(117, 160);
+            this.btnOpenModel.Name = "btnOpenModel";
+            this.btnOpenModel.Size = new System.Drawing.Size(26, 25);
+            this.btnOpenModel.TabIndex = 13;
+            this.btnOpenModel.UseVisualStyleBackColor = true;
+            this.btnOpenModel.Visible = false;
+            this.btnOpenModel.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // nudProp
+            // 
+            this.nudProp.DecimalPlaces = 2;
+            this.nudProp.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.nudProp.Location = new System.Drawing.Point(155, 162);
+            this.nudProp.Maximum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudProp.Name = "nudProp";
+            this.nudProp.Size = new System.Drawing.Size(53, 20);
+            this.nudProp.TabIndex = 14;
+            this.nudProp.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.nudProp.Visible = false;
+            // 
+            // nudAlpha
+            // 
+            this.nudAlpha.DecimalPlaces = 2;
+            this.nudAlpha.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.nudAlpha.Location = new System.Drawing.Point(214, 162);
+            this.nudAlpha.Maximum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudAlpha.Name = "nudAlpha";
+            this.nudAlpha.Size = new System.Drawing.Size(53, 20);
+            this.nudAlpha.TabIndex = 15;
+            this.nudAlpha.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            131072});
+            this.nudAlpha.Visible = false;
+            // 
+            // lblProp
+            // 
+            this.lblProp.AutoSize = true;
+            this.lblProp.Location = new System.Drawing.Point(152, 145);
+            this.lblProp.Name = "lblProp";
+            this.lblProp.Size = new System.Drawing.Size(44, 13);
+            this.lblProp.TabIndex = 16;
+            this.lblProp.Text = "% mean";
+            this.lblProp.Visible = false;
+            // 
+            // lblAlpha
+            // 
+            this.lblAlpha.AutoSize = true;
+            this.lblAlpha.Location = new System.Drawing.Point(211, 145);
+            this.lblAlpha.Name = "lblAlpha";
+            this.lblAlpha.Size = new System.Drawing.Size(33, 13);
+            this.lblAlpha.TabIndex = 17;
+            this.lblAlpha.Text = "alpha";
+            this.lblAlpha.Visible = false;
+            // 
             // frmCreateRandomSample
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(277, 224);
+            this.Controls.Add(this.lblAlpha);
+            this.Controls.Add(this.lblProp);
+            this.Controls.Add(this.nudAlpha);
+            this.Controls.Add(this.nudProp);
+            this.Controls.Add(this.btnOpenModel);
+            this.Controls.Add(this.txtSampleSize);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.txtSampleName);
             this.Controls.Add(this.label3);
@@ -171,7 +243,6 @@
             this.Controls.Add(this.btnOpenWorkspace);
             this.Controls.Add(this.btnCreateSamples);
             this.Controls.Add(this.lblNS);
-            this.Controls.Add(this.nudSamples);
             this.Controls.Add(this.txtOutWorkspace);
             this.Controls.Add(this.cmbRst);
             this.Controls.Add(this.btnOpenRaster);
@@ -180,7 +251,8 @@
             this.Name = "frmCreateRandomSample";
             this.Text = "Create Random Sample";
             this.TopMost = true;
-            ((System.ComponentModel.ISupportInitialize)(this.nudSamples)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudProp)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlpha)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -191,7 +263,6 @@
         private System.Windows.Forms.Button btnOpenRaster;
         private System.Windows.Forms.ComboBox cmbRst;
         private System.Windows.Forms.TextBox txtOutWorkspace;
-        private System.Windows.Forms.NumericUpDown nudSamples;
         private System.Windows.Forms.Label lblNS;
         private System.Windows.Forms.Button btnCreateSamples;
         private System.Windows.Forms.Button btnOpenWorkspace;
@@ -199,5 +270,11 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtSampleName;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtSampleSize;
+        public System.Windows.Forms.Button btnOpenModel;
+        public System.Windows.Forms.NumericUpDown nudProp;
+        public System.Windows.Forms.NumericUpDown nudAlpha;
+        public System.Windows.Forms.Label lblProp;
+        public System.Windows.Forms.Label lblAlpha;
     }
 }

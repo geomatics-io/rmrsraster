@@ -87,7 +87,7 @@ namespace esriUtil
         {
             try
             {
-                List<string> unCn = geoDbUtil.getUniqueValues(SampleFeatureClass, PlotCnField);
+                HashSet<string> unCn = geoDbUtil.getUniqueValues(SampleFeatureClass, PlotCnField);
                 string ps = "";
                 if (SampleFeatureClass.Fields.get_Field(SampleFeatureClass.FindField(PlotCnField)).Type == esriFieldType.esriFieldTypeString)
                 {
@@ -186,7 +186,7 @@ namespace esriUtil
                 {
                     qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "'";
                 }
-                ftrCur = SampleFeatureClass.Search(qryFlt,false);
+                ftrCur = SampleFeatureClass.Update(qryFlt,false);
                 ftr = ftrCur.NextFeature();
                 foreach (biomassTypes s in fldArr)
                 {
@@ -221,10 +221,10 @@ namespace esriUtil
                         }
                     }
                 }
-                ftr.Store();
+                ftrCur.UpdateFeature(ftr);
             }
             qryFlt.WhereClause = fldNm + " is NULL";
-            ftrCur = SampleFeatureClass.Search(qryFlt,false);
+            ftrCur = SampleFeatureClass.Update(qryFlt,false);
             ftr = ftrCur.NextFeature();
             while (ftr != null)
             {
@@ -238,7 +238,7 @@ namespace esriUtil
                         ftr.set_Value(fldIndex, 0);
                     }
                 }
-                ftr.Store();
+                ftrCur.UpdateFeature(ftr);
                 ftr = ftrCur.NextFeature();
             }
 

@@ -121,6 +121,7 @@ namespace esriUtil
         /// the log type
         /// </summary>
         public enum transType { LOG10, LN, EXP, EXP10, ABS, SIN, COS, TAN, ASIN, ACOS, ATAN, RADIANS, SQRT, SQUARED }
+        public enum mergeType { FIRST, LAST, MIN, MAX, MEAN }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         /// <summary>
         /// Creates an in Memory Raster given a raster dataset
@@ -295,7 +296,7 @@ namespace esriUtil
         /// <param name="sampleSizePerClass">number of samples per class</param>
         /// <param name="numImages">the number of total images (tiles) used to create the full image picture</param>
         /// <returns>IFeatureClass</returns>
-        public IFeatureClass createRandomSampleLocationsByClass(IWorkspace wks, object rasterPath, int sampleSizePerClass, int numImages, string outName)
+        public IFeatureClass createRandomSampleLocationsByClass(IWorkspace wks, object rasterPath, int[] sampleSizePerClass, int numImages, string outName)
         {
             IFeatureClass sampFtrCls = null;
             try
@@ -313,10 +314,12 @@ namespace esriUtil
                 double nullValue = System.Convert.ToDouble(((System.Array)rstProps.NoDataValue).GetValue(0));
                 int rWidth = rstProps.Width;
                 int rHeight = rstProps.Height;
-                int spc = sampleSizePerClass / numImages;
-                if (spc < 1)
+                int[] spcInt = new int[sampleSizePerClass.Length];
+                for (int i = 0; i < sampleSizePerClass.Length; i++)
                 {
-                    spc = 1;
+                    int s = sampleSizePerClass[i]/numImages;
+                    if (s == 0) s = 1;
+                    spcInt[i] = s;
                 }
                 IFields flds = new FieldsClass();
                 IFieldsEdit fldsE = (IFieldsEdit)flds;
@@ -348,21 +351,25 @@ namespace esriUtil
                     int x = rndGen.Next(rWidth); //column
                     int y = rndGen.Next(rHeight); //row
                     //Console.WriteLine("Column = " + x.ToString() + " Row = " + y.ToString());
-                    double vlT = System.Convert.ToDouble(rst2.GetPixelValue(0, x, y));
-                    if(rasterUtil.isNullData(vlT,nullValue))
+                    object vlTobject = rst2.GetPixelValue(0, x, y);
+                    if(vlTobject==null)
                     {
                         continue;
                     }
                     else
                     {
-                        string vl = vlT.ToString();
+                        string vl = vlTobject.ToString();
+                        int vlint = System.Convert.ToInt32(vlTobject);
                         double xC = rst2.ToMapX(x);
                         double yC = rst2.ToMapY(y);
                         string tStr = x.ToString() + ";" + y.ToString();
                         double[] xy = { xC, yC };
+
                         if (xyList.TryGetValue(vl, out tCoor))
                         {
-                            if (tCoor.Count < spc && !selectRowsColums.Contains(tStr))
+                            int spc=spcInt[0];
+                            if (spcInt.Contains(vlint)) spc = spcInt[vlint];
+                            if (tCoor.Count < spcInt[vlint] && !selectRowsColums.Contains(tStr))
                             {
                                 tCoor.Add(xy);
                                 selectRowsColums.Add(tStr);
@@ -393,17 +400,6 @@ namespace esriUtil
                 int classIndex = sampFtrCls.FindField("Value");
                 int weightIndex = sampFtrCls.FindField("WEIGHT");
                 double clAv = classCnts.Values.Average();
-                IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
-                bool weStartEdit = true;
-                if (wksE.IsBeingEdited())
-                {
-                    weStartEdit = false;
-                }
-                else
-                {
-                    wksE.StartEditing(false);
-                }
-                wksE.StartEditOperation();
                 foreach (KeyValuePair<string, List<double[]>> kVp in xyList)
                 {
                     string ky = kVp.Key;
@@ -418,12 +414,6 @@ namespace esriUtil
                         ftr.set_Value(weightIndex,(classCnts[ky] / clAv));
                         ftr.Store();
                     }
-
-                }
-                wksE.StopEditOperation();
-                if (weStartEdit)
-                {
-                    wksE.StopEditing(true);
                 }
             }
             catch (Exception e)
@@ -468,17 +458,6 @@ namespace esriUtil
                 fldE.Type_2 = esriFieldType.esriFieldTypeDouble;
                 fldsE.AddField(fld);
                 sampFtrCls = geoUtil.createFeatureClass((IWorkspace2)wks, pointName, flds, esriGeometryType.esriGeometryPoint, rstProps.SpatialReference);
-                IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
-                bool weStartEdit = true;
-                if (wksE.IsBeingEdited())
-                {
-                    weStartEdit = false;
-                }
-                else
-                {
-                    wksE.StartEditing(false);
-                }
-                wksE.StartEditOperation();
                 int checkSampleSize = 0;
                 int classIndex = sampFtrCls.FindField("Value");
                 while (checkSampleSize<TotalSamples)
@@ -510,11 +489,6 @@ namespace esriUtil
                             Console.WriteLine(e.ToString());
                         }
                     }
-                }
-                wksE.StopEditOperation();
-                if (weStartEdit)
-                {
-                    wksE.StopEditing(true);
                 }
             }
             catch (Exception e)
@@ -2192,14 +2166,32 @@ namespace esriUtil
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
         }
-        public IRaster calcMosaicFunction(IRaster[] inRasters)
+        public IRaster calcMosaicFunction(IRaster[] inRasters,mergeType mType)
         {
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new FunctionRasters.mergeFunctionDataset();
+            IRasterFunction rsFunc = null;
+            switch (mType)
+            {
+                case mergeType.LAST:
+                    rsFunc = new FunctionRasters.mergeFunctionDatasetLast();
+                    break;
+                case mergeType.MIN:
+                    rsFunc = new FunctionRasters.mergeFunctionDatasetMin();
+                    break;
+                case mergeType.MAX:
+                    rsFunc = new FunctionRasters.mergeFunctionDatasetMax();
+                    break;
+                case mergeType.MEAN:
+                    rsFunc = new FunctionRasters.mergeFunctionDatasetMean();
+                    break;
+                default:
+                    rsFunc = new FunctionRasters.mergeFunctionDatasetFirst();
+                    break;
+            }
             FunctionRasters.mergeFunctionArguments args = new FunctionRasters.mergeFunctionArguments(this);
             args.InRaster = inRasters;
             frDset.Init(rsFunc, args);
@@ -2218,6 +2210,22 @@ namespace esriUtil
             FunctionRasters.clusterFunctionArguments args = new FunctionRasters.clusterFunctionArguments(this);
             args.InRasterCoefficients = rRst;
             args.ClusterModel = clus;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcTTestFunction(IRaster inRaster, Statistics.dataPrepTTest ttest)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.ttestFunctionDataset();
+            FunctionRasters.ttestFunctionArguments args = new FunctionRasters.ttestFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.TTestModel = ttest;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
@@ -2557,6 +2565,40 @@ namespace esriUtil
             IConstantFunctionArguments rasterFunctionArguments = (IConstantFunctionArguments)new ConstantFunctionArguments();
             rasterFunctionArguments.Constant = rasterValue;
             rasterFunctionArguments.RasterInfo = identFunction.RasterInfo;
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new ConstantFunction();
+            frDset.Init(rsFunc, rasterFunctionArguments);
+            IRaster outRs = returnRaster((IRasterDataset)frDset);
+            //functionModel.estimateStatistics(rasterValue,outRs);
+            return outRs;
+
+        }
+        public IRaster constantRasterFunction(IRaster template,IEnvelope NewExtent, double rasterValue, IPnt cellSize)
+        {
+            IRaster inRaster = returnRaster(template);
+            IRasterFunction identFunction = (IRasterFunction)new IdentityFunction();
+            identFunction.Bind(inRaster);
+            IConstantFunctionArguments rasterFunctionArguments = (IConstantFunctionArguments)new ConstantFunctionArguments();
+            rasterFunctionArguments.Constant = rasterValue;
+            IRasterInfo rsInfo = identFunction.RasterInfo;
+            rsInfo.NativeExtent = NewExtent;
+            rsInfo.Extent = NewExtent;
+            //rsInfo.PixelType = rstPixelType.PT_FLOAT;
+            //rsInfo.NativeSpatialReference = sr;
+            rsInfo.CellSize = cellSize;
+            //rsInfo.BandCount = bandCount;
+            //rsInfo.Format = rasterUtil.rasterType.GDB.ToString();
+            //float[] ndArr = new float[bandCount];
+            //for (int i = 0; i < bandCount; i++)
+            //{
+            //    ndArr[i] = (float)getNoDataValue(rstPixelType.PT_FLOAT);
+            //}
+            //rsInfo.NoData = ndArr;
+            rasterFunctionArguments.RasterInfo = rsInfo;
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -4372,6 +4414,8 @@ namespace esriUtil
             }
 
         }
+
+
 
         
     }

@@ -9,7 +9,7 @@ namespace esriUtil.Statistics
 {
     public abstract class dataPrepBase
     {
-        public enum modelTypes { Accuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, PCA, Cluster }
+        public enum modelTypes { Accuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, PCA, Cluster, TTEST }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         public geoDatabaseUtility GeoUtil { get { return geoUtil; } }
         private string intablepath = "";

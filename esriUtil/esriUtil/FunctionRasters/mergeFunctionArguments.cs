@@ -51,7 +51,62 @@ namespace esriUtil.FunctionRasters
                 createFeatureClass();
             } 
         }
+        private void createTable()
+        {
+            string tblName = "catTbl.dbf";
+            IWorkspace wks = geoUtil.OpenWorkSpace(rsUtil.TempMosaicDir);
+            IFields flds = new FieldsClass();
+            IFieldsEdit fldsE = (IFieldsEdit)flds;
+            IField fld = new FieldClass();
+            IFieldEdit fldE = (IFieldEdit)fld;
+            fldE.Name_2 = "catIndex";
+            fldE.Type_2 = esriFieldType.esriFieldTypeSmallInteger;
+            fldsE.AddField(fldE);
+            
+            IField fld2 = new FieldClass();
+            IFieldEdit fldE2 = (IFieldEdit)fld2;
+            fldE2.Name_2 = "XMIN";
+            fldE2.Type_2 = esriFieldType.esriFieldTypeDouble;
+            fldsE.AddField(fldE2);
 
+            IField fld3 = new FieldClass();
+            IFieldEdit fldE3 = (IFieldEdit)fld3;
+            fldE3.Name_2 = "XMAX";
+            fldE3.Type_2 = esriFieldType.esriFieldTypeDouble;
+            fldsE.AddField(fldE3);
+
+            IField fld4 = new FieldClass();
+            IFieldEdit fldE4 = (IFieldEdit)fld4;
+            fldE4.Name_2 = "YMIN";
+            fldE4.Type_2 = esriFieldType.esriFieldTypeDouble;
+            fldsE.AddField(fldE4);
+
+            IField fld5 = new FieldClass();
+            IFieldEdit fldE5 = (IFieldEdit)fld5;
+            fldE5.Name_2 = "YMAX";
+            fldE5.Type_2 = esriFieldType.esriFieldTypeDouble;
+            fldsE.AddField(fldE5);
+
+            tbl = geoUtil.createTable(wks,tblName,flds);
+            int catInd = tbl.FindField("catIndex");
+            int xMinInd = tbl.FindField("XMIN");
+            int xMaxInd = tbl.FindField("XMAX");
+            int yMinInd = tbl.FindField("YMIN");
+            int yMaxInd = tbl.FindField("YMAX");
+            int cnt = 0;
+            foreach (IRaster rs in inrs)
+            {
+                IRow rw = tbl.CreateRow();
+                rw.set_Value(catInd, cnt);
+                IEnvelope ext = ((IRasterProps)rs).Extent;
+                rw.set_Value(xMinInd, ext.XMin);
+                rw.set_Value(xMaxInd, ext.XMax);
+                rw.set_Value(yMinInd, ext.YMin);
+                rw.set_Value(yMaxInd, ext.YMax);
+                rw.Store();
+                cnt++;
+            }
+        }
         private void createFeatureClass()
         {
             string ftClsPath = rsUtil.TempMosaicDir+"\\catBnd.shp";
@@ -83,8 +138,8 @@ namespace esriUtil.FunctionRasters
             }
             
         }
-
-
+        private ITable tbl = null;
+        public ITable Catalog { get { return tbl; } }
         private ISpatialReference sr = null;
         private IFeatureClass ftCls = null;
         public IFeatureClass Boundary
@@ -100,14 +155,12 @@ namespace esriUtil.FunctionRasters
         {
             get
             {
-                
-                IRaster rs = rsUtil.constantRasterFunction(inrs[0], 0);
-                IRasterProps rsP = (IRasterProps)rs;
-                double cX = rsP.MeanCellSize().X;
-                double cY = rsP.MeanCellSize().Y;
-                rsP.Extent = env;
-                rsP.Width = System.Convert.ToInt32(env.Width / cX);
-                rsP.Height = System.Convert.ToInt32(env.Height / cY);
+                IRaster rsT = inrs[0];
+                IRasterProps rsP = (IRasterProps)rsT;
+                IPnt cellSize = rsP.MeanCellSize();
+                ISpatialReference sr = rsP.SpatialReference;
+                int bndCnt = ((IRasterBandCollection)rsT).Count;
+                IRaster rs = rsUtil.constantRasterFunction(rsT,env,0,cellSize);
                 return rs;
             }
         }

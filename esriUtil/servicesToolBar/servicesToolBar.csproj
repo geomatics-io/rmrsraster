@@ -119,12 +119,14 @@
     <Compile Include="commandAccuracyAssessment.cs" />
     <Compile Include="commandAddFunctionModelToMap.cs" />
     <Compile Include="commandAddTiledImageServer.cs" />
+    <Compile Include="commandAdjustedAccuracyAssessment.cs" />
     <Compile Include="commandArithmeticRaster.cs" />
     <Compile Include="commandBatchProcess.cs" />
     <Compile Include="commandBuildRasterFromModel.cs" />
     <Compile Include="commandCalculateRasterStatistics.cs" />
     <Compile Include="commandClipRaster.cs" />
     <Compile Include="commandCluster.cs" />
+    <Compile Include="commandCompareSampleSize.cs" />
     <Compile Include="commandCompositeRaster.cs" />
     <Compile Include="commandConditionalRaster.cs" />
     <Compile Include="commandConvertPixelTypes.cs" />
@@ -168,15 +170,19 @@
     <Compile Include="commandSampleRasterCluster.cs" />
     <Compile Include="commandSaveRaster.cs" />
     <Compile Include="commandSedByArival.cs" />
+    <Compile Include="commandSelectSamplesFromFeature.cs" />
     <Compile Include="commandSetNull.cs" />
     <Compile Include="commandSetupToolbar.cs" />
     <Compile Include="commandShiftRaster.cs" />
     <Compile Include="commandShowReport.cs" />
     <Compile Include="commandSoftMaxNnet.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
+    <Compile Include="commandStratifiedVarCov.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
+    <Compile Include="commandTTest.cs" />
     <Compile Include="commandVarCov.cs" />
     <Compile Include="commandVersion.cs" />
+    <Compile Include="commandViewSampleSizeFromModel.cs" />
     <Compile Include="commandWebSite.cs" />
     <Compile Include="commandZonalFormat.cs" />
     <Compile Include="commandZonalStats.cs" />
@@ -528,6 +534,36 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\commandCluster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandViewSampleSizeFromModel.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandSelectSamplesFromFeature.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandAdjustedAccuracyAssessment.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandStratifiedVarCov.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandCompareSampleSize.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandTTest.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>

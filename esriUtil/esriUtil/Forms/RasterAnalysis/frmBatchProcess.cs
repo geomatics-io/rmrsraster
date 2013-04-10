@@ -257,6 +257,10 @@ namespace esriUtil.Forms.RasterAnalysis
                     l.AddRange(Enum.GetNames(typeof(rstMosaicOperatorType)));
                     nm = l.ToArray();
                     break;
+                case batchCalculations.batchGroups.MERGE:
+                    l.AddRange(Enum.GetNames(typeof(rasterUtil.mergeType)));
+                    nm = l.ToArray();
+                    break;
                 case batchCalculations.batchGroups.CONVERTPIXELTYPE:
                     nm = Enum.GetNames(typeof(rstPixelType));
                     break;

@@ -161,19 +161,13 @@ namespace esriUtil.Statistics
             n = 0;
             IRaster2 rs2 = (IRaster2)InRaster;
             IRasterBandCollection rsbc = (IRasterBandCollection)rs2;
-            IRasterProps rsp = (IRasterProps)rs2;
-            System.Array nDataVlArr = (System.Array)rsp.NoDataValue;
             IRasterCursor rsCur = rs2.CreateCursorEx(null);
             IPixelBlock pb=null;
             double[] vlBandArr = new double[rsbc.Count];
-            System.Array[] pbArrs=new System.Array[rsbc.Count];
             do
             {
                 pb = rsCur.PixelBlock;
-                for (int i = 0; i < pb.Planes; i++)
-                {
-                    pbArrs[i] = (System.Array)pb.get_SafeArray(i);
-                }
+               
                 for (int r = 0; r < pb.Height; r++)
                 {
                     for (int c = 0; c < pb.Width; c++)
@@ -181,14 +175,14 @@ namespace esriUtil.Statistics
                         bool chVl = true;
                         for (int p = 0; p < pb.Planes; p++)
                         {
-                            System.Array pbArr = pbArrs[p];
-                            double vl = System.Convert.ToDouble(pbArr.GetValue(c, r));
-                            if (rasterUtil.isNullData(vl, nDataVlArr.GetValue(p)))
+                            object vlobj = pb.GetVal(p,c, r);
+                            if (vlobj==null)
                             {
                                 chVl = false;
                                 break;
                             }
-                            vlBandArr[p] = vl;
+
+                            vlBandArr[p] = System.Convert.ToDouble(vlobj);
                         }
                         if (chVl)
                         {

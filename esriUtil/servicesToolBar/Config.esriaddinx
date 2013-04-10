@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>3/18/2013</Date>
+  <Date>4/9/2013</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -81,6 +81,12 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandZonalFormat" class="commandZonalFormat" message="Formats zonal data statistical analysis" caption="Format Zonal Data" tip="click to open Format Zonal Data form" category="stats" image="Images\commandZonalFormat.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSoftMaxNnet" class="commandSoftMaxNnet" message="Creates a nnet softmax classification" caption="Softmax Nnet" tip="click to open Softmax form" category="stats" image="Images\commandSoftMaxNnet.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandCluster" class="commandCluster" message="Clusters data into a specified number of groups" caption="Cluster Analysis" tip="click to open cluster form" category="stats" image="Images\commandCluster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandViewSampleSizeFromModel" class="commandViewSampleSizeFromModel" message="Calculates and displays sample size given a specified model" caption="View Sample Size" tip="click to open view sample size form" category="stats" image="Images\commandViewSampleSizeFromModel.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSelectSamplesFromFeature" class="commandSelectSamplesFromFeature" message="Selects samples given a cluster model from a populations of features" caption="Select Samples from Clusters" tip="click to open select samples from clusters form" category="sample" image="Images\commandSelectSamplesFromFeature.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandAdjustedAccuracyAssessment" class="commandAdjustedAccuracyAssessment" message="Adjusts a given accuracy assessment based on a different population" caption="Adjusted Accuracy Assessment" tip="click to open Adjusted Accuracy Assessment" category="stats" image="Images\commandAdjustedAccuracyAssessment.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandStratifiedVarCov" class="commandStratifiedVarCov" message="calculates means and variance covariance for a specfied strata" caption="Stratified VarCov" tip="click to open stratified variance covariance form" category="stats" image="Images\commandStratifiedVarCov.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCompareSampleSize" class="commandCompareSampleSize" message="Compares means and variances by strata/cluster using a paired T-test " caption="Compare Sample Size" tip="click to open compare sample size form" category="stats" image="Images\commandCompareSampleSize.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandTTest" class="commandTTest" message="performs a T-Test analysis by groups for multilple independent variables" caption="T-Test" tip="Click to open T-Test form" category="stats" image="Images\commandTTest.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">
@@ -135,7 +141,6 @@
             <Button refID="USDA_Forest_Service_servicesToolBar_commandCompositeRaster" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandExtractRasterBands" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandMergeRasters" />
-            <Button refID="USDA_Forest_Service_servicesToolBar_commandCreateMosaic" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandCreateGLCM" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandLandscapeMetrics" />
             <Button refID="USDA_Forest_Service_servicesToolBar_commandFunctionalModeling" separator="true" />

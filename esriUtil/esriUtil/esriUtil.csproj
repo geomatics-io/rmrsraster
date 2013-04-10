@@ -216,6 +216,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
+    <Compile Include="featureUtil.cs" />
     <Compile Include="fiaIntegration.cs" />
     <Compile Include="Forms\FIA\frmFiaBiomass.cs">
       <SubType>Form</SubType>
@@ -428,17 +429,35 @@
     <Compile Include="Forms\Sampling\frmExportSampleToCsv.Designer.cs">
       <DependentUpon>frmExportSampleToCsv.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Sampling\frmSelectSamplesFromTable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Sampling\frmSelectSamplesFromTable.Designer.cs">
+      <DependentUpon>frmSelectSamplesFromTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Stats\frmAccuracyAssessment.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\Stats\frmAccuracyAssessment.Designer.cs">
       <DependentUpon>frmAccuracyAssessment.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Stats\frmAdjustAccuracyAssessment.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmAdjustAccuracyAssessment.Designer.cs">
+      <DependentUpon>frmAdjustAccuracyAssessment.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Stats\frmCluster.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\Stats\frmCluster.Designer.cs">
       <DependentUpon>frmCluster.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmCompareSampleToPopulation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmCompareSampleToPopulation.Designer.cs">
+      <DependentUpon>frmCompareSampleToPopulation.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\Stats\frmFormatZoneData.cs">
       <SubType>Form</SubType>
@@ -500,11 +519,29 @@
     <Compile Include="Forms\Stats\frmSoftMaxNnet.Designer.cs">
       <DependentUpon>frmSoftMaxNnet.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Stats\frmStratifiedVarCov.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmStratifiedVarCov.Designer.cs">
+      <DependentUpon>frmStratifiedVarCov.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmTTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmTTest.Designer.cs">
+      <DependentUpon>frmTTest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Stats\frmVarCovCorr.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\Stats\frmVarCovCorr.Designer.cs">
       <DependentUpon>frmVarCovCorr.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmViewModelSampleSize.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmViewModelSampleSize.Designer.cs">
+      <DependentUpon>frmViewModelSampleSize.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\Texture\frmCreateGlcmSurface.cs">
       <SubType>Form</SubType>
@@ -596,7 +633,12 @@
     <Compile Include="FunctionRasters\localAsmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\localFunctionBase.cs" />
     <Compile Include="FunctionRasters\mergeFunctionArguments.cs" />
-    <Compile Include="FunctionRasters\mergeFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetBase.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetFirst.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetLast.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetMax.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetMean.cs" />
+    <Compile Include="FunctionRasters\mergeFunctionDatasetMin.cs" />
     <Compile Include="FunctionRasters\mosaicFunctionArguments.cs" />
     <Compile Include="FunctionRasters\mosaicFunctionDataset.cs" />
     <Compile Include="FunctionRasters\NeighborhoodHelper\aggregationHelperASM.cs" />
@@ -725,6 +767,7 @@
     <Compile Include="FunctionRasters\tanFunctionDataset.cs" />
     <Compile Include="FunctionRasters\tobitFunctionArguments.cs" />
     <Compile Include="FunctionRasters\tobitFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\ttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\zonalHelper.cs" />
     <Compile Include="geodatabaseutility.cs" />
     <Compile Include="geoprocessor.cs" />
@@ -746,10 +789,15 @@
     </Compile>
     <Compile Include="rasterUtil.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Statistics\dataPrepAdjustAccuracyAssessment.cs" />
     <Compile Include="Statistics\dataPrepCluster.cs" />
+    <Compile Include="Statistics\dataPrepCompareVarCov.cs" />
     <Compile Include="Statistics\dataPrepLogisticRegression.cs" />
     <Compile Include="Statistics\dataPrepMultivariateLinearRegression.cs" />
     <Compile Include="Statistics\dataPrepPrincipleComponents.cs" />
+    <Compile Include="Statistics\dataPrepSampleSize.cs" />
+    <Compile Include="Statistics\dataPrepStrata.cs" />
+    <Compile Include="Statistics\dataPrepTTest.cs" />
     <Compile Include="Statistics\dataPrepVarCovCorr.cs" />
     <Compile Include="Statistics\ModelHelper.cs" />
     <Compile Include="Statistics\dataGeneralConfusionMatirx.cs" />
@@ -758,6 +806,7 @@
     <Compile Include="Statistics\dataPrepMultinomialLogisticRegression.cs" />
     <Compile Include="Statistics\dataPrepSoftMaxPlr.cs" />
     <Compile Include="Statistics\dataPrepRandomForest.cs" />
+    <Compile Include="FunctionRasters\ttestFunctionDataset.cs" />
     <Compile Include="update.cs" />
     <Compile Include="viewutility.cs" />
   </ItemGroup>
@@ -891,11 +940,20 @@
     <EmbeddedResource Include="Forms\Sampling\frmSampleRaster.resx">
       <DependentUpon>frmSampleRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Sampling\frmSelectSamplesFromTable.resx">
+      <DependentUpon>frmSelectSamplesFromTable.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmAccuracyAssessment.resx">
       <DependentUpon>frmAccuracyAssessment.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmAdjustAccuracyAssessment.resx">
+      <DependentUpon>frmAdjustAccuracyAssessment.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmCluster.resx">
       <DependentUpon>frmCluster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmCompareSampleToPopulation.resx">
+      <DependentUpon>frmCompareSampleToPopulation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmFormatZoneData.resx">
       <DependentUpon>frmFormatZoneData.cs</DependentUpon>
@@ -930,8 +988,17 @@
     <EmbeddedResource Include="Forms\Stats\frmSoftMaxNnet.resx">
       <DependentUpon>frmSoftMaxNnet.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmStratifiedVarCov.resx">
+      <DependentUpon>frmStratifiedVarCov.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmTTest.resx">
+      <DependentUpon>frmTTest.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmVarCovCorr.resx">
       <DependentUpon>frmVarCovCorr.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmViewModelSampleSize.resx">
+      <DependentUpon>frmViewModelSampleSize.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Texture\frmCreateGlcmSurface.resx">
       <DependentUpon>frmCreateGlcmSurface.cs</DependentUpon>

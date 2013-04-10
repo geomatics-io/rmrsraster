@@ -1934,25 +1934,13 @@ namespace esriUtil
         /// <param name="lyrPath"></param>
         /// <param name="Fld"></param>
         /// <returns></returns>
-        public List<string> getUniqueValues(string lyrPath, string Fld)
+        public HashSet<string> getUniqueValues(string lyrPath, string Fld)
         {
-            List<string> x = new List<string>();
+            HashSet<string> x = new HashSet<string>();
             try
             {
-                ICursor scur = getSearchCursor(lyrPath);
-                Console.WriteLine("Cursor is Null " + (scur==null).ToString());
-                int fldIndex = scur.FindField(Fld);
-                if (fldIndex == -1) return x;
-                IRow srow = scur.NextRow();
-                while (srow != null)
-                {
-                    string ky = srow.get_Value(fldIndex).ToString();
-                    if (!x.Contains(ky))
-                    {
-                        x.Add(ky);
-                    }
-                    srow = scur.NextRow();
-                }
+                ITable ftrCls = getTable(lyrPath);
+                x = getUniqueValues(ftrCls, Fld);
             }
             catch (Exception e)
             {
@@ -1960,9 +1948,9 @@ namespace esriUtil
             }
             return x;
         }
-        public List<string> getUniqueValues(IFeatureClass ftrCls, string Fld)
+        public HashSet<string> getUniqueValues(IFeatureClass ftrCls, string Fld)
         {
-            List<string> x = new List<string>();
+            HashSet<string> x = new HashSet<string>();
             try
             {
                 IFeatureCursor scur = ftrCls.Search(null,false);
@@ -1972,11 +1960,32 @@ namespace esriUtil
                 while (srow != null)
                 {
                     string ky = srow.get_Value(fldIndex).ToString();
-                    if (!x.Contains(ky))
-                    {
-                        x.Add(ky);
-                    }
+                    x.Add(ky);
                     srow = scur.NextFeature();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.ToString());
+            }
+            return x;
+        }
+        public HashSet<string> getUniqueValues(ITable tbl, string Fld)
+        {
+            HashSet<string> x = new HashSet<string>();
+            try
+            {
+                IQueryFilter qf = new QueryFilterClass();
+                qf.SubFields = Fld;
+                ICursor scur = tbl.Search(qf, false);
+                int fldIndex = scur.FindField(Fld);
+                if (fldIndex == -1) return x;
+                IRow srow = scur.NextRow();
+                while (srow != null)
+                {
+                    string ky = srow.get_Value(fldIndex).ToString();
+                    x.Add(ky);
+                    srow = scur.NextRow();
                 }
             }
             catch (Exception e)

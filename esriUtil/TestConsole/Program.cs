@@ -17,6 +17,7 @@ using ESRI.ArcGIS.DataSourcesNetCDF;
 using System.Windows.Forms;
 using esriUtil;
 using System.Threading;
+using Accord.Statistics.Testing.Power;
 
 
 
@@ -32,20 +33,43 @@ namespace TestConsole
             //ESRI License Initializer generated code.
             m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[] { esriLicenseProductCode.esriLicenseProductCodeArcInfo }, new esriLicenseExtensionCode[] { esriLicenseExtensionCode.esriLicenseExtensionCode3DAnalyst, esriLicenseExtensionCode.esriLicenseExtensionCodeSpatialAnalyst });
             System.DateTime dt = System.DateTime.Now;
+            
             System.DateTime dt2;
             TimeSpan ts;
-            rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            string ftrClsPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\m7001_RSA";
-            string zoneValuePath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\m7001";
-            IRaster vRs = rsUtil.returnRaster(zoneValuePath);
-            IFeatureClass ftrCls = geoUtil.getFeatureClass(ftrClsPath);
-            Console.WriteLine((ftrCls == null).ToString());
-            esriUtil.FunctionRasters.zonalHelper zH = new esriUtil.FunctionRasters.zonalHelper();
-            zH.InValueRaster = vRs;
-            zH.InZoneFeatureClass = ftrCls;
-            zH.InZoneField = "GRIDCODE";
-            zH.reprojectInFeatureClass(ftrCls, ((IRasterProps)vRs).SpatialReference);
+            rasterUtil rsUtil = new rasterUtil();
+            //string tblStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\AccuracyAssessment\testData.gdb\CropTest";
+            string mdlPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\ClustImg.mdl";
+            string rstCoef = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\c1R";
+            string outModelPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\RSTTEST.mdl";
+            IRaster cir = rsUtil.returnRaster(rstCoef);
+            esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(mdlPath,cir);
+            IRaster cRs = mh.getRaster();
+            esriUtil.Statistics.dataPrepTTest ttest = new esriUtil.Statistics.dataPrepTTest(cRs,cir);
+            ttest.buildModel();
+            ttest.writeModel(outModelPath);
+            mh = new esriUtil.Statistics.ModelHelper(outModelPath, cRs);
+            IRaster rs = mh.getRaster();
+            IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
+            IPixelBlock pb = rsCur.PixelBlock;
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    for (int k = 0; k < pb.Planes; k++)
+			        {
+                        Console.WriteLine(pb.GetVal(k,j,i));
+			        }
+                    
+                }
+            }
+
+           
+            //featureUtil ftrUtil = new featureUtil();
+            //string inputTable = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\ClusterSampleSize\NPC_TRAINING_DATA.gdb\CLWNEZ_IMSTAT_BASE";
+            //string clusterPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\ClusterSampleSize\CLWNEZ_IMSTAT_BASE.mdl";
+            //ITable tbl = geoUtil.getTable(inputTable);
+            //ftrUtil.selectStratifiedFeaturesToSample(tbl, clusterPath, "Cluster");
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Pointer Total Seconds = " + ts.TotalSeconds.ToString());
