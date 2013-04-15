@@ -141,13 +141,16 @@ namespace esriUtil.Statistics
             dataPrepCluster clus = new dataPrepCluster();
             clus.buildModel(modelPath);
             List<string> lbl = clus.Labels;
-            rp.addMessage("Samples by class (Cluster: number of samples)");
+            rp.addMessage("Samples by class (Cluster; number of samples)");
+            rp.addMessage("-".PadRight(45, '-'));
             int[] samples = sampleSizeMaxCluster(modelPath, proportion, alpha);
             for (int i = 0; i < samples.Length; i++)
             {
-                rp.addMessage("\t"+lbl[i] + ": " + samples[i].ToString());
+                rp.addMessage("\t"+lbl[i] + "; " + samples[i].ToString());
                 
             }
+            rp.addMessage("-".PadRight(45, '-'));
+            rp.addMessage("Total number of samples = " + samples.Sum().ToString()); 
         }
 
         private static void fillPcaReport(string modelPath, Forms.RunningProcess.frmRunningProcessDialog rp, double proportion = 0.1, double alpha = 0.05)

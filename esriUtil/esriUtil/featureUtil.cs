@@ -26,7 +26,7 @@ namespace esriUtil
         /// <param name="clusterModelPath"></param>
         /// <param name="proportionOfMean"></param>
         /// <param name="alpha"></param>
-        public void selectStratifiedFeaturesToSample(ITable inputTable, string clusterModelPath, string clusterFieldName="Cluster", double proportionOfMean=0.1, double alpha=0.05)
+        public void selectClusterFeaturesToSample(ITable inputTable, string clusterModelPath, string clusterFieldName="Cluster", double proportionOfMean=0.1, double alpha=0.05)
         {
             IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
             if (!objInfo2.CanBypassEditSession())
@@ -126,6 +126,203 @@ namespace esriUtil
                 //trs.AbortTransaction();
             }
             
+        }
+
+        public void selectAccuracyFeaturesToSample(ITable inputTable, string AccuracyAssessmentModelPath, string mapField, double proportionOfMean, double alpha)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            esriUtil.Statistics.dataGeneralConfusionMatirx dGc = new Statistics.dataGeneralConfusionMatirx();
+            dGc.getXTable(AccuracyAssessmentModelPath);
+            List<string> labels = dGc.Labels.ToList();
+            HashSet<string> unqVls = geoUtil.getUniqueValues(inputTable, mapField);
+            System.Random rd = new Random();
+            int samplesPerClass = esriUtil.Statistics.dataPrepSampleSize.sampleSizeKappa(AccuracyAssessmentModelPath, proportionOfMean, alpha)/labels.Count + 1;
+            //double[] propPerClass = new double[labels.Count];
+            double[] weightsPerClass = new double[labels.Count];
+            int[] tsPerClass = new int[labels.Count];
+            if (labels.Count != unqVls.Count)
+            {
+                System.Windows.Forms.MessageBox.Show("Unique Values in class field do not match the number of classes in the model!");
+                return;
+            }
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            string weightFldName = geoUtil.createField(inputTable, "weight", esriFieldType.esriFieldTypeDouble, false);
+            IQueryFilter qf0 = new QueryFilterClass();
+            qf0.SubFields = mapField;
+            string h = "";
+            IField fld = inputTable.Fields.get_Field(inputTable.FindField(mapField));
+            if (fld.Type == esriFieldType.esriFieldTypeString) h = "'";
+            for (int i = 0; i < labels.Count; i++)
+            {
+
+                qf0.WhereClause = mapField + " = " + h + labels[i] + h;
+                tsPerClass[i] = inputTable.RowCount(qf0);
+            }
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = mapField + "," + sampleFldName;
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            //ITransactions trs = (ITransactions)wks;
+            //trs.StartTransaction();
+            try
+            {
+                int[] selectedSamples = new int[labels.Count];
+                ICursor cur = inputTable.Update(qf, false);
+                int sIndex = cur.FindField(sampleFldName);
+                int cIndex = cur.FindField(mapField);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    string classStr = rw.get_Value(cIndex).ToString();
+                    int cls = labels.IndexOf(classStr);
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    double r = System.Convert.ToDouble(samplesPerClass) / tsPerClass[cls];
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                        selectedSamples[cls] = selectedSamples[cls] + 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+                int selectedSamplesTotal = selectedSamples.Sum();
+                int tsSampleTotal = tsPerClass.Sum();
+                for (int i = 0; i < selectedSamples.Length; i++)
+                {
+                    int ss = selectedSamples[i];
+                    double expectedS = System.Convert.ToDouble(selectedSamplesTotal) * (System.Convert.ToDouble(tsPerClass[i])/tsSampleTotal);
+                    weightsPerClass[i] = expectedS / ss;
+                }
+                //System.Windows.Forms.MessageBox.Show("Weights = " + String.Join(", ",(from double d in weightsPerCluster select d.ToString()).ToArray()));
+                qf = new QueryFilterClass();
+                qf.SubFields = mapField + "," + weightFldName;
+                ICursor cur2 = inputTable.Update(qf, false);
+                IRow rw2 = cur2.NextRow();
+                cIndex = cur2.FindField(mapField);
+                int wIndex = cur2.FindField(weightFldName);
+                while (rw2 != null)
+                {
+                    string clsStr = rw2.get_Value(cIndex).ToString();
+                    int cls = labels.IndexOf(clsStr);
+                    rw2.set_Value(wIndex, weightsPerClass[cls]);
+                    cur2.UpdateRow(rw2);
+                    rw2 = cur2.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur2);
+                //trs.CommitTransaction();
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+                //trs.AbortTransaction();
+            }
+        }
+
+        public void selectEqualFeaturesToSample(ITable inputTable, string mapField, int SamplesPerClass)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            HashSet<string> unqVls = geoUtil.getUniqueValues(inputTable, mapField);
+            System.Random rd = new Random();
+            int samplesPerClass = SamplesPerClass;
+            //double[] propPerClass = new double[labels.Count];
+            double[] weightsPerClass = new double[unqVls.Count];
+            int[] tsPerClass = new int[unqVls.Count];
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            string weightFldName = geoUtil.createField(inputTable, "weight", esriFieldType.esriFieldTypeDouble, false);
+            IQueryFilter qf0 = new QueryFilterClass();
+            qf0.SubFields = mapField;
+            string h = "";
+            IField fld = inputTable.Fields.get_Field(inputTable.FindField(mapField));
+            if (fld.Type == esriFieldType.esriFieldTypeString) h = "'";
+            for (int i = 0; i < unqVls.Count; i++)
+            {
+
+                qf0.WhereClause = mapField + " = " + h + unqVls.ElementAt(i) + h;
+                tsPerClass[i] = inputTable.RowCount(qf0);
+            }
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = mapField + "," + sampleFldName;
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            //ITransactions trs = (ITransactions)wks;
+            //trs.StartTransaction();
+            try
+            {
+                int[] selectedSamples = new int[unqVls.Count];
+                ICursor cur = inputTable.Update(qf, false);
+                int sIndex = cur.FindField(sampleFldName);
+                int cIndex = cur.FindField(mapField);
+                IRow rw = cur.NextRow();
+                List<string> unqLst = unqVls.ToList();
+                while (rw != null)
+                {
+                    string classStr = rw.get_Value(cIndex).ToString();
+                    int cls = unqLst.IndexOf(classStr);
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    double r = System.Convert.ToDouble(samplesPerClass) / tsPerClass[cls];
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                        selectedSamples[cls] = selectedSamples[cls] + 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+                int selectedSamplesTotal = selectedSamples.Sum();
+                int tsSampleTotal = tsPerClass.Sum();
+                for (int i = 0; i < selectedSamples.Length; i++)
+                {
+                    int ss = selectedSamples[i];
+                    double expectedS = System.Convert.ToDouble(selectedSamplesTotal) * (System.Convert.ToDouble(tsPerClass[i])/tsSampleTotal);
+                    weightsPerClass[i] = expectedS / ss;
+                }
+                //System.Windows.Forms.MessageBox.Show("Weights = " + String.Join(", ",(from double d in weightsPerCluster select d.ToString()).ToArray()));
+                qf = new QueryFilterClass();
+                qf.SubFields = mapField + "," + weightFldName;
+                ICursor cur2 = inputTable.Update(qf, false);
+                IRow rw2 = cur2.NextRow();
+                cIndex = cur2.FindField(mapField);
+                int wIndex = cur2.FindField(weightFldName);
+                while (rw2 != null)
+                {
+                    string clsStr = rw2.get_Value(cIndex).ToString();
+                    int cls = unqLst.IndexOf(clsStr);
+                    rw2.set_Value(wIndex, weightsPerClass[cls]);
+                    cur2.UpdateRow(rw2);
+                    rw2 = cur2.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur2);
+                //trs.CommitTransaction();
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+                //trs.AbortTransaction();
+            }
         }
     }
 }

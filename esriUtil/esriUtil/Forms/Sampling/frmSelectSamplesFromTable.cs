@@ -140,6 +140,8 @@ namespace esriUtil.Forms.Sampling
             
             this.Visible = false;
             this.Refresh();
+
+            esriUtil.Statistics.dataPrepBase.modelTypes mType = esriUtil.Statistics.ModelHelper.getModelType(outModelPath);
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             rp.addMessage("Selecting samples this may take a while...");
             rp.stepPGBar(10);
@@ -150,7 +152,46 @@ namespace esriUtil.Forms.Sampling
             try
             {
                 featureUtil ftrUtil = new featureUtil();
-                ftrUtil.selectStratifiedFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha);
+                int nS = -1;
+                try
+                {
+                    nS = System.Convert.ToInt32(Double.Parse(outModelPath));
+                }
+                catch
+                {
+                    nS = -1;
+                }
+                if(nS==-1)
+                {
+                    ftrUtil.selectEqualFeaturesToSample(ftrCls, mapFld, nS);
+                }
+                else
+                {
+                    switch (mType)
+                    {
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.Accuracy:
+                            ftrUtil.selectAccuracyFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha);
+                            break;
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.Cluster:
+                            ftrUtil.selectClusterFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha);
+                            break;
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.LogisticRegression:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.PLR:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.RandomForest:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.SoftMax:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.Cart:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.L3:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.TTEST:
+                        default:
+                            rp.addMessage("Sample selection for this model type is not currently supported!");
+                            break;
+                    }
+                }
+                
             }
             catch (Exception ex)
             {

@@ -142,9 +142,9 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(6, 57);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(97, 13);
+            this.label4.Size = new System.Drawing.Size(127, 13);
             this.label4.TabIndex = 56;
-            this.label4.Text = "Cluster/Strata Field";
+            this.label4.Text = "Cluster/Strata/Class Field";
             // 
             // cmbMap
             // 
@@ -223,7 +223,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmSelectSamplesFromTable";
-            this.Text = "Select Cluster Samples";
+            this.Text = "Select Samples";
             this.TopMost = true;
             ((System.ComponentModel.ISupportInitialize)(this.nudAlpha)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudProp)).EndInit();

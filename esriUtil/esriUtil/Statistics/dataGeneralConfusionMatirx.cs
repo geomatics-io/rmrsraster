@@ -70,9 +70,7 @@ namespace esriUtil.Statistics
             int clms = labels.Count();
             int rws = clms;
             xtable = new int[clms, rws];
-            IQueryFilter qf = new QueryFilterClass();
-            qf.SubFields = DependentFieldNames[0] + "," + IndependentFieldNames[0];
-            ICursor cur = InTable.Search(qf, false);
+            ICursor cur = InTable.Search(null, false);
             int depIndex = cur.FindField(DependentFieldNames[0]);
             int indIndex = cur.FindField(IndependentFieldNames[0]);
             int wIndex = -1;
@@ -80,6 +78,7 @@ namespace esriUtil.Statistics
             {
                 wIndex = cur.FindField(weightfld);
             }
+            //Console.WriteLine(wIndex.ToString());
             IRow rw = cur.NextRow();
             while (rw != null)
             {
@@ -96,6 +95,7 @@ namespace esriUtil.Statistics
                 xtable[mClm, mRws] += 1;
                 rw = cur.NextRow();
             }
+            //Console.WriteLine(String.Join(", ", (from d in weights select d.ToString()).ToArray()));
             if (wIndex != -1)
             {
                 updateXTable(weights);
@@ -111,7 +111,9 @@ namespace esriUtil.Statistics
                 for (int c = 0; c < weights.Length; c++)
                 {
                     double w = weights[c];
+                    //Console.WriteLine(w.ToString());
                     int vl = System.Convert.ToInt32(xtable[c, r] * w);
+                    //Console.WriteLine(vl);
                     xtable[c, r] = vl;
                 }
 

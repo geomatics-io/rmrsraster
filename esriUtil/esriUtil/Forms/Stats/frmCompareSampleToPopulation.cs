@@ -55,25 +55,15 @@ namespace esriUtil.Forms.Stats
             {
                 Statistics.dataPrepCompareVarCov.CompareStratMeansVar(popStr, sampStr, out labels,out meanDiff,out varDiff, out means, out var);
                 rp.stepPGBar(75);
-                rp.addMessage("Label     | Mean dif  | p-value   | Var dif   | p-value  ");
-                rp.addMessage("-".PadRight(57,'-'));
+                rp.addMessage("Label     | Mean dif  | p-value         | Var dif   | p-value        ");
+                rp.addMessage("-".PadRight(69,'-'));
                 for (int i = 0; i < means.Length; i++)
                 {
-                    string lbl = labels[i];
-                    if (lbl.Length > 9) lbl = lbl.Substring(0, 9);
-                    else lbl=lbl.PadRight(9,' ');
-                    string md = meanDiff[i].ToString();
-                    if (md.Length > 9) md = md.Substring(0, 9);
-                    else md = md.PadRight(9, ' ');
-                    string m = means[i].ToString();
-                    if (m.Length > 9) m = m.Substring(0, 9);
-                    else m = m.PadRight(9,' ');
-                    string vd = varDiff[i].ToString();
-                    if (vd.Length > 9) vd = vd.Substring(0, 9);
-                    else vd = vd.PadRight(9, ' ');
-                    string v = var[i].ToString();
-                    if (v.Length > 9) v = v.Substring(0, 9);
-                    else v = v.PadRight(9);
+                    string lbl = getValue(labels[i],9);
+                    string md = getValue(meanDiff[i].ToString(),9);
+                    string m = getValue(means[i].ToString(),15);
+                    string vd = getValue(varDiff[i].ToString(),9);
+                    string v = getValue(var[i].ToString(),15);
                     string ln = lbl + " | " + md + " | " + m+" | "+vd+" | "+v;
                     rp.addMessage(ln);
 
@@ -87,9 +77,16 @@ namespace esriUtil.Forms.Stats
             {
                 rp.stepPGBar(100);
                 rp.enableClose();
-                rp.addMessage("-".PadRight(57, '-'));
+                rp.addMessage("-".PadRight(69, '-'));
                 rp.addMessage("\nFinished Comparing means and variance");
             }
+        }
+        private string getValue(string vl, int leng)
+        {
+            string outVl = vl;
+            if (vl.Length > leng) outVl = vl.Substring(0, leng);
+            else outVl = vl.PadRight(leng, ' ');
+            return outVl;
         }
     }
 }

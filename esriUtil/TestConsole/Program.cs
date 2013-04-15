@@ -38,31 +38,15 @@ namespace TestConsole
             TimeSpan ts;
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
             rasterUtil rsUtil = new rasterUtil();
-            //string tblStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\AccuracyAssessment\testData.gdb\CropTest";
-            string mdlPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\ClustImg.mdl";
-            string rstCoef = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\SteveBrown\ImageTest.gdb\c1R";
-            string outModelPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\RSTTEST.mdl";
-            IRaster cir = rsUtil.returnRaster(rstCoef);
-            esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(mdlPath,cir);
-            IRaster cRs = mh.getRaster();
-            esriUtil.Statistics.dataPrepTTest ttest = new esriUtil.Statistics.dataPrepTTest(cRs,cir);
-            ttest.buildModel();
-            ttest.writeModel(outModelPath);
-            mh = new esriUtil.Statistics.ModelHelper(outModelPath, cRs);
-            IRaster rs = mh.getRaster();
-            IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
-            IPixelBlock pb = rsCur.PixelBlock;
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                {
-                    for (int k = 0; k < pb.Planes; k++)
-			        {
-                        Console.WriteLine(pb.GetVal(k,j,i));
-			        }
-                    
-                }
-            }
+            string tblStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\SampleSize.gdb\valdationSample";
+            string mf = "F_DTB_mlc";
+            string rf = "F_DTB";
+            string wf = "weight";
+            esriUtil.Statistics.dataGeneralConfusionMatirx aa = new esriUtil.Statistics.dataGeneralConfusionMatirx(geoUtil.getTable(tblStr), rf, mf);
+            aa.WeightFeild = wf;
+            Console.WriteLine(aa.Overall.ToString());
+            Console.WriteLine(aa.Kappa.ToString());
+            
 
            
             //featureUtil ftrUtil = new featureUtil();

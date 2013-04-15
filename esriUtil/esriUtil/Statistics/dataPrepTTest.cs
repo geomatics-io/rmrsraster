@@ -248,8 +248,8 @@ namespace esriUtil.Statistics
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
             rd.addMessage("Input path = " + InPath);
             rd.addMessage("Total Sample size = " + n.ToString());
-            rd.addMessage("\nLabel   |Compare V1-V2   |N       |Dif     |T-Stat  |P-Value ");
-            rd.addMessage("-".PadRight(62,'-'));
+            rd.addMessage("\nLabel   |Compare V1-V2    |N       |Dif     |T-Stat  |P-Value ");
+            rd.addMessage("-".PadRight(75,'-'));
             KMeansClusterCollection gCol = kmeans.Clusters;
             for (int i = 0; i < gCol.Count; i++)
             {
@@ -285,13 +285,13 @@ namespace esriUtil.Statistics
                         {
                             pValue = (cdf * 2);
                         }
-                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + getValue(pValue.ToString(), 6);
+                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + pValue.ToString();
                         rd.addMessage(ln);
                     }
                     cnt += 1;
                 }
             }
-            rd.addMessage("-".PadRight(62, '-'));
+            rd.addMessage("-".PadRight(75, '-'));
             rd.enableClose();
             rd.Show();
         }
