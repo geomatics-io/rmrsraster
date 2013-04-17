@@ -60,7 +60,13 @@ namespace esriUtil.Statistics
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pbS.Width,pbS.Height);
                 IPixelBlock pb = InValueRaster.CreatePixelBlock(pbSize);
-                InValueRaster.Read(rsSCur.TopLeft, pb);
+                IPnt ptLoc = new PntClass();
+                double mx, my;
+                rsS2.PixelToMap(System.Convert.ToInt32(rsSCur.TopLeft.X), System.Convert.ToInt32(rsSCur.TopLeft.Y), out mx, out my);
+                int px,py;
+                rsV2.MapToPixel(mx, my, out px, out py);
+                ptLoc.SetCoords(px, py);
+                InValueRaster.Read(ptLoc, pb);
                 for (int r = 0; r < pb.Height; r++)
                 {
                     for (int c = 0; c < pb.Width; c++)

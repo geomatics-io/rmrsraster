@@ -46,13 +46,14 @@
             this.btnStrataRst = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.btnOpenFeatureClass = new System.Windows.Forms.Button();
+            this.chbPT = new System.Windows.Forms.CheckBox();
             this.gpSelection.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblStrat
             // 
             this.lblStrat.AutoSize = true;
-            this.lblStrat.Location = new System.Drawing.Point(12, 56);
+            this.lblStrat.Location = new System.Drawing.Point(12, 58);
             this.lblStrat.Name = "lblStrat";
             this.lblStrat.Size = new System.Drawing.Size(66, 13);
             this.lblStrat.TabIndex = 73;
@@ -80,7 +81,7 @@
             // cmbStrataField
             // 
             this.cmbStrataField.FormattingEnabled = true;
-            this.cmbStrataField.Location = new System.Drawing.Point(15, 73);
+            this.cmbStrataField.Location = new System.Drawing.Point(15, 75);
             this.cmbStrataField.Name = "cmbStrataField";
             this.cmbStrataField.Size = new System.Drawing.Size(220, 21);
             this.cmbStrataField.TabIndex = 72;
@@ -117,7 +118,7 @@
             // cmbSampleFeatureClass
             // 
             this.cmbSampleFeatureClass.FormattingEnabled = true;
-            this.cmbSampleFeatureClass.Location = new System.Drawing.Point(15, 29);
+            this.cmbSampleFeatureClass.Location = new System.Drawing.Point(15, 26);
             this.cmbSampleFeatureClass.Name = "cmbSampleFeatureClass";
             this.cmbSampleFeatureClass.Size = new System.Drawing.Size(220, 21);
             this.cmbSampleFeatureClass.TabIndex = 64;
@@ -126,11 +127,11 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 12);
+            this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(71, 13);
+            this.label2.Size = new System.Drawing.Size(101, 13);
             this.label2.TabIndex = 65;
-            this.label2.Text = "Input Dataset";
+            this.label2.Text = "Input Value Dataset";
             // 
             // txtOutputPath
             // 
@@ -185,7 +186,7 @@
             // btnStrataRst
             // 
             this.btnStrataRst.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnStrataRst.Location = new System.Drawing.Point(241, 71);
+            this.btnStrataRst.Location = new System.Drawing.Point(241, 73);
             this.btnStrataRst.Name = "btnStrataRst";
             this.btnStrataRst.Size = new System.Drawing.Size(23, 24);
             this.btnStrataRst.TabIndex = 74;
@@ -206,18 +207,31 @@
             // btnOpenFeatureClass
             // 
             this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(241, 27);
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(241, 24);
             this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
             this.btnOpenFeatureClass.Size = new System.Drawing.Size(23, 24);
             this.btnOpenFeatureClass.TabIndex = 66;
             this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
             this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeture_Click);
             // 
+            // chbPT
+            // 
+            this.chbPT.AutoSize = true;
+            this.chbPT.Checked = true;
+            this.chbPT.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chbPT.Location = new System.Drawing.Point(15, 410);
+            this.chbPT.Name = "chbPT";
+            this.chbPT.Size = new System.Drawing.Size(90, 17);
+            this.chbPT.TabIndex = 75;
+            this.chbPT.Text = "Paired T-Test";
+            this.chbPT.UseVisualStyleBackColor = true;
+            // 
             // frmTTest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 449);
+            this.Controls.Add(this.chbPT);
             this.Controls.Add(this.lblStrat);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.cmbStrataField);
@@ -260,5 +274,6 @@
         private System.Windows.Forms.ListBox lstIndependent;
         private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.Button btnOpenFeatureClass;
+        private System.Windows.Forms.CheckBox chbPT;
     }
 }

@@ -38,16 +38,19 @@ namespace TestConsole
             TimeSpan ts;
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
             rasterUtil rsUtil = new rasterUtil();
-            string tblStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\SampleSize.gdb\valdationSample";
-            string mf = "F_DTB_mlc";
-            string rf = "F_DTB";
-            string wf = "weight";
-            esriUtil.Statistics.dataGeneralConfusionMatirx aa = new esriUtil.Statistics.dataGeneralConfusionMatirx(geoUtil.getTable(tblStr), rf, mf);
-            aa.WeightFeild = wf;
-            Console.WriteLine(aa.Overall.ToString());
-            Console.WriteLine(aa.Kappa.ToString());
+            string zoneRsStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\remap.img";
+            string vlRsStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\arivalTime.img";
+            string outModel = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\ArivialTimeTTest8.mdl";
+            esriUtil.Statistics.dataPrepPairedTTest pTT = new esriUtil.Statistics.dataPrepPairedTTest();
+            pTT.buildModel(outModel);
+            Console.WriteLine("Labels = " + String.Join(", ",pTT.Labels.ToArray()));
+            Console.WriteLine("Total N = " + pTT.N);
+            Console.WriteLine("Variables = " + String.Join(", ", pTT.VariableFieldNames));
+            pTT.getReport();
+            //esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(outModel);
+            //mh.openModelReport(outModel, 0.05);
             
-
+            
            
             //featureUtil ftrUtil = new featureUtil();
             //string inputTable = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\ClusterSampleSize\NPC_TRAINING_DATA.gdb\CLWNEZ_IMSTAT_BASE";

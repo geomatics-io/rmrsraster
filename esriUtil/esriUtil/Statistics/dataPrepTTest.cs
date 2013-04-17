@@ -220,7 +220,7 @@ namespace esriUtil.Statistics
                     double pSD = Math.Sqrt((var[j] + var[k]) / 2);
                     double se = pSD * seAdjust;
                     double tStat = mD / se;
-                    Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(nSample-2);
+                    Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(2*nSample-2);
                     double cdf = tDist.DistributionFunction(tStat);
                     double pValue = 0;
                     if (tStat>0)
@@ -238,11 +238,13 @@ namespace esriUtil.Statistics
             }
             return pValues;
         }
+        private Forms.RunningProcess.frmRunningProcessDialog rd = null;
+        public Forms.RunningProcess.frmRunningProcessDialog ReportForm { get { return rd; } }
         public void getReport()
         {
             if (kmeans == null) buildModel();
-            Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
-            rd.Text = "T-Test Results";
+            rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
+            rd.Text = "Independent T-Test Results";
             rd.TopLevel = true;
             rd.pgbProcess.Visible = false;
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
@@ -274,7 +276,7 @@ namespace esriUtil.Statistics
                         double pSD = Math.Sqrt((var[j] + var[k]) / 2);
                         double se = pSD * seAdjust;
                         double tStat = mD / se;
-                        Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(nSample-2);
+                        Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(2*nSample-2);
                         double cdf = tDist.DistributionFunction(tStat);
                         double pValue = 0;
                         if (tStat>0)
@@ -296,7 +298,7 @@ namespace esriUtil.Statistics
             rd.Show();
         }
 
-        private string getValue(string vl, int leng)
+        public string getValue(string vl, int leng)
         {
             string outVl = vl;
             if (vl.Length > leng) outVl = vl.Substring(0, leng);

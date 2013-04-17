@@ -2214,6 +2214,22 @@ namespace esriUtil
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
         }
+        public IRaster calcPairedTTestFunction(IRaster inRaster, Statistics.dataPrepPairedTTest pairedttest)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.pairedttestFunctionDataset();
+            FunctionRasters.pairedttestFunctionArguments args = new FunctionRasters.pairedttestFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.TTestModel = pairedttest;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
         public IRaster calcTTestFunction(IRaster inRaster, Statistics.dataPrepTTest ttest)
         {
             IRaster rRst = returnRaster(inRaster);
@@ -4414,6 +4430,8 @@ namespace esriUtil
             }
 
         }
+
+
 
 
 

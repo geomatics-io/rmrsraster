@@ -255,28 +255,54 @@ namespace esriUtil.Forms.Stats
                 string s = lstIndependent.Items[i].ToString();
                 lstInd.Add(s);
             }
-            
-            Statistics.dataPrepTTest ttest = null;
-            if (ftrDic.ContainsKey(smpFtrNm))
+            if (chbPT.Checked)
             {
-                if (lstInd.Count < 1)
+                Statistics.dataPrepPairedTTest pttest = null;
+                if (ftrDic.ContainsKey(smpFtrNm))
                 {
-                    MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    if (lstInd.Count < 1)
+                    {
+                        MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    this.Visible = false;
+                    ITable ftrCls = ftrDic[smpFtrNm];
+                    pttest = new Statistics.dataPrepPairedTTest(ftrCls, lstInd.ToArray(), strataField);
                 }
-                this.Visible = false;
-                ITable ftrCls = ftrDic[smpFtrNm];
-                ttest = new Statistics.dataPrepTTest(ftrCls,lstInd.ToArray(),strataField);
+                else
+                {
+                    IRaster rs = rstDic[smpFtrNm];
+                    IRaster rs2 = rstDic[strataField];
+                    this.Visible = false;
+                    pttest = new Statistics.dataPrepPairedTTest(rs2, rs);
+                }
+                pttest.writeModel(outP);
+                pttest.getReport();
             }
             else
             {
-                IRaster rs = rstDic[smpFtrNm];
-                IRaster rs2 = rstDic[strataField];
-                this.Visible = false;
-                ttest = new Statistics.dataPrepTTest(rs,rs2);
+                Statistics.dataPrepTTest ttest = null;
+                if (ftrDic.ContainsKey(smpFtrNm))
+                {
+                    if (lstInd.Count < 1)
+                    {
+                        MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    this.Visible = false;
+                    ITable ftrCls = ftrDic[smpFtrNm];
+                    ttest = new Statistics.dataPrepTTest(ftrCls, lstInd.ToArray(), strataField);
+                }
+                else
+                {
+                    IRaster rs = rstDic[smpFtrNm];
+                    IRaster rs2 = rstDic[strataField];
+                    this.Visible = false;
+                    ttest = new Statistics.dataPrepTTest(rs2, rs);
+                }
+                ttest.writeModel(outP);
+                ttest.getReport();
             }
-            ttest.writeModel(outP);
-            ttest.getReport();
             this.Close();
         }
 

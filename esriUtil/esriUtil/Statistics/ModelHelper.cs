@@ -109,11 +109,21 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.TTEST:
                     outRs = getTTestRaster();
                     break;
+                case dataPrepBase.modelTypes.PAIREDTTEST:
+                    outRs = getPairedTTestRaster();
+                    break;
                 default:
                     Console.WriteLine("Can't make a raster out of model");
                     break;
             }
             return outRs;
+        }
+
+        private IRaster getPairedTTestRaster()
+        {
+            dataPrepPairedTTest pttest = new dataPrepPairedTTest();
+            pttest.buildModel(mdlp);
+            return rsUtil.calcPairedTTestFunction(coefRst, pttest);
         }
 
         private IRaster getTTestRaster()
@@ -283,10 +293,22 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.TTEST:
                     openTTest(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.PAIREDTTEST:
+                    openPairedTTest(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openPairedTTest(double alpha, bool report)
+        {
+            dataPrepPairedTTest pttest = new dataPrepPairedTTest();
+            pttest.buildModel(mdlp);
+            depvar = pttest.Labels.ToArray();
+            indvar = pttest.VariableFieldNames;
+            if (report) pttest.getReport();
         }
 
         private void openTTest(double alpha, bool report)
@@ -471,8 +493,74 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.TTEST:
                     predictTTest(inputTable, fldIndexArr);
                     break;
+                case dataPrepBase.modelTypes.PAIREDTTEST:
+                    predictPairedTTest(inputTable, fldIndexArr);
+                    break;
                 default:
                     break;
+            }
+        }
+
+        private void predictPairedTTest(ITable inputTable, int[] fldIndexArr)
+        {
+            dataPrepPairedTTest pttest = new dataPrepPairedTTest();
+            pttest.buildModel(mdlp);
+            string groupFieldName = pttest.StrataField;
+            List<string> labels = pttest.Labels;
+            int varCnt = pttest.VariableFieldNames.Length;
+            string[] newNameArray = new string[((varCnt * varCnt) - varCnt) / 2];
+            int[] newIndexArray = new int[newNameArray.Length];
+            int cnt = 1;
+            int arrCnt = 0;
+            for (int i = 0; i < varCnt - 1; i++)
+            {
+                for (int j = cnt; j < varCnt; j++)
+                {
+                    string f1 = pttest.VariableFieldNames[i];
+                    string f2 = pttest.VariableFieldNames[j];
+                    string nM = f1 + "_" + f2;
+                    nM = geoUtil.createField(inputTable, nM, esriFieldType.esriFieldTypeDouble, false);
+                    newNameArray[arrCnt] = nM;
+                    arrCnt++;
+                }
+                cnt++;
+            }
+            Dictionary<string, double[]> tDic = new Dictionary<string, double[]>();
+            foreach (string s in labels)
+            {
+                tDic.Add(s, pttest.computeNew(s));
+            }
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(null, false);
+            for (int i = 0; i < newNameArray.Length; i++)
+            {
+                newIndexArray[i] = cur.FindField(newNameArray[i]);
+            }
+            int groupFieldIndex = cur.FindField(groupFieldName);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                string g = rw.get_Value(groupFieldIndex).ToString();
+                double[] vlArr;
+                if (tDic.TryGetValue(g, out vlArr))
+                {
+                    for (int i = 0; i < newIndexArray.Length; i++)
+                    {
+                        int ind = newIndexArray[i];
+                        double vl = vlArr[i];
+                        rw.set_Value(ind, vl);
+                    }
+                    cur.UpdateRow(rw);
+                }
+                else
+                {
+                }
+                rw = cur.NextRow();
             }
         }
 
