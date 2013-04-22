@@ -43,6 +43,7 @@
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
             this.button2 = new System.Windows.Forms.Button();
             this.btnExcute = new System.Windows.Forms.Button();
+            this.chbEqual = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.nudAlpha)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudProp)).BeginInit();
             this.SuspendLayout();
@@ -193,7 +194,7 @@
             // 
             // btnExcute
             // 
-            this.btnExcute.Location = new System.Drawing.Point(194, 176);
+            this.btnExcute.Location = new System.Drawing.Point(194, 205);
             this.btnExcute.Name = "btnExcute";
             this.btnExcute.Size = new System.Drawing.Size(61, 23);
             this.btnExcute.TabIndex = 58;
@@ -201,11 +202,22 @@
             this.btnExcute.UseVisualStyleBackColor = true;
             this.btnExcute.Click += new System.EventHandler(this.btnExecute_Click);
             // 
+            // chbEqual
+            // 
+            this.chbEqual.AutoSize = true;
+            this.chbEqual.Location = new System.Drawing.Point(9, 209);
+            this.chbEqual.Name = "chbEqual";
+            this.chbEqual.Size = new System.Drawing.Size(138, 17);
+            this.chbEqual.TabIndex = 59;
+            this.chbEqual.Text = "Adjust for equal weights";
+            this.chbEqual.UseVisualStyleBackColor = true;
+            // 
             // frmSelectSamplesFromTable
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(268, 212);
+            this.ClientSize = new System.Drawing.Size(268, 243);
+            this.Controls.Add(this.chbEqual);
             this.Controls.Add(this.btnExcute);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.label4);
@@ -248,5 +260,6 @@
         private System.Windows.Forms.ComboBox cmbSampleFeatureClass;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button btnExcute;
+        private System.Windows.Forms.CheckBox chbEqual;
     }
 }

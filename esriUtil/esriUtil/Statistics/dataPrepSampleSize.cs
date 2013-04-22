@@ -95,7 +95,7 @@ namespace esriUtil.Statistics
         public static void getReport(string modelPath,double proportion=0.1,double alpha=0.05)
         {
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
-            rp.addMessage("Sample size for " + modelPath);
+            rp.addMessage("Sample size for " + modelPath + " based on variation");
             rp.stepPGBar(50);
             rp.Show();
             dataPrepBase.modelTypes mType = ModelHelper.getModelType(modelPath);

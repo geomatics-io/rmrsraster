@@ -260,8 +260,8 @@ namespace esriUtil.Statistics
                     cov[i, i] = var;
                     for (int j = 0 + i + 1; j < sumClms.Length; j++)
                     {
-                        double vl1 = (sumCross[j, i] / sampN);
-                        double vl2 = (sumClms[j] / sampN) * (sumClms[i] / (sampN));
+                        double vl1 = (sumCross[j, i] / (sampN));
+                        double vl2 = (sumClms[j] / (sampN)) * (sumClms[i] / (sampN));
                         double p12 = vl1 - vl2;
                         cov[i, j] = p12;
                         cov[j, i] = p12;

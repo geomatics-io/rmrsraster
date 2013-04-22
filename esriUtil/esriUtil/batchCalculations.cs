@@ -215,7 +215,7 @@ namespace esriUtil
                                         rstDic[outName] = createMerge(paramArr);
                                         break;
                                     case batchGroups.SAMPLERASTER:
-                                        sampleRaster(paramArr);
+                                        ftrDic[outName] = sampleRaster(paramArr);
                                         break;
                                     case batchGroups.CREATERANDOMSAMPLE:
                                         ftrDic[outName] = createRandomSample(paramArr);
@@ -224,7 +224,7 @@ namespace esriUtil
                                         ftrDic[outName] = createStratifiedRandomSample(paramArr);
                                         break;
                                     case batchGroups.CLUSTERSAMPLERASTER:
-                                        clusterSampleRaster(paramArr);
+                                        ftrDic[outName] = clusterSampleRaster(paramArr);
                                         break;
                                     case batchGroups.FOCALSAMPLE:
                                         rstDic[outName] = createFocalSampleFunction(paramArr);
@@ -330,22 +330,45 @@ namespace esriUtil
             return rsUtil.calcFocalSampleFunction(inRaster, offset, statType);
         }
 
-        private void clusterSampleRaster(string[] paramArr)
+        private IFeatureClass clusterSampleRaster(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
+            IRaster sampleRst = getRaster(paramArr[1]);
+            string inName = paramArr[2];
+            if (inName == "" || inName == "null")
+            {
+                inName = null;
+            }
+            Dictionary<double, double> azmithDistance = new Dictionary<double, double>();
+            foreach (string s in paramArr[3].Split(new char[] { ',' }))
+            {
+                string[] aA = s.Split(new char[] { ':' });
+                azmithDistance.Add(System.Convert.ToDouble(aA[0]), System.Convert.ToDouble(aA[1]));
+            }
+            rasterUtil.clusterType typeOfCluster = (rasterUtil.clusterType)Enum.Parse(typeof(rasterUtil.clusterType),paramArr[4]);
+            rsUtil.sampleRaster(inFtrCls, sampleRst, inName, azmithDistance, typeOfCluster);
+            return inFtrCls;
         }
 
         private IFeatureClass createStratifiedRandomSample(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IWorkspace wks = geoUtil.OpenWorkSpace(paramArr[0]);
+            IRaster rasterPath = rsUtil.returnRaster(paramArr[1]);
+            int[] sampleSizePerClass = (from string s in paramArr[2].Split(new char[] { ',' }) select System.Convert.ToInt32(s)).ToArray();
+            string outName = paramArr[3];
+            return rsUtil.createRandomSampleLocationsByClass(wks, rasterPath, sampleSizePerClass, 1, outName);
         }
 
         private IFeatureClass createRandomSample(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IWorkspace wks = geoUtil.OpenWorkSpace(paramArr[0]);
+            IRaster rasterPath = rsUtil.returnRaster(paramArr[1]);
+            int sampleSize = System.Convert.ToInt32(paramArr[2]);
+            string outName = paramArr[3];
+            return rsUtil.createRandomSampleLocations(wks, rasterPath, sampleSize, outName);
         }
 
-        private void sampleRaster(string[] paramArr)
+        private IFeatureClass sampleRaster(string[] paramArr)
         {
             IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
             IRaster sampleRst = getRaster(paramArr[1]);
@@ -355,16 +378,40 @@ namespace esriUtil
                 inName = null;
             }
             rsUtil.sampleRaster(inFtrCls, sampleRst, inName);
+            return inFtrCls;
         }
 
         private IRaster createMerge(string[] paramArr)
         {
-            throw new NotImplementedException();
+            string rsStr = paramArr[0];
+            string[] rsStrArr = rsStr.Split(new char[]{','});
+            IRaster[] rstArr = new IRaster[rsStrArr.Length];
+            for (int i = 0; i < rsStrArr.Length; i++)
+			{
+                rstArr[i] = getRaster(rsStrArr[i]);
+			}
+            rasterUtil.mergeType mType = (rasterUtil.mergeType)Enum.Parse(typeof(rasterUtil.mergeType), paramArr[1]);
+            return rsUtil.calcMosaicFunction(rstArr, mType);
         }
 
         private IRaster createMosaic(string[] paramArr)
         {
-            throw new NotImplementedException();
+            IWorkspace wks = geoUtil.OpenRasterWorkspace(paramArr[0]);
+            string mosiacName = paramArr[1];
+            string rsStr = paramArr[2];
+            string[] rsStrArr = rsStr.Split(new char[] { ',' });
+            IRaster[] rstArr = new IRaster[rsStrArr.Length];
+            for (int i = 0; i < rsStrArr.Length; i++)
+            {
+                rstArr[i] = getRaster(rsStrArr[i]);
+            }
+            esriMosaicMethod mosaicmethod = (esriMosaicMethod)Enum.Parse(typeof(esriMosaicMethod), paramArr[3]);
+            rstMosaicOperatorType mosaictype = (rstMosaicOperatorType)Enum.Parse(typeof(rstMosaicOperatorType), paramArr[4]);
+            bool buildfootprint = System.Convert.ToBoolean(paramArr[5]);
+            bool buildboundary = System.Convert.ToBoolean(paramArr[6]);
+            bool seemlines = System.Convert.ToBoolean(paramArr[7]);
+            bool buildOverview = System.Convert.ToBoolean(paramArr[8]);
+            return rsUtil.mosaicRastersFunction(wks, mosiacName, rstArr, mosaicmethod,mosaictype, buildfootprint, buildboundary, seemlines, buildOverview);
         }
 
         private ITable buildRasterVat(string[] paramArr)
@@ -480,7 +527,7 @@ namespace esriUtil
 
         private IRaster createRescaleFunction(string[] paramArr)
         {
-            throw new NotImplementedException();
+            return rsUtil.reScaleRasterFunction(getRaster(paramArr[0]));
         }
 
         private IRaster createLinearTransformFunction(string[] paramArr)
@@ -787,6 +834,7 @@ namespace esriUtil
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;betas{0.12,2.25,1,6.3}; intercept should be the first number)";
                     break;
                 case batchGroups.RESCALE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster)";
                     break;
                 case batchGroups.REMAP:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;0:1:100,1:6:200,6:1000:300)";
@@ -801,6 +849,7 @@ namespace esriUtil
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;width;height;horizontal(true,false);glcmMetric)\noutRS = " + batchFunction.ToString() + "(in_Raster1;radius;horizontal(true,false);glcmMetric)";
                     break;
                 case batchGroups.LANDSCAPE:
+                    msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;width;height;focalType;landType)\noutRS = " + batchFunction.ToString() + "(in_Raster1;radius;focalType;landType)";
                     break;
                 case batchGroups.ZONALSTATS:
                     msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;OutTableName;MAX,MIN,SUM)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;OutTableName;MAX,MIN,SUM)";
@@ -815,17 +864,22 @@ namespace esriUtil
                     msg = "outTable = " + batchFunction.ToString() + "(in_Raster)";
                     break;
                 case batchGroups.MOSAIC:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(wks; mosaicDatasetName; inRaster1,inRaster2,inRaster3; mosaicmethod; mosaictype; buildfootprint; buildboundary; seemlines; buildOverview)";
                     break;
                 case batchGroups.MERGE:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inRaster1,inRaster2,inRaster3;mergeType)";
                     break;
                 case batchGroups.SAMPLERASTER:
-                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass,sampleRaster,FieldNamePrefix)";
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass;sampleRaster;FieldNamePrefix)";
                     break;
                 case batchGroups.CLUSTERSAMPLERASTER:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass;sampleRaster;FieldNamePrefix;15:56,180:56,274:75;typeOfCluster)";
                     break;
                 case batchGroups.CREATERANDOMSAMPLE:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass;sampleRaster;100;OutName)";
                     break;
                 case batchGroups.CREATESTRATIFIEDRANDOMSAMPLE:
+                    msg = "outFtrClass = " + batchFunction.ToString() + "(inFeatureClass;sampleRaster;20,65,75,10;OutName)";
                     break;
                 case batchGroups.FOCALSAMPLE:
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster;360:37.56,120:26.25,240:2;focalType)";
@@ -848,24 +902,70 @@ namespace esriUtil
             System.Windows.Forms.MessageBox.Show(msg);
         }
         private string lstName = null;
+        public void getFinalObject(out string nm, out object finalObject, out string desc)
+        {
+            nm="";
+            finalObject = null;
+            desc = "";
+            if (rstDic.Keys.Contains(lstName))
+            {
+                IRaster rs;
+                GetFinalRaster(out nm, out rs, out desc);
+                finalObject = rs;
+                
+            }
+            else if (ftrDic.Keys.Contains(lstName))
+            {
+                IFeatureClass ftrCls;
+                GetFinalFeatureClass(out nm, out ftrCls, out desc);
+                finalObject = ftrCls;
+            }
+            else
+            {
+                ITable tbl;
+                GetFinalTable(out nm, out tbl, out desc);
+                finalObject = tbl;
+            }
+        }
         public void GetFinalRaster(out string nm, out IRaster rs, out string desc)
         {
-            System.Windows.Forms.MessageBox.Show("LstName = " + lstName+ " and has dictionary value = " + rstDic.ContainsKey(lstName).ToString());
-            nm=lstName;
-            rs = rstDic[lstName];
-            desc = lnLst[lnLst.Count - 1];
+            nm = "";
+            rs = null;
+            desc = "";
+            //System.Windows.Forms.MessageBox.Show("LstName = " + lstName+ " and has dictionary value = " + rstDic.ContainsKey(lstName).ToString());
+            if (rstDic.ContainsKey(lstName))
+            {
+                nm = lstName;
+                rs = rstDic[lstName];
+                desc = lnLst[lnLst.Count - 1];
+            }
         }
         public void GetFinalFeatureClass(out string nm, out IFeatureClass fc, out string desc)
         {
-            nm = lstName;
-            fc = ftrDic[lstName];
-            desc = lnLst[lnLst.Count - 1];
+            nm = "";
+            fc = null;
+            desc = "";
+            //System.Windows.Forms.MessageBox.Show("LstName = " + lstName+ " and has dictionary value = " + rstDic.ContainsKey(lstName).ToString());
+            if (rstDic.ContainsKey(lstName))
+            {
+                nm = lstName;
+                fc = ftrDic[lstName];
+                desc = lnLst[lnLst.Count - 1];
+            }
         }
         public void GetFinalTable(out string nm, out ITable tb, out string desc)
         {
-            nm = lstName;
-            tb = tblDic[lstName];
-            desc = lnLst[lnLst.Count - 1];
+            nm = "";
+            tb = null;
+            desc = "";
+            //System.Windows.Forms.MessageBox.Show("LstName = " + lstName+ " and has dictionary value = " + rstDic.ContainsKey(lstName).ToString());
+            if (rstDic.ContainsKey(lstName))
+            {
+                nm = lstName;
+                tb = tblDic[lstName];
+                desc = lnLst[lnLst.Count - 1];
+            }
+            
         }
     }
 }

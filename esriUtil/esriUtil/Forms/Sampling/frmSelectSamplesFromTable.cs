@@ -140,8 +140,6 @@ namespace esriUtil.Forms.Sampling
             
             this.Visible = false;
             this.Refresh();
-
-            esriUtil.Statistics.dataPrepBase.modelTypes mType = esriUtil.Statistics.ModelHelper.getModelType(outModelPath);
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             rp.addMessage("Selecting samples this may take a while...");
             rp.stepPGBar(10);
@@ -152,28 +150,22 @@ namespace esriUtil.Forms.Sampling
             try
             {
                 featureUtil ftrUtil = new featureUtil();
-                int nS = -1;
-                try
+                int ns;
+                if(Int32.TryParse(outModelPath,out ns))
                 {
-                    nS = System.Convert.ToInt32(Double.Parse(outModelPath));
-                }
-                catch
-                {
-                    nS = -1;
-                }
-                if(nS==-1)
-                {
-                    ftrUtil.selectEqualFeaturesToSample(ftrCls, mapFld, nS);
+                    //MessageBox.Show(ns.ToString());
+                    ftrUtil.selectEqualFeaturesToSample(ftrCls, mapFld, ns,chbEqual.Checked);
                 }
                 else
                 {
+                    esriUtil.Statistics.dataPrepBase.modelTypes mType = esriUtil.Statistics.ModelHelper.getModelType(outModelPath);
                     switch (mType)
                     {
                         case esriUtil.Statistics.dataPrepBase.modelTypes.Accuracy:
-                            ftrUtil.selectAccuracyFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha);
+                            ftrUtil.selectAccuracyFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha,chbEqual.Checked);
                             break;
                         case esriUtil.Statistics.dataPrepBase.modelTypes.Cluster:
-                            ftrUtil.selectClusterFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha);
+                            ftrUtil.selectClusterFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha,chbEqual.Checked);
                             break;
                         case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
                         case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:

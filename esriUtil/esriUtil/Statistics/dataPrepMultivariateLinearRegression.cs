@@ -95,6 +95,12 @@ namespace esriUtil.Statistics
                     lr.getLrModel(ln,BuildModel);
                     lrLst.Add(lr);
                     ln = sr.ReadLine();
+                    if (IndependentFieldNames==null)
+                    {
+                        IndependentFieldNames = lr.IndependentFieldNames;
+                        DependentFieldNames = lr.DependentFieldNames;
+                        ClassFieldNames = lr.ClassFieldNames;
+                    }
                 }
                 
                 sr.Close();

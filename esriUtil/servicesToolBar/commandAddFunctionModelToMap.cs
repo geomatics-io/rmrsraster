@@ -22,6 +22,7 @@ namespace servicesToolBar
             IMxDocument mxDoc = ArcMap.Document;
             IMap map = mxDoc.FocusMap;
             funcMd.addFunctionRasterToMap(map);
+            mxDoc.UpdateContents();
         }
 
         protected override void OnUpdate()

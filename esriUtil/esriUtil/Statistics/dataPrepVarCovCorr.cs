@@ -208,12 +208,12 @@ namespace esriUtil.Statistics
             int sampN = n;
             for (int i = 0; i < sumClms.Length; i++)
             {
-                double var = (sumCross[i, i] / sampN) - (Math.Pow(sumClms[i], 2) / Math.Pow(sampN, 2));
+                double var = (sumCross[i, i] / (sampN)) - (Math.Pow(sumClms[i], 2) / Math.Pow((sampN), 2));
                 cov[i, i] = var;
                 double sVl = sumClms[i] / sampN;
                 for (int j = 0 + i + 1; j < sumClms.Length; j++)
                 {
-                    double vl1 = (sumCross[i, j] / sampN);
+                    double vl1 = (sumCross[i, j] / (sampN));
                     double vl2 = (sVl * (sumClms[j] / (sampN)));
                     double p12 = vl1 - vl2;
                     cov[i, j] = p12;
@@ -278,12 +278,12 @@ namespace esriUtil.Statistics
             int sampN = n;
             for (int i = 0; i < sumClms.Length; i++)
             {
-                double var = (sumCross[i, i] / sampN) - (Math.Pow(sumClms[i], 2) / Math.Pow((sampN), 2));
+                double var = (sumCross[i, i] / (sampN)) - (Math.Pow(sumClms[i], 2) / Math.Pow((sampN), 2));
                 cov[i,i] = var;
                 for (int j = 0 + i + 1; j < sumClms.Length; j++)
                 {
-                    double vl1 = (sumCross[j,i]/sampN);
-                    double vl2 = (sumClms[j]/sampN) * (sumClms[i]/(sampN));
+                    double vl1 = (sumCross[j,i]/(sampN));
+                    double vl2 = (sumClms[j]/(sampN)) * (sumClms[i]/(sampN));
                     double p12 = vl1 - vl2;
                     cov[i, j] = p12;
                     cov[j, i] = p12;

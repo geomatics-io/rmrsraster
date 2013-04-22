@@ -311,7 +311,6 @@ namespace esriUtil
                 Random rndGen = new Random();
                 pointName = geoUtil.getSafeOutputNameNonRaster(wks, pointName);
                 IRasterProps rstProps = (IRasterProps)rst2;
-                double nullValue = System.Convert.ToDouble(((System.Array)rstProps.NoDataValue).GetValue(0));
                 int rWidth = rstProps.Width;
                 int rHeight = rstProps.Height;
                 int[] spcInt = new int[sampleSizePerClass.Length];
@@ -446,8 +445,6 @@ namespace esriUtil
                 Random rndGen = new Random();
                 IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
                 IRasterProps rstProps = (IRasterProps)rst2;
-                System.Array sArr = (System.Array)rstProps.NoDataValue;
-                double nullValue = System.Convert.ToDouble(sArr.GetValue(0));
                 int rWidth = rstProps.Width;
                 int rHeight = rstProps.Height;
                 IFields flds = new FieldsClass();
@@ -464,8 +461,8 @@ namespace esriUtil
                 {
                     int x = rndGen.Next(rWidth);
                     int y = rndGen.Next(rHeight);
-                    double vlT = System.Convert.ToDouble(rst2.GetPixelValue(0, x, y));
-                    if (rasterUtil.isNullData(vlT, nullValue))
+                    object vlT = rst2.GetPixelValue(0, x, y);
+                    if (vlT==null)
                     {
                         continue;
                     }

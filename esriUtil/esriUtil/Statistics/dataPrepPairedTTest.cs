@@ -372,7 +372,9 @@ namespace esriUtil.Statistics
             double[] seOut = new double[s.Length];
             for (int i = 0; i < s.Length; i++)
             {
-                seOut[i] = Math.Sqrt((s2[i] - ((Math.Pow(s[i],2)) / gN)) / gN) / sqN;
+                double pvar = (s2[i] - ((Math.Pow(s[i], 2)) / gN)) / gN;
+                double svar = pvar * gN / (gN - 1);
+                seOut[i] = Math.Sqrt(svar) / sqN;
             }
             return seOut;
         }

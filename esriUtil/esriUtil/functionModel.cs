@@ -93,29 +93,55 @@ namespace esriUtil
             {
                 FunctionDatasetPath = ofd.FileName;
                 int fIndex = ofd.FilterIndex;
-                System.Windows.Forms.MessageBox.Show("Filter Index = " + fIndex.ToString());
                 string outName = "";
-                IRaster outRs = null;
+                object outobj = null;
                 string outDesc = "";
                 if (fIndex == 1)
                 {
+                    IRaster outRs;
                     createFunctionRaster(out outName, out outRs, out outDesc);
+                    outobj = outRs;
                 }
                 else
                 {
-                    createBatchRaster(out outName, out outRs, out outDesc);
+                    createBatchRaster(out outName, out outobj, out outDesc);
                 }
-                IRasterLayer rsLyr = new RasterLayerClass();
-                rsLyr.CreateFromRaster(outRs);
-                rsLyr.Name = outName;
-                rsLyr.Visible = false;
-                map.AddLayer((ILayer)rsLyr);
+                if (outobj is Raster)
+                {
+                    IRasterLayer rsLyr = new RasterLayerClass();
+                    rsLyr.CreateFromRaster((IRaster)outobj);
+                    rsLyr.Name = outName;
+                    rsLyr.Visible = false;
+                    map.AddLayer((ILayer)rsLyr);
+                }
+                else if (outobj is FeatureClass)
+                {
+                    IFeatureLayer ftrLyr = new FeatureLayerClass();
+                    ftrLyr.Name = outName;
+                    ftrLyr.Visible = false;
+                    ftrLyr.FeatureClass = (IFeatureClass)outobj;
+                    map.AddLayer((ILayer)ftrLyr);
+                }
+                else if (outobj is Table)
+                {
+                    IStandaloneTableCollection stCol = (IStandaloneTableCollection)map;
+                    IStandaloneTable stTbl = new StandaloneTableClass();
+                    stTbl.Table = (ITable)outobj;
+                    stTbl.Name = outName;
+                    stCol.AddStandaloneTable(stTbl);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show("There was a problem parsing the model. Please check your model file");
+                }
+
+                
             }
             
 
         }
 
-        private void createBatchRaster(out string nm, out IRaster rs, out string desc)
+        private void createBatchRaster(out string nm, out object rs, out string desc)
         {
             nm = null;
             rs = null;
@@ -130,7 +156,7 @@ namespace esriUtil
                 btch.BatchPath = path;
                 btch.loadBatchFile();
                 btch.runBatch();
-                btch.GetFinalRaster(out nm, out rs, out desc);
+                btch.getFinalObject(out nm, out rs, out desc);
             }
             catch
             {
