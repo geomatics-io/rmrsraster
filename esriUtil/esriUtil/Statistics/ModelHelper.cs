@@ -12,6 +12,95 @@ namespace esriUtil.Statistics
 {
     public class ModelHelper
     {
+        private static IStatusBar sBar = null;
+        private static bool sBarRun;
+        private static System.Threading.Thread statusBarThread = null;
+        private static ESRI.ArcGIS.Framework.IApplication app = null;
+        public static void closeProgressBar()
+        {
+            sBarRun = false;
+            if (statusBarThread != null)
+            {
+                if (statusBarThread.IsAlive)
+                {
+                    statusBarThread.Interrupt();
+                    statusBarThread.Abort();
+                }
+                   
+            }
+            if (sBar != null)
+            {
+                sBar.HideProgressBar();
+            }
+            statusBarThread = null;
+            
+        }
+        public static void runProgressBar(string message)
+        {
+            if (statusBarThread == null)
+            {
+                sBarRun = true;
+                statusBarThread = new System.Threading.Thread(() => genericProgressBar(message));
+                statusBarThread.Start();
+            }
+        }
+        private static void genericProgressBar(string message)
+        {
+            IStepProgressor spB = null;
+            if (sBar == null)
+            {
+                Type t = Type.GetTypeFromCLSID(typeof(ESRI.ArcGIS.Framework.AppRefClass).GUID);
+                System.Object obj = Activator.CreateInstance(t);
+                app = obj as ESRI.ArcGIS.Framework.IApplication;
+                sBar = app.StatusBar;
+                spB = sBar.ProgressBar;
+                spB.MinRange = 0;
+                spB.MaxRange = 50;
+                spB.StepValue = 1;
+            }
+            else
+            {
+                spB = sBar.ProgressBar;
+            }
+
+            if (spB.Position != 0) spB.OffsetPosition(spB.Position * -1);
+            spB.Message = message;
+            spB.Show();
+            int cnt = 0;
+            while (sBarRun)
+            {
+                if (cnt < 49)
+                {
+                    spB.Step();
+                    cnt++;
+                    System.Threading.Thread.Sleep(1000);
+                }
+                else
+                {
+                    spB.OffsetPosition(-49);
+                    cnt = 0;
+                }
+            }
+        }
+        public static string getValue(string vl, int leng)
+        {
+            string outVl = vl;
+            if (vl.Length > leng) outVl = vl.Substring(0, leng);
+            else outVl = vl.PadRight(leng, ' ');
+            return outVl;
+        }
+        public static string saveModelFileDialog()
+        {
+            string mPath = "";
+            System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
+            sfd.Filter = "Model|*.mdl";
+            sfd.AddExtension = true;
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                mPath = sfd.FileName;
+            }
+            return mPath;
+        }
         public static string openModelFileDialog()
         {
             string mPath = "";
@@ -296,10 +385,21 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.PAIREDTTEST:
                     openPairedTTest(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.KS:
+                    openKsTest(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openKsTest(double alpha, bool report)
+        {
+            dataPrepCompareSamples ksTest = new dataPrepCompareSamples(mdlp);
+            depvar = ksTest.Variables;
+            indvar = ksTest.Variables;
+            if (report) ksTest.getReport();
         }
 
         private void openPairedTTest(double alpha, bool report)

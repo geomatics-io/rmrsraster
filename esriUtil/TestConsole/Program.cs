@@ -17,7 +17,7 @@ using ESRI.ArcGIS.DataSourcesNetCDF;
 using System.Windows.Forms;
 using esriUtil;
 using System.Threading;
-using Accord.Statistics.Testing.Power;
+using Accord.Statistics.Testing;
 
 
 
@@ -38,25 +38,18 @@ namespace TestConsole
             TimeSpan ts;
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
             rasterUtil rsUtil = new rasterUtil();
-            string zoneRsStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\remap.img";
-            string vlRsStr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\arivalTime.img";
-            string outModel = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\Robb\TTest\ArivialTimeTTest8.mdl";
-            esriUtil.Statistics.dataPrepPairedTTest pTT = new esriUtil.Statistics.dataPrepPairedTTest();
-            pTT.buildModel(outModel);
-            Console.WriteLine("Labels = " + String.Join(", ",pTT.Labels.ToArray()));
-            Console.WriteLine("Total N = " + pTT.N);
-            Console.WriteLine("Variables = " + String.Join(", ", pTT.VariableFieldNames));
-            pTT.getReport();
-            //esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(outModel);
-            //mh.openModelReport(outModel, 0.05);
-            
-            
-           
-            //featureUtil ftrUtil = new featureUtil();
-            //string inputTable = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\ClusterSampleSize\NPC_TRAINING_DATA.gdb\CLWNEZ_IMSTAT_BASE";
-            //string clusterPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\ClusterSampleSize\CLWNEZ_IMSTAT_BASE.mdl";
-            //ITable tbl = geoUtil.getTable(inputTable);
-            //ftrUtil.selectStratifiedFeaturesToSample(tbl, clusterPath, "Cluster");
+            string tblSamp = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\SampleSize.gdb\trainSample";
+            string tblPop = @"C:\Documents and Settings\jshogland\My Documents\JOHN\Requests\RobAhl\samplingProcedure\SampleSize.gdb\givenSamples";
+            string outMd = @"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\ks.mdl";
+            esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(outMd);
+            mh.openModelReport(outMd, 0.05, true);
+            //ITable sample1 = geoUtil.getTable(tblPop);
+            //ITable sample2 = geoUtil.getTable(tblSamp);
+            //string[] explanitoryVariables = { "Mean_CPCA1", "Mean_CPCA2", "Mean_CPCA3" };
+            //string strataField = "Cluster";
+            //esriUtil.Statistics.dataPrepCompareSamples comp = new esriUtil.Statistics.dataPrepCompareSamples(sample1, sample2, explanitoryVariables, strataField, true);
+            //comp.getReport();
+            //comp.writeModel(@"C:\Documents and Settings\jshogland\My Documents\JOHN\temp\ks.mdl");
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Pointer Total Seconds = " + ts.TotalSeconds.ToString());

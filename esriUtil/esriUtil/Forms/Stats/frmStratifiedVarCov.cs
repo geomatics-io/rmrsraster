@@ -249,36 +249,48 @@ namespace esriUtil.Forms.Stats
                 MessageBox.Show("You must select an output model path", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<string> lstInd = new List<string>();
-            for (int i = 0; i < lstIndependent.Items.Count; i++)
+            try
             {
-                string s = lstIndependent.Items[i].ToString();
-                lstInd.Add(s);
-            }
-            
-            Statistics.dataPrepStrata strata = null;
-            if (ftrDic.ContainsKey(smpFtrNm))
-            {
-                if (lstInd.Count < 1)
+                Statistics.ModelHelper.runProgressBar("Running Stratified VarCov");
+                List<string> lstInd = new List<string>();
+                for (int i = 0; i < lstIndependent.Items.Count; i++)
                 {
-                    MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    string s = lstIndependent.Items[i].ToString();
+                    lstInd.Add(s);
                 }
-                this.Visible = false;
-                ITable ftrCls = ftrDic[smpFtrNm];
-                strata = new Statistics.dataPrepStrata(ftrCls,lstInd.ToArray(),strataField);
+
+                Statistics.dataPrepStrata strata = null;
+                if (ftrDic.ContainsKey(smpFtrNm))
+                {
+                    if (lstInd.Count < 1)
+                    {
+                        MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    this.Visible = false;
+                    ITable ftrCls = ftrDic[smpFtrNm];
+                    strata = new Statistics.dataPrepStrata(ftrCls, lstInd.ToArray(), strataField);
+                }
+                else
+                {
+                    IRaster rs = rstDic[smpFtrNm];
+                    IRaster rs2 = rstDic[strataField];
+                    this.Visible = false;
+                    strata = new Statistics.dataPrepStrata(rs, rs2);
+                }
+                strata.writeModel(outP);
+                Statistics.ModelHelper mH = new Statistics.ModelHelper(outP);
+                mH.openModelReport(outP, 0.05);
             }
-            else
+            catch (Exception ex)
             {
-                IRaster rs = rstDic[smpFtrNm];
-                IRaster rs2 = rstDic[strataField];
-                this.Visible = false;
-                strata = new Statistics.dataPrepStrata(rs,rs2);
+                MessageBox.Show(ex.ToString());
             }
-            strata.writeModel(outP);
-            Statistics.ModelHelper mH = new Statistics.ModelHelper(outP);
-            mH.openModelReport(outP, 0.05);
-            this.Close();
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

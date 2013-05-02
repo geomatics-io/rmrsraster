@@ -116,7 +116,7 @@ namespace esriUtil.Statistics
         {
             if (cov == null) buildModel();
             Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
-            rd.Text = "Random Forest Results";
+            rd.Text = "Variance Covariance Results";
             rd.TopLevel = true;
             rd.pgbProcess.Visible = false;
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;

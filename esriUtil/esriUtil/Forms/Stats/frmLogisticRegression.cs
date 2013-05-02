@@ -210,11 +210,23 @@ namespace esriUtil.Forms.Stats
             }
             if (!lstCategoricalFlds.Contains(depFld)) lstCategoricalFlds.Add(depFld);
             this.Visible = false;
-            ITable ftrCls = ftrDic[smpFtrNm];
-            Statistics.dataPrepLogisticRegression plr = new Statistics.dataPrepLogisticRegression(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
-            plr.writeModel(outP);
-            plr.getReport(alpha);
-            this.Close();
+            try
+            {
+                Statistics.ModelHelper.runProgressBar("Running Logistic Regression");
+                ITable ftrCls = ftrDic[smpFtrNm];
+                Statistics.dataPrepLogisticRegression plr = new Statistics.dataPrepLogisticRegression(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
+                plr.writeModel(outP);
+                plr.getReport(alpha);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

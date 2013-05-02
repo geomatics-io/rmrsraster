@@ -121,6 +121,7 @@ namespace esriUtil.Forms.Stats
             rp.Show();
             try
             {
+                Statistics.ModelHelper.runProgressBar("Predicting data");
                 Statistics.ModelHelper br = new Statistics.ModelHelper(mdPath);
                 rp.Refresh();
                 br.predictNewData(tbl);
@@ -132,6 +133,7 @@ namespace esriUtil.Forms.Stats
             }
             finally
             {
+                Statistics.ModelHelper.closeProgressBar();
                 DateTime dt2 = DateTime.Now;
                 TimeSpan ts = dt2.Subtract(dt);
                 string t = " in " + ts.Days.ToString() + " days " + ts.Hours.ToString() + " hours " + ts.Minutes.ToString() + " minutes and " + ts.Seconds.ToString() + " seconds .";

@@ -124,6 +124,7 @@ namespace esriUtil.Forms.Stats
             rp.Refresh();
             try
             {
+                Statistics.ModelHelper.runProgressBar("Transposing Zonal Data");
                 FunctionRasters.zonalHelper.transformData(tbl,linkFldName, ztbl);
                 this.DialogResult = DialogResult.OK;
             }
@@ -133,6 +134,7 @@ namespace esriUtil.Forms.Stats
             }
             finally
             {
+                Statistics.ModelHelper.closeProgressBar();
                 DateTime dt2 = DateTime.Now;
                 TimeSpan ts = dt2.Subtract(dt);
                 string t = " in " + ts.Days.ToString() + " days " + ts.Hours.ToString() + " hours " + ts.Minutes.ToString() + " minutes and " + ts.Seconds.ToString() + " seconds .";

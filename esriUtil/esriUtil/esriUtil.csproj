@@ -218,6 +218,7 @@
     <Compile Include="batchCalculations.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionDataset.cs" />
+    <Compile Include="Statistics\dataPrepCompareSamples.cs" />
     <Compile Include="Statistics\dataPrepPairedTTest.cs" />
     <Compile Include="featureUtil.cs" />
     <Compile Include="fiaIntegration.cs" />

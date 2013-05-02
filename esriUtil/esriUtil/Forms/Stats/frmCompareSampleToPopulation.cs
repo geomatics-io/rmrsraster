@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.Geodatabase;
 
 namespace esriUtil.Forms.Stats
 {
@@ -16,77 +17,208 @@ namespace esriUtil.Forms.Stats
         {
             InitializeComponent();
         }
-
-        private void btnPop_Click(object sender, EventArgs e)
+        private rasterUtil rsUtil = new rasterUtil();
+        private Dictionary<string, ITable> ftrDic = new Dictionary<string, ITable>();
+        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+        private void getFeaturePath(object sender, EventArgs e)
         {
-            txtPop.Text = Statistics.ModelHelper.openModelFileDialog();
+            Control cnt = (Control)sender;
+            string cntName = cnt.Name;
+            TextBox txtBox = txtPop;
+            if (cntName == btnSamp.Name) txtBox = txtSamp;
+            string outPath = null;
+            string outName = "";
+            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
+            gxDialog.AllowMultiSelect = false;
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
+            flt = new ESRI.ArcGIS.Catalog.GxFilterTablesAndFeatureClassesClass();
+            gxDialog.ObjectFilter = flt;
+            gxDialog.Title = "Select a Feature Class or Table";
+            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
+            if (gxDialog.DoModalOpen(0, out eGxObj))
+            {
+                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
+                outPath = gxObj.FullName;
+                outName = gxObj.BaseName;
+                IRaster rs = rsUtil.returnRaster(outPath);
+                if (rs == null)
+                {
+                    if (!ftrDic.ContainsKey(outName))
+                    {
+                        ftrDic.Add(outName, geoUtil.getTable(outPath));
+                    }
+                    else
+                    {
+                        ftrDic[outName] = geoUtil.getTable(outPath);
+                    }
+
+                }
+                else
+                {
+                    if (!rstDic.ContainsKey(outName))
+                    {
+                        rstDic.Add(outName, rs);
+                    }
+                    else
+                    {
+                        rstDic[outName] = rs;
+                    }
+                }
+                txtBox.Text = outName;
+            }
+            updateFieldComboBox();
+            return;
         }
 
-        private void btnSamp_Click(object sender, EventArgs e)
+        private void updateFieldComboBox()
         {
-            txtSamp.Text = Statistics.ModelHelper.openModelFileDialog();
+            string popStr = txtPop.Text;
+            string sampStr = txtSamp.Text;
+            cmbIndependent.Items.Clear();
+            lstIndependent.Items.Clear();
+            cmbStrata.Items.Clear();
+            if (popStr == "" || sampStr == "")
+            {
+                return;
+            }
+            else
+            {
+                IFields popFlds = ftrDic[popStr].Fields;
+                IFields sampFlds = ftrDic[sampStr].Fields;
+                for (int i = 0; i < popFlds.FieldCount; i++)
+                {
+                    IField pFld = popFlds.get_Field(i);
+                    string pFldN = pFld.Name;
+                    if (sampFlds.FindField(pFldN) > -1)
+                    {
+                        cmbIndependent.Items.Add(pFldN);
+                        cmbStrata.Items.Add(pFldN);
+                    }
+                }
+            }
+            return;
+        }
+        private void btnPlus_Click(object sender, EventArgs e)
+        {
+            string txt = cmbIndependent.Text;
+            if (txt != null && txt != "")
+            {
+                cmbIndependent.Items.Remove(txt);
+                if (!lstIndependent.Items.Contains(txt))
+                {
+                    lstIndependent.Items.Add(txt);
+                }
+            }
+        }
+
+        private void btnMinus_Click(object sender, EventArgs e)
+        {
+            ListBox.SelectedObjectCollection s = lstIndependent.SelectedItems;
+            int cnt = s.Count;
+            List<string> rLst = new List<string>();
+            for (int i = 0; i < cnt; i++)
+            {
+                string txt = s[i].ToString();
+                rLst.Add(txt);
+                if (txt != null && txt != "")
+                {
+                    if (!cmbIndependent.Items.Contains(txt))
+                    {
+                        cmbIndependent.Items.Add(txt);
+                    }
+                }
+            }
+            foreach (string r in rLst)
+            {
+                lstIndependent.Items.Remove(r);
+            }
+
+        }
+
+        private void btnAddAll_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < cmbIndependent.Items.Count; i++)
+            {
+                string st = cmbIndependent.Items[i].ToString();
+                lstIndependent.Items.Add(st);
+            }
+            cmbIndependent.Items.Clear();
+        }
+
+        private void btnRemoveAll_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < lstIndependent.Items.Count; i++)
+            {
+                string st = lstIndependent.Items[i].ToString();
+                cmbIndependent.Items.Add(st);
+
+            }
+            lstIndependent.Items.Clear();
         }
 
         private void btnExcute_Click(object sender, EventArgs e)
         {
             string popStr = txtPop.Text;
             string sampStr = txtSamp.Text;
+            string strataField = cmbStrata.Text;
+            if (strataField == null) strataField = "";
+            string outModel = txtOutput.Text;
+            string[] explanitoryVariables = null;
+
             if (popStr == "" || popStr == null)
             {
-                MessageBox.Show("You must select a population model!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must select a population table!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (sampStr == "" || sampStr == null)
             {
-                MessageBox.Show("You must select a sample model!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must select a sample table!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            double[] means, var, meanDiff, varDiff;
-            List<string> labels;
-            
+            if (outModel == "" || outModel == null)
+            {
+                MessageBox.Show("You must select a output Model!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (lstIndependent.Items.Count <= 0)
+            {
+                MessageBox.Show("You must select at least one explanatory variables!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            else
+            {
+                explanitoryVariables = lstIndependent.Items.Cast<string>().ToArray();
+            }
+            //check for variables;
             this.Visible = false;
-            RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
-            rp.Text = "Comparing strata and cluster means";
-            rp.stepPGBar(10);
-            rp.addMessage("Comparing means and variance using paired t-test (p-values)...\n");
-            rp.Show();
-            rp.Refresh();
+            this.Refresh();
             try
             {
-                Statistics.dataPrepCompareVarCov.CompareStratMeansVar(popStr, sampStr, out labels,out meanDiff,out varDiff, out means, out var);
-                rp.stepPGBar(75);
-                rp.addMessage("Label     | Mean dif  | p-value         | Var dif   | p-value        ");
-                rp.addMessage("-".PadRight(69,'-'));
-                for (int i = 0; i < means.Length; i++)
-                {
-                    string lbl = getValue(labels[i],9);
-                    string md = getValue(meanDiff[i].ToString(),9);
-                    string m = getValue(means[i].ToString(),15);
-                    string vd = getValue(varDiff[i].ToString(),9);
-                    string v = getValue(var[i].ToString(),15);
-                    string ln = lbl + " | " + md + " | " + m+" | "+vd+" | "+v;
-                    rp.addMessage(ln);
-
-                }
+                esriUtil.Statistics.ModelHelper.runProgressBar("KS test");
+                ITable sample1 = ftrDic[popStr];
+                ITable sample2 = ftrDic[sampStr];
+                esriUtil.Statistics.dataPrepCompareSamples ksTest = new Statistics.dataPrepCompareSamples(sample1, sample2, explanitoryVariables, strataField, chbPCA.Checked);
+                ksTest.writeModel(outModel);
+                ksTest.getReport();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                rp.addMessage(ex.ToString());
+                MessageBox.Show(ex.ToString());
             }
             finally
             {
-                rp.stepPGBar(100);
-                rp.enableClose();
-                rp.addMessage("-".PadRight(69, '-'));
-                rp.addMessage("\nFinished Comparing means and variance");
+                esriUtil.Statistics.ModelHelper.closeProgressBar();
+                this.Close();
             }
+           
         }
-        private string getValue(string vl, int leng)
+
+        private void btnOutput_Click(object sender, EventArgs e)
         {
-            string outVl = vl;
-            if (vl.Length > leng) outVl = vl.Substring(0, leng);
-            else outVl = vl.PadRight(leng, ' ');
-            return outVl;
+            txtOutput.Text = esriUtil.Statistics.ModelHelper.saveModelFileDialog();
         }
+
+        
     }
 }

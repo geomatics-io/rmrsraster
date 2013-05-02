@@ -229,33 +229,45 @@ namespace esriUtil.Forms.Stats
                 MessageBox.Show("You must select an output model path", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<string> lstInd = new List<string>();
-            for (int i = 0; i < lstIndependent.Items.Count; i++)
+            try
             {
-                string s = lstIndependent.Items[i].ToString();
-                lstInd.Add(s);
-            }
-            Statistics.dataPrepPrincipleComponents varCov = null;
-            if (ftrDic.ContainsKey(smpFtrNm))
-            {
-                ITable ftrCls = ftrDic[smpFtrNm];
-                if (lstInd.Count < 1)
+                Statistics.ModelHelper.runProgressBar("Running PCA");
+                List<string> lstInd = new List<string>();
+                for (int i = 0; i < lstIndependent.Items.Count; i++)
                 {
-                    MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    string s = lstIndependent.Items[i].ToString();
+                    lstInd.Add(s);
                 }
-                this.Visible = false;
-                varCov = new Statistics.dataPrepPrincipleComponents(ftrCls, lstInd.ToArray());
+                Statistics.dataPrepPrincipleComponents varCov = null;
+                if (ftrDic.ContainsKey(smpFtrNm))
+                {
+                    ITable ftrCls = ftrDic[smpFtrNm];
+                    if (lstInd.Count < 1)
+                    {
+                        MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    this.Visible = false;
+                    varCov = new Statistics.dataPrepPrincipleComponents(ftrCls, lstInd.ToArray());
+                }
+                else
+                {
+                    IRaster rs = rstDic[smpFtrNm];
+                    this.Visible = false;
+                    varCov = new Statistics.dataPrepPrincipleComponents(rs);
+                }
+                varCov.writeModel(outP);
+                varCov.getReport();
             }
-            else
+            catch (Exception ex)
             {
-                IRaster rs = rstDic[smpFtrNm];
-                this.Visible = false;
-                varCov = new Statistics.dataPrepPrincipleComponents(rs);
+                MessageBox.Show(ex.ToString());
             }
-            varCov.writeModel(outP);
-            varCov.getReport();
-            this.Close();
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

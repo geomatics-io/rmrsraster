@@ -18,7 +18,14 @@ namespace esriUtil.Statistics
         public dataPrepPairedTTest(IRaster StrataRaster, IRaster VariableRaster)
         {
             InValueRaster = VariableRaster;
-            InStrataRaster = StrataRaster;
+            if (StrataRaster == null)
+            {
+                InStrataRaster = rsUtil.constantRasterFunction(rsUtil.getBand(VariableRaster, 0), 1);
+            }
+            else
+            {
+                InStrataRaster = StrataRaster;
+            }
             VariableFieldNames = new string[((IRasterBandCollection)InValueRaster).Count];
             for (int i = 0; i < VariableFieldNames.Length; i++)
             {
@@ -28,12 +35,20 @@ namespace esriUtil.Statistics
             inpath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
             buildModel();
         }
-
+        private rasterUtil rsUtil = new rasterUtil();
         public dataPrepPairedTTest(ITable table, string[] variables, string strataField)
         {
             InTable = table;
             VariableFieldNames = variables;
-            StrataField = strataField;
+            if (strataField == "" || strataField == null)
+            {
+                if (InTable.FindField("gr") > -1) StrataField = "gr";
+                else StrataField = addConstantGroupField();
+            }
+            else
+            {
+                StrataField = strataField;
+            }
             IDataset dSet = (IDataset)table;
             inpath = dSet.Workspace.PathName + "\\" + dSet.BrowseName;
             buildModel();
@@ -317,13 +332,14 @@ namespace esriUtil.Statistics
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
             rd.addMessage("Input path = " + InPath);
             rd.addMessage("Total Sample size = " + n.ToString());
-            rd.addMessage("\nLabel   |Compare V1-V2    |N       |Dif     |T-Stat  |P-Value ");
-            rd.addMessage("-".PadRight(75, '-'));
+            rd.addMessage("\nLabel   |Compare V1-V2            |N       |Dif     |T-Stat  |P-Value ");
+            rd.addMessage("-".PadRight(83, '-'));
             for (int i = 0; i < lbl.Count; i++)
             {
                 string labelVl = Labels[i];
                 string l = getValue(labelVl, 8);
                 int gN = cateDic[labelVl];
+                if (gN == 1) continue;
                 double[] s = sumX[i];
                 double[] s2 = sumX2[i];
                 double[] mns = (from double d in s select d/gN).ToArray();
@@ -337,8 +353,8 @@ namespace esriUtil.Statistics
                 {
                     for (int k = cnt; k < VariableFieldNames.Length; k++)
                     {
-                        string fN1 = getValue(VariableFieldNames[j], 8);
-                        string fN2 = getValue(VariableFieldNames[k], 8);
+                        string fN1 = getValue(VariableFieldNames[j], 12);
+                        string fN2 = getValue(VariableFieldNames[k], 12);
                         double mD = mns[sCnt];
                         double se = ses[sCnt];
                         double tStat = mD / se;
@@ -354,14 +370,16 @@ namespace esriUtil.Statistics
                         {
                             pValue = (cdf * 2);
                         }
-                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + pValue.ToString();
+                        string pValueS = pValue.ToString();
+                        if (pValue < 0.0001) pValueS = pValueS = "p < 0.0001";
+                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + getValue(pValueS,10);
                         rd.addMessage(ln);
                         sCnt += 1;
                     }
                     cnt += 1;
                 }
             }
-            rd.addMessage("-".PadRight(75, '-'));
+            rd.addMessage("-".PadRight(83, '-'));
             rd.enableClose();
             rd.Show();
         }

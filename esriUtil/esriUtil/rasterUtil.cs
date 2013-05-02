@@ -510,8 +510,8 @@ namespace esriUtil
         /// <summary>
         /// retrieves a IRaster for a given a raster band
         /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="index"></param>
+        /// <param name="inRaster">template raster</param>
+        /// <param name="index">band index zero based</param>
         /// <returns></returns>
         public IRaster getBand(object inRaster, int index)
         {
@@ -964,7 +964,7 @@ namespace esriUtil
             args.InRaster = rRst;
             frDset.Init(rsFunc, args);
             IRaster outRs = createRaster((IRasterDataset)frDset);
-            //functionModel.estimateStatistics(rRst, outRs, typ);
+            functionModel.estimateStatistics(rRst, outRs, typ);
             return outRs;
         }
         /// <summary>
@@ -1766,7 +1766,7 @@ namespace esriUtil
         /// <param name="inRaster">either IRaster, IRasterDataset, or a valid path pointing to a raster</param>
         /// <param name="clm">number of columns (cells)</param>
         /// <param name="rws">number of rows</param>
-        /// <param name="statType">the type of opporation</param>
+        /// <param name="statType">the type of operation</param>
         /// <param name="landType">the type of metric</param>
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcLandscapeFunction(object inRaster, int clm, int rws, focalType statType, landscapeType landType)
@@ -1794,7 +1794,7 @@ namespace esriUtil
         /// </summary>
         /// <param name="inRaster">either IRaster, IRasterDataset, or a valid path pointing to a raster</param>
         /// <param name="radius">number of cells that make up the radius of the moving window</param>
-        /// <param name="statType">the type of opporation</param>
+        /// <param name="statType">the type of operation</param>
         /// <param name="landType">the type of metric</param>
         /// <returns>a IRaster that can be used for further analysis</returns>
         public IRaster calcLandscapeFunction(object inRaster, int radius, focalType statType, landscapeType landType)
@@ -2353,7 +2353,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcGreaterEqualFunction(minRst, 0);
             }
-            //functionModel.estimateStatistics(outRs);
+            functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2391,7 +2391,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcGreaterFunction(minRst, 0);
             }
-            //functionModel.estimateStatistics(outRs);
+            functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2489,7 +2489,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcLessEqualFunction(minRst, 0);
             }
-            //functionModel.estimateStatistics(outRs);
+            functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2524,7 +2524,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcLessFunction(minRst, 0);
             }
-            //functionModel.estimateStatistics(outRs);
+            functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2561,7 +2561,7 @@ namespace esriUtil
                 IRaster minRst = calcArithmaticFunction(rs, crs, esriRasterArithmeticOperation.esriRasterMinus);
                 outRs = calcEqualFunction(minRst, 0);
             }
-            //functionModel.estimateStatistics(outRs);
+            functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2586,7 +2586,7 @@ namespace esriUtil
             IRasterFunction rsFunc = new ConstantFunction();
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = returnRaster((IRasterDataset)frDset);
-            //functionModel.estimateStatistics(rasterValue,outRs);
+            functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
         }
@@ -2620,7 +2620,7 @@ namespace esriUtil
             IRasterFunction rsFunc = new ConstantFunction();
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = returnRaster((IRasterDataset)frDset);
-            //functionModel.estimateStatistics(rasterValue,outRs);
+            functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
         }
@@ -2885,7 +2885,6 @@ namespace esriUtil
             IRaster rs4 = calcGreaterEqualFunction(rs2, 1);
             IRaster rs5 = calcArithmaticFunction(rs3, rs4, esriRasterArithmeticOperation.esriRasterPlus);
             IRaster outRs = calcEqualFunction(rs5,2);
-            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -2900,7 +2899,6 @@ namespace esriUtil
             IRaster rs4 = calcGreaterEqualFunction(rs2, 1);
             IRaster rs5 = calcArithmaticFunction(rs3, rs4, esriRasterArithmeticOperation.esriRasterPlus);
             IRaster outRs = calcGreaterEqualFunction(rs5, 1);
-            //functionModel.estimateStatistics(outRs);
             return outRs;
         }
         /// <summary>
@@ -4425,13 +4423,6 @@ namespace esriUtil
                 Console.WriteLine("failed isNullData " + inValue.ToString());
                 return true;
             }
-
-        }
-
-
-
-
-
-        
+        }        
     }
 }

@@ -203,11 +203,23 @@ namespace esriUtil.Forms.Stats
             }
             if (!lstCategoricalFlds.Contains(depFld)) lstCategoricalFlds.Add(depFld);
             this.Visible = false;
-            ITable ftrCls = ftrDic[smpFtrNm];
-            Statistics.dataPrepSoftMaxPlr sm = new Statistics.dataPrepSoftMaxPlr(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
-            sm.writeModel(outP);
-            sm.getReport();
-            this.Close();
+            try
+            {
+                Statistics.ModelHelper.runProgressBar("Running SoftMax Nnet");
+                ITable ftrCls = ftrDic[smpFtrNm];
+                Statistics.dataPrepSoftMaxPlr sm = new Statistics.dataPrepSoftMaxPlr(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
+                sm.writeModel(outP);
+                sm.getReport();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

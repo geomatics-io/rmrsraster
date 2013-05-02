@@ -231,33 +231,45 @@ namespace esriUtil.Forms.Stats
                 MessageBox.Show("You must select an output model path", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<string> lstInd = new List<string>();
-            for (int i = 0; i < lstIndependent.Items.Count; i++)
+            try
             {
-                string s = lstIndependent.Items[i].ToString();
-                lstInd.Add(s);
-            }
-            Statistics.dataPrepCluster clus = null;
-            if (ftrDic.ContainsKey(smpFtrNm))
-            {
-                ITable ftrCls = ftrDic[smpFtrNm];
-                if (lstInd.Count < 1)
+                Statistics.ModelHelper.runProgressBar("Running Cluster");
+                List<string> lstInd = new List<string>();
+                for (int i = 0; i < lstIndependent.Items.Count; i++)
                 {
-                    MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    string s = lstIndependent.Items[i].ToString();
+                    lstInd.Add(s);
                 }
-                this.Visible = false;
-                clus = new Statistics.dataPrepCluster(ftrCls, lstInd.ToArray(),k);
+                Statistics.dataPrepCluster clus = null;
+                if (ftrDic.ContainsKey(smpFtrNm))
+                {
+                    ITable ftrCls = ftrDic[smpFtrNm];
+                    if (lstInd.Count < 1)
+                    {
+                        MessageBox.Show("You must select at least one variable field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    this.Visible = false;
+                    clus = new Statistics.dataPrepCluster(ftrCls, lstInd.ToArray(), k);
+                }
+                else
+                {
+                    IRaster rs = rstDic[smpFtrNm];
+                    this.Visible = false;
+                    clus = new Statistics.dataPrepCluster(rs, k);
+                }
+                clus.writeModel(outP);
+                clus.getReport();
             }
-            else
+            catch (Exception ex)
             {
-                IRaster rs = rstDic[smpFtrNm];
-                this.Visible = false;
-                clus = new Statistics.dataPrepCluster(rs,k);
+                MessageBox.Show(ex.ToString());
             }
-            clus.writeModel(outP);
-            clus.getReport();
-            this.Close();
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

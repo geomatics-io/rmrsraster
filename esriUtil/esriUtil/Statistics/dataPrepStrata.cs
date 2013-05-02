@@ -53,6 +53,7 @@ namespace esriUtil.Statistics
             double[] sumClms = null;
             double[,] sumCross = null;
             double[,] cov = null;
+            double[,] scov = null;
             //System.Array[] pbVArrs = new System.Array[rsbc.Count];
             do
             {
@@ -104,9 +105,11 @@ namespace esriUtil.Statistics
                                 sumClms = new double[VariableFieldNames.Length];
                                 sumCross = new double[VariableFieldNames.Length, VariableFieldNames.Length];
                                 cov = new double[VariableFieldNames.Length, VariableFieldNames.Length];
+                                scov = new double[VariableFieldNames.Length, VariableFieldNames.Length];
                                 sumClmsLst.Add(sumClms);
                                 sumCrossLst.Add(sumCross);
                                 covLst.Add(cov);
+                                scovLst.Add(scov);
                             }
                             for (int v = 0; v < vlBandArr.Length; v++)
                             {
@@ -131,15 +134,18 @@ namespace esriUtil.Statistics
             {
                 string lblVl = lbl[l];
                 int sampN = stratDic[lblVl];
+                double r = sampN / (sampN - 1);
                 proportionsLst.Add(System.Convert.ToDouble(sampN) / n);
                 sumClms = sumClmsLst[l];
                 meansLst.Add((from double d in sumClms select d / sampN).ToArray());
                 sumCross = sumCrossLst[l];
                 cov = covLst[l];
+                scov = scovLst[l];
                 for (int i = 0; i < sumClms.Length; i++)
                 {
                     double var = (sumCross[i, i] / sampN) - (Math.Pow(sumClms[i], 2) / Math.Pow((sampN), 2));
                     cov[i, i] = var;
+                    scov[i, i] = var * r;
                     for (int j = 0 + i + 1; j < sumClms.Length; j++)
                     {
                         double vl1 = (sumCross[j, i] / sampN);
@@ -147,6 +153,8 @@ namespace esriUtil.Statistics
                         double p12 = vl1 - vl2;
                         cov[i, j] = p12;
                         cov[j, i] = p12;
+                        scov[i, j] = p12*r;
+                        scov[j, i] = p12*r;
                     }
                 }
             }
@@ -179,6 +187,7 @@ namespace esriUtil.Statistics
             double[] sumClms = null;
             double[,] sumCross = null;
             double[,] cov = null;
+            double[,] scov = null;
             while (rw != null)
             {
                 bool check = true;
@@ -205,9 +214,11 @@ namespace esriUtil.Statistics
                         sumClms = new double[VariableFieldNames.Length];
                         sumCross = new double[VariableFieldNames.Length,VariableFieldNames.Length];
                         cov = new double[VariableFieldNames.Length,VariableFieldNames.Length];
+                        scov = new double[VariableFieldNames.Length, VariableFieldNames.Length];
                         sumClmsLst.Add(sumClms);
                         sumCrossLst.Add(sumCross);
                         covLst.Add(cov);
+                        scovLst.Add(scov);
                     }
 
                     for (int i = 0; i < fldsIndex.Length; i++)
@@ -249,15 +260,19 @@ namespace esriUtil.Statistics
             {
                 string lblVl = lbl[l];
                 int sampN = stratDic[lblVl];
+                double r = sampN/(sampN-1);
                 proportionsLst.Add(System.Convert.ToDouble(sampN) / n);
                 sumClms = sumClmsLst[l];
                 meansLst.Add((from double d in sumClms select d / sampN).ToArray());
                 sumCross = sumCrossLst[l];
                 cov = covLst[l];
+                scov = scovLst[l];
                 for (int i = 0; i < sumClms.Length; i++)
                 {
+                    
                     double var = (sumCross[i, i] / sampN) - (Math.Pow(sumClms[i], 2) / Math.Pow((sampN), 2));
                     cov[i, i] = var;
+                    scov[i, i] = var * r;
                     for (int j = 0 + i + 1; j < sumClms.Length; j++)
                     {
                         double vl1 = (sumCross[j, i] / (sampN));
@@ -265,12 +280,28 @@ namespace esriUtil.Statistics
                         double p12 = vl1 - vl2;
                         cov[i, j] = p12;
                         cov[j, i] = p12;
+                        scov[i, j] = p12*r;
+                        scov[j, i] = p12*r;
                     }
                 }
             }
 
             k = lbl.Count;
             makeKMeans();
+        }
+        List<double[,]> scovLst = new List<double[,]>();
+        public List<double[,]> CovarianceMatrix
+        {
+            get
+            {
+                if (covLst.Count < 1)
+                {
+                    buildModel();
+                }
+                return scovLst;
+
+
+            }
         }
         private void makeKMeans()
         {
@@ -279,11 +310,11 @@ namespace esriUtil.Statistics
             for (int i = 0; i < k; i++)
             {
                 double[] mns = meansLst[i];
-                double p = proportionsLst[i]; ;
-                double[,] cov = covLst[i];
+                double p = proportionsLst[i];
+                double[,] scov = scovLst[i];
                 KMeansCluster kc = new KMeansCluster(kmeansColl, i);
                 kc.Mean = mns;
-                kc.Covariance = cov;
+                kc.Covariance = scov;
                 kc.Proportion = p;
             }
         }

@@ -212,23 +212,35 @@ namespace esriUtil.Forms.Stats
                 return;
             }
             this.Visible = false;
-            if (!chbReg.Checked && !lstCategoricalFlds.Contains(depFld))
+            try
             {
-                lstCategoricalFlds.Add(depFld);
+                Statistics.ModelHelper.runProgressBar("Running Random Forest");
+                if (!chbReg.Checked && !lstCategoricalFlds.Contains(depFld))
+                {
+                    lstCategoricalFlds.Add(depFld);
+                }
+                ITable ftrCls = ftrDic[smpFtrNm];
+                Statistics.dataPrepRandomForest rf = null;
+                if (split > 0)
+                {
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split);
+                }
+                else
+                {
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio);
+                }
+                rf.writeModel(outP);
+                rf.getReport();
             }
-            ITable ftrCls = ftrDic[smpFtrNm];
-            Statistics.dataPrepRandomForest rf = null;
-            if (split>0)
+            catch (Exception ex)
             {
-                rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split);
+                MessageBox.Show(ex.ToString());
             }
-            else
+            finally
             {
-                rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio);
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
             }
-            rf.writeModel(outP);
-            rf.getReport();
-            this.Close();
         }
 
         private void button1_Click(object sender, EventArgs e)

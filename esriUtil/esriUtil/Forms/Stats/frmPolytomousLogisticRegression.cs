@@ -210,11 +210,24 @@ namespace esriUtil.Forms.Stats
             }
             if (!lstCategoricalFlds.Contains(depFld)) lstCategoricalFlds.Add(depFld);
             this.Visible = false;
-            ITable ftrCls = ftrDic[smpFtrNm];
-            Statistics.dataPrepMultinomialLogisticRegression plr = new Statistics.dataPrepMultinomialLogisticRegression(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
-            plr.writeModel(outP);
-            plr.getReport(alpha);
-            this.Close();
+            this.Refresh();
+            try
+            {
+                ITable ftrCls = ftrDic[smpFtrNm];
+                Statistics.ModelHelper.runProgressBar("Running PLR");
+                Statistics.dataPrepMultinomialLogisticRegression plr = new Statistics.dataPrepMultinomialLogisticRegression(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray());
+                plr.writeModel(outP);
+                plr.getReport(alpha);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+            finally
+            {
+                Statistics.ModelHelper.closeProgressBar();
+                this.Close();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

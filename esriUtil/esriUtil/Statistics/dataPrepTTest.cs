@@ -17,7 +17,14 @@ namespace esriUtil.Statistics
         public dataPrepTTest(IRaster StrataRaster, IRaster VariableRaster)
         {
             InValueRaster = VariableRaster;
-            InStrataRaster = StrataRaster;
+            if (StrataRaster == null)
+            {
+                InStrataRaster = rsUtil.constantRasterFunction(rsUtil.getBand(VariableRaster, 0), 1);
+            }
+            else
+            {
+                InStrataRaster = StrataRaster;
+            }
             VariableFieldNames = new string[((IRasterBandCollection)InValueRaster).Count];
             for (int i = 0; i < VariableFieldNames.Length; i++)
             {
@@ -30,8 +37,42 @@ namespace esriUtil.Statistics
         {
             InTable = table;
             VariableFieldNames = variables;
-            StrataField = strataField;
+            if (strataField == "" || strataField == null)
+            {
+                if (InTable.FindField("gr") > -1) StrataField = "gr";
+                else StrataField = addConstantGroupField();
+            }
+            else
+            {
+                StrataField = strataField;
+            }
             buildModel();
+        }
+
+        public string addConstantGroupField()
+        {
+            string outNm = "gr";
+            IObjectClassInfo2 ocI2 = (IObjectClassInfo2)InTable;
+            if (!ocI2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input table has a composition relationship. Please export data and try again!");
+            }
+            else
+            {
+                outNm = geoUtil.createField(InTable, outNm, esriFieldType.esriFieldTypeString,false);
+                IQueryFilter qf = new QueryFilterClass();
+                qf.SubFields = outNm;
+                ICursor cur = InTable.Update(qf, false);
+                int flIndex = cur.FindField(outNm);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    rw.set_Value(flIndex, "1");
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+            }
+            return outNm;
         }
         public void buildModel()
         {
@@ -250,8 +291,8 @@ namespace esriUtil.Statistics
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
             rd.addMessage("Input path = " + InPath);
             rd.addMessage("Total Sample size = " + n.ToString());
-            rd.addMessage("\nLabel   |Compare V1-V2    |N       |Dif     |T-Stat  |P-Value ");
-            rd.addMessage("-".PadRight(75,'-'));
+            rd.addMessage("\nLabel   |Compare V1-V2            |N       |Dif     |T-Stat  |P-Value ");
+            rd.addMessage("-".PadRight(83,'-'));
             KMeansClusterCollection gCol = kmeans.Clusters;
             for (int i = 0; i < gCol.Count; i++)
             {
@@ -260,6 +301,7 @@ namespace esriUtil.Statistics
                 double[] mns = gClust.Mean;
                 double[] var = new double[mns.Length];
                 double nSample = gClust.Proportion * N;
+                if (nSample <= 1) continue;
                 double seAdjust = Math.Sqrt(2*1/nSample);
                 for (int j = 0; j < mns.Length; j++)
                 {
@@ -270,8 +312,8 @@ namespace esriUtil.Statistics
                 {
                     for (int k = cnt; k < mns.Length; k++)
                     {
-                        string fN1 = getValue(VariableFieldNames[j],8);
-                        string fN2 = getValue(VariableFieldNames[k],8);
+                        string fN1 = getValue(VariableFieldNames[j],12);
+                        string fN2 = getValue(VariableFieldNames[k],12);
                         double mD = mns[j] - mns[k];
                         double pSD = Math.Sqrt((var[j] + var[k]) / 2);
                         double se = pSD * seAdjust;
@@ -287,13 +329,15 @@ namespace esriUtil.Statistics
                         {
                             pValue = (cdf * 2);
                         }
-                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + pValue.ToString();
+                        string pValueS = pValue.ToString();
+                        if (pValue < 0.0001) pValueS = "p < 0.0001";
+                        string ln = l + "|" + fN1 + "-" + fN2 + "| " + getValue(nSample.ToString(), 6) + " | " + getValue(mD.ToString(), 6) + " | " + getValue(tStat.ToString(), 6) + " | " + getValue(pValueS,10);
                         rd.addMessage(ln);
                     }
                     cnt += 1;
                 }
             }
-            rd.addMessage("-".PadRight(75, '-'));
+            rd.addMessage("-".PadRight(83, '-'));
             rd.enableClose();
             rd.Show();
         }

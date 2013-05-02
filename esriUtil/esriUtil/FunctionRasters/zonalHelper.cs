@@ -146,6 +146,7 @@ namespace esriUtil.FunctionRasters
             //
             //HashSet<byte> hByt = new HashSet<byte>();
             //
+            ISpatialReference sr = vProps.SpatialReference;
             IEnvelope vrsEnv = vProps.Extent;
             ISpatialFilter spFilt = new SpatialFilterClass();
             spFilt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
@@ -159,6 +160,10 @@ namespace esriUtil.FunctionRasters
                 IGeometry geo = ftr.Shape;
                 double z = System.Convert.ToDouble(ftr.get_Value(zoneIndex));
                 IPolygon4 poly = (IPolygon4)geo;
+                if (needToProject)
+                {
+                    poly.Project(sr);
+                }
                 IGeometryBag geoBag = poly.ExteriorRingBag;
                 IGeometryCollection geoColl = (IGeometryCollection)geoBag;
                 for (int g = 0; g < geoColl.GeometryCount; g++)

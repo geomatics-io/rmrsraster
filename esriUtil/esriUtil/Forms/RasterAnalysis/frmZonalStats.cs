@@ -255,6 +255,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             rp.Show();
             rp.Refresh();
+            Statistics.ModelHelper.runProgressBar("Calculating Zonal Stats");
             try
             {
                 ITable outTbl = null;
@@ -285,6 +286,7 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             finally
             {
+                Statistics.ModelHelper.closeProgressBar();
                 DateTime dt2 = DateTime.Now;
                 TimeSpan ts = dt2.Subtract(dt);
                 string t = " in " + ts.Days.ToString() + " days " + ts.Hours.ToString() + " hours " + ts.Minutes.ToString() + " minutes and " + ts.Seconds.ToString() + " seconds .";

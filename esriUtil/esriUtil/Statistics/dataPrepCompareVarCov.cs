@@ -39,7 +39,7 @@ namespace esriUtil.Statistics
             double seV = Math.Sqrt((sumV2 - ((sumV * sumV) / n)) / n) / Math.Sqrt(n);
             double mTstat = mM / seM;
             double vTstat = mV / seV;
-            Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(n-1);
+            Accord.Statistics.Distributions.Univariate.TDistribution tDist = new Accord.Statistics.Distributions.Univariate.TDistribution(n - 1);
             double mCdf = tDist.DistributionFunction(mTstat);
             double vCdf = tDist.DistributionFunction(vTstat);
             if (mTstat > 0)
@@ -71,7 +71,7 @@ namespace esriUtil.Statistics
             KMeans km1 = dpc1.Model;
             dataPrepCluster dpc2 = new dataPrepCluster();
             dpc2.buildModel(StratModel2);
-            List<string>labels2 = dpc2.Labels;
+            List<string> labels2 = dpc2.Labels;
             KMeans km2 = dpc2.Model;
             int nPv1 = km1.Clusters.Count;
             int nPv2 = km2.Clusters.Count;
@@ -137,6 +137,7 @@ namespace esriUtil.Statistics
                 meanPvalues[i] = m;
                 varPvalues[i] = v;
             }
-        }
+        } 
     }
+
 }
