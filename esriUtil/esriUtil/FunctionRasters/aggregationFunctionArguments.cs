@@ -27,13 +27,21 @@ namespace esriUtil.FunctionRasters
         { 
             get 
             {
-                return rsUtil.reSizeRasterCellsFunction(inrs,cells);
+                IRaster rs = rsUtil.returnRaster(origRs, rstPixelType.PT_FLOAT);
+                IRasterProps rsP = (IRasterProps)rs;
+                IPnt cSize = rsP.MeanCellSize();
+                cSize.X = cSize.X*cells;
+                cSize.Y = cSize.Y*cells;
+                double w = System.Convert.ToInt32((rsP.Extent.Width / cSize.X) + 1)*cSize.X+rsP.Extent.XMin;
+                double h = System.Convert.ToInt32((rsP.Extent.Height / cSize.Y) + 1)*cSize.Y+rsP.Extent.YMin;
+                IEnvelope env = new EnvelopeClass();
+                env.PutCoords(rsP.Extent.XMin, rsP.Extent.YMin, w, h);
+                inrs = rsUtil.constantRasterFunction(rs,env,0,cSize);
+                return inrs;
             } 
             set 
             {
-                IRaster temp = value;
-                inrs = rsUtil.constantRasterFunction(temp,0);
-                origRs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
+                origRs = rsUtil.returnRaster(value);
             } 
         }
         

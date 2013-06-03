@@ -36,7 +36,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.txtPop = new System.Windows.Forms.TextBox();
             this.btnPop = new System.Windows.Forms.Button();
-            this.chbPCA = new System.Windows.Forms.CheckBox();
             this.lblOutput = new System.Windows.Forms.Label();
             this.txtOutput = new System.Windows.Forms.TextBox();
             this.btnOutput = new System.Windows.Forms.Button();
@@ -113,18 +112,6 @@
             this.btnPop.TabIndex = 71;
             this.btnPop.UseVisualStyleBackColor = true;
             this.btnPop.Click += new System.EventHandler(this.getFeaturePath);
-            // 
-            // chbPCA
-            // 
-            this.chbPCA.AutoSize = true;
-            this.chbPCA.Checked = true;
-            this.chbPCA.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chbPCA.Location = new System.Drawing.Point(23, 466);
-            this.chbPCA.Name = "chbPCA";
-            this.chbPCA.Size = new System.Drawing.Size(86, 17);
-            this.chbPCA.TabIndex = 74;
-            this.chbPCA.Text = "Perform PCA";
-            this.chbPCA.UseVisualStyleBackColor = true;
             // 
             // lblOutput
             // 
@@ -252,7 +239,6 @@
             this.Controls.Add(this.lblOutput);
             this.Controls.Add(this.txtOutput);
             this.Controls.Add(this.btnOutput);
-            this.Controls.Add(this.chbPCA);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtPop);
             this.Controls.Add(this.btnPop);
@@ -281,7 +267,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtPop;
         private System.Windows.Forms.Button btnPop;
-        private System.Windows.Forms.CheckBox chbPCA;
         private System.Windows.Forms.Label lblOutput;
         private System.Windows.Forms.TextBox txtOutput;
         private System.Windows.Forms.Button btnOutput;

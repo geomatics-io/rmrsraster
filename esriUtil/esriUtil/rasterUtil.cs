@@ -122,6 +122,7 @@ namespace esriUtil
         /// </summary>
         public enum transType { LOG10, LN, EXP, EXP10, ABS, SIN, COS, TAN, ASIN, ACOS, ATAN, RADIANS, SQRT, SQUARED }
         public enum mergeType { FIRST, LAST, MIN, MAX, MEAN }
+        public enum surfaceType { SLOPE, ASPECT, EASTING, NORTHING, FLIP }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         /// <summary>
         /// Creates an in Memory Raster given a raster dataset
@@ -2564,6 +2565,21 @@ namespace esriUtil
             functionModel.estimateStatistics(outRs);
             return outRs;
         }
+        public IRaster calcCombineRasterFunction(IRaster[] inRasters)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.combineFunctionDataset();
+            FunctionRasters.combineFunctionArguments args = new FunctionRasters.combineFunctionArguments(this);
+            args.InRaster = inRasters;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            //functionModel.estimateStatistics(outRs, functionModel.dem.Slope);
+            return outRs;
+        }
         /// <summary>
         /// Creates a constant raster given a template raster and a double value
         /// </summary>
@@ -4358,7 +4374,7 @@ namespace esriUtil
             IRaster rs = mosaicRastersFunction(wks, rstNm, inRasters,esriMosaicMethod.esriMosaicNone,mergeMethod,false,false,false,false);
             return rs;
         }
-        public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        public ITable zonalStats(IFeatureClass inFeatureClass, string fieldName, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes,esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd,bool classCounts=false)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
             zH.InValueRaster = returnRaster(inValueRaster);
@@ -4367,16 +4383,18 @@ namespace esriUtil
             zH.InZoneField = fieldName;
             zH.ZoneTypes = zoneTypes;
             zH.OutTableName = outTableName;
+            zH.ZoneClassCount = classCounts;
             zH.setZoneValues();
             return zH.OutTable;
         }
-        public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd)
+        public ITable zonalStats(IRaster inZoneRaster, IRaster inValueRaster, string outTableName, zoneType[] zoneTypes, esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd,bool classCounts=false)
         {
             FunctionRasters.zonalHelper zH = new FunctionRasters.zonalHelper(this,rd);
             zH.InValueRaster = returnRaster(inValueRaster);
             zH.InZoneRaster = returnRaster(inZoneRaster);
             zH.ZoneTypes = zoneTypes;
             zH.OutTableName = outTableName;
+            zH.ZoneClassCount = classCounts;
             zH.setZoneValues();
             return zH.OutTable;
         }

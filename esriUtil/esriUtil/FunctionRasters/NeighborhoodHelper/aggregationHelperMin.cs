@@ -8,9 +8,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperMin : aggregationFunctionDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, float noDataValue)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells)
         {
-            return blockHelperStats.getBlockMin(bigArr, startClms, startRws, cells, noDataValue);
+            return blockHelperStats.getBlockMin(bigArr,band, startClms, startRws, cells);
         }
 
     }

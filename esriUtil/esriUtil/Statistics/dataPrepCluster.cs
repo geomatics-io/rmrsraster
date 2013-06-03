@@ -207,6 +207,7 @@ namespace esriUtil.Statistics
                 rw = cur.NextRow();
             }
             inputMatrix = inputMatrixLst.ToArray();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
         private void getProportionOfSamples()

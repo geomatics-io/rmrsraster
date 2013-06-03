@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.DataSourcesRaster;
 
 namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperASM : aggregationFunctionDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClms, int startRws, int cells, float noDataValue)
+        public override object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms, int startRws, int cells)
         {
-            return blockHelperStats.getBlockAsm(bigArr, startClms, startRws, cells, noDataValue);
+            return blockHelperStats.getBlockAsm(bigArr, band, startClms, startRws, cells);
         }
 
     }

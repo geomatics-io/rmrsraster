@@ -136,13 +136,138 @@ namespace esriUtil.FunctionRasters
                 }
                 calcZoneValues();
             }
-            fillFields();
+            if (ZoneTypes==null||ZoneTypes.Length>0)
+            {
+                fillFields();
+            }
+            if (zoneClassCount)
+            {
+                buildZoneClassCount();
+            }
+
+        }
+
+        private void fillFields()
+        {
+            if (rd != null) rd.addMessage("Output table name = " + wks.PathName + "\\" + tblName);
+            bool weCreate = true;
+            if (!geoUtil.ftrExists(wks, tblName))
+            {
+                IFields nflds = new FieldsClass();
+                IFieldsEdit nfldsE = (IFieldsEdit)nflds;
+                IField nfld = new FieldClass();
+                IFieldEdit nfldE = (IFieldEdit)nfld;
+                nfldE.Name_2 = "Band";
+                nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
+                nfldsE.AddField(nfldE);
+                IField nfld2 = new FieldClass();
+                IFieldEdit nfld2E = (IFieldEdit)nfld2;
+                nfld2E.Name_2 = "Zone";
+                nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
+                nfldsE.AddField(nfld2E);
+                IField nfld3 = new FieldClass();
+                IFieldEdit nfld3E = (IFieldEdit)nfld3;
+                nfld3E.Name_2 = "Count";
+                nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
+                nfldsE.AddField(nfld3E);
+                oTbl = geoUtil.createTable(wks, tblName, nflds);
+            }
+            else
+            {
+                weCreate = false;
+                IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
+                oTbl = ftrWks.OpenTable(tblName);
+            }
+            foreach (rasterUtil.zoneType zT in ZoneTypes)
+            {
+                string fldNm = zT.ToString();
+                if (oTbl.FindField(fldNm) == -1)
+                {
+                    geoUtil.createField(oTbl, fldNm, esriFieldType.esriFieldTypeDouble);
+                }
+            }
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            //ITransactions trs = (ITransactions)wks;
+            //trs.StartTransaction();
+            try
+            {
+                int bdIndex = oTbl.FindField("Band");
+                int vlIndex = oTbl.FindField("Zone");
+                int cntIndex = oTbl.FindField("Count");
+                int bndCnt = 1;
+                foreach (Dictionary<double, object[]> zoneValueDicOut in zoneValueDicArr)
+                {
+                    foreach (KeyValuePair<double, object[]> kVp in zoneValueDicOut)
+                    {
+
+                        double key = kVp.Key;
+                        object[] vl = kVp.Value;
+                        Dictionary<rasterUtil.zoneType, double> vDic = getValueDic(vl);
+                        IRow rw = null;
+                        if (!weCreate)
+                        {
+                            string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key;
+                            IQueryFilter qf = new QueryFilterClass();
+                            qf.WhereClause = qry;
+                            ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
+                            if (tblSelectionSet.Count > 0)
+                            {
+                                int id = tblSelectionSet.IDs.Next();
+                                rw = oTbl.GetRow(id);
+                            }
+                            else
+                            {
+                                rw = oTbl.CreateRow();
+                            }
+
+                        }
+                        else
+                        {
+                            rw = oTbl.CreateRow();
+                        }
+                        //Console.WriteLine(key.ToString());
+                        rw.set_Value(bdIndex, bndCnt);
+                        rw.set_Value(vlIndex, key);
+                        rw.set_Value(cntIndex, vl[0]);
+                        foreach (rasterUtil.zoneType zT in ZoneTypes)
+                        {
+                            string fldNm = zT.ToString();
+                            int fldIndex = oTbl.FindField(fldNm);
+                            double zVl = vDic[zT];
+                            //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
+                            if (fldIndex > -1)
+                            {
+                                rw.set_Value(fldIndex, zVl);
+                            }
+                            else
+                            {
+                                Console.WriteLine(fldNm);
+                            }
+                        }
+                        rw.Store();
+                    }
+                    bndCnt += 1;
+                }
+                //trs.CommitTransaction();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                //trs.AbortTransaction();
+            }
+            finally
+            {
+            }
         }
 
         private void calcZoneValuesFtr()
         {
             //Console.WriteLine("made it to the feature calculations");
-            bool makeDic = (ZoneTypes.Contains(rasterUtil.zoneType.VARIETY) || ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY) || ZoneTypes.Contains(rasterUtil.zoneType.ASM) || ZoneTypes.Contains(rasterUtil.zoneType.MINORITY) || ZoneTypes.Contains(rasterUtil.zoneType.MODE) || ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
+            bool makeDic = (ZoneClassCount || ZoneTypes.Contains(rasterUtil.zoneType.VARIETY) || ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY) || ZoneTypes.Contains(rasterUtil.zoneType.ASM) || ZoneTypes.Contains(rasterUtil.zoneType.MINORITY) || ZoneTypes.Contains(rasterUtil.zoneType.MODE) || ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
             //
             //HashSet<byte> hByt = new HashSet<byte>();
             //
@@ -291,11 +416,12 @@ namespace esriUtil.FunctionRasters
             else return true;
         }
         private string tblName = "";
-        private void fillFields()
+        private void buildZoneClassCount()
         {
-            if (rd != null) rd.addMessage("Output table name = " + wks.PathName + "\\" + tblName);
+            string cTblName = geoUtil.getSafeOutputNameNonRaster(wks,tblName.Replace("_VAT","_CLASS"));
+            if (rd != null) rd.addMessage("Output table name = " + wks.PathName + "\\" + cTblName);
             bool weCreate = true;
-            if(!geoUtil.ftrExists(wks,tblName))
+            if(!geoUtil.ftrExists(wks,cTblName))
             {
                 IFields nflds = new FieldsClass();
                 IFieldsEdit nfldsE = (IFieldsEdit)nflds;
@@ -309,26 +435,23 @@ namespace esriUtil.FunctionRasters
                 nfld2E.Name_2 = "Zone";
                 nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
                 nfldsE.AddField(nfld2E);
+                IField nfld4 = new FieldClass();
+                IFieldEdit nfld4E = (IFieldEdit)nfld4;
+                nfld4E.Name_2 = "Class";
+                nfld4E.Type_2 = esriFieldType.esriFieldTypeDouble;
+                nfldsE.AddField(nfld4E);
                 IField nfld3 = new FieldClass();
                 IFieldEdit nfld3E = (IFieldEdit)nfld3;
                 nfld3E.Name_2 = "Count";
                 nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
                 nfldsE.AddField(nfld3E);
-                oTbl = geoUtil.createTable(wks,tblName,nflds);
+                oTbl = geoUtil.createTable(wks,cTblName,nflds);
             }
             else
             {
                 weCreate = false;
                 IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
                 oTbl = ftrWks.OpenTable(tblName);
-            }
-            foreach(rasterUtil.zoneType zT in ZoneTypes)
-            {
-                string fldNm = zT.ToString();
-                if (oTbl.FindField(fldNm) == -1)
-                {
-                    geoUtil.createField(oTbl, fldNm, esriFieldType.esriFieldTypeDouble);
-                }
             }
             IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
             if (wksE.IsBeingEdited())
@@ -342,6 +465,7 @@ namespace esriUtil.FunctionRasters
                 int bdIndex = oTbl.FindField("Band");
                 int vlIndex = oTbl.FindField("Zone");
                 int cntIndex = oTbl.FindField("Count");
+                int clsIndex = oTbl.FindField("Class");
                 int bndCnt = 1;
                 foreach (Dictionary<double, object[]> zoneValueDicOut in zoneValueDicArr)
                 {
@@ -350,49 +474,43 @@ namespace esriUtil.FunctionRasters
 
                         double key = kVp.Key;
                         object[] vl = kVp.Value;
-                        Dictionary<rasterUtil.zoneType, double> vDic = getValueDic(vl);
+                        Dictionary<double, int> uDic = (Dictionary<double, int>)vl[5];
                         IRow rw = null;
-                        if (!weCreate)
+                        foreach(KeyValuePair<double,int> uKvp in uDic)
                         {
-                            string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key;
-                            IQueryFilter qf = new QueryFilterClass();
-                            qf.WhereClause = qry;
-                            ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
-                            if (tblSelectionSet.Count > 0)
+                            double uDicKey = uKvp.Key;
+                            int uDicVl = uKvp.Value;
+                            if (!weCreate)
                             {
-                                int id = tblSelectionSet.IDs.Next();
-                                rw = oTbl.GetRow(id);
+                            
+                                string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key + " and Class = " + uDicKey;
+                                IQueryFilter qf = new QueryFilterClass();
+                                qf.WhereClause = qry;
+                                ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
+                                if (tblSelectionSet.Count > 0)
+                                {
+                                    int id = tblSelectionSet.IDs.Next();
+                                    rw = oTbl.GetRow(id);
+                                }
+                                else
+                                {
+                                    rw = oTbl.CreateRow();
+                                }
+                            
+
                             }
                             else
                             {
                                 rw = oTbl.CreateRow();
                             }
 
+                            //Console.WriteLine(key.ToString());
+                            rw.set_Value(bdIndex, bndCnt);
+                            rw.set_Value(vlIndex, key);
+                            rw.set_Value(cntIndex, uDicVl);
+                            rw.set_Value(clsIndex, uDicKey);
+                            rw.Store();
                         }
-                        else
-                        {
-                            rw = oTbl.CreateRow();
-                        }
-                        //Console.WriteLine(key.ToString());
-                        rw.set_Value(bdIndex, bndCnt);
-                        rw.set_Value(vlIndex, key);
-                        rw.set_Value(cntIndex, vl[0]);
-                        foreach (rasterUtil.zoneType zT in ZoneTypes)
-                        {
-                            string fldNm = zT.ToString();
-                            int fldIndex = oTbl.FindField(fldNm);
-                            double zVl = vDic[zT];
-                            //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
-                            if (fldIndex > -1)
-                            {
-                                rw.set_Value(fldIndex, zVl);
-                            }
-                            else
-                            {
-                                Console.WriteLine(fldNm);
-                            }
-                        }
-                        rw.Store();
                     }
                     bndCnt += 1;
                 }
@@ -517,7 +635,7 @@ namespace esriUtil.FunctionRasters
         private Dictionary<double, object[]> zoneValueDic = null;//value = [count,max,min,sum,sum2,dictionary<int,int>]->dictionary is for unique, entropy, and ASM
         private void calcZoneValues()
         {
-            bool makeDic = (ZoneTypes.Contains(rasterUtil.zoneType.VARIETY)||ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY)||ZoneTypes.Contains(rasterUtil.zoneType.ASM)||ZoneTypes.Contains(rasterUtil.zoneType.MINORITY)||ZoneTypes.Contains(rasterUtil.zoneType.MODE)||ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
+            bool makeDic = (ZoneClassCount||ZoneTypes.Contains(rasterUtil.zoneType.VARIETY)||ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY)||ZoneTypes.Contains(rasterUtil.zoneType.ASM)||ZoneTypes.Contains(rasterUtil.zoneType.MINORITY)||ZoneTypes.Contains(rasterUtil.zoneType.MODE)||ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
             double zNoDataVl = System.Convert.ToDouble(((System.Array)zProps.NoDataValue).GetValue(0));
             IPnt zMeanCellSize = zProps.MeanCellSize();
             IPnt vMeanCellSize = vProps.MeanCellSize();
@@ -730,6 +848,8 @@ namespace esriUtil.FunctionRasters
             } 
         }
         string ftrField = null;
+        private bool zoneClassCount = false;
+        public bool ZoneClassCount { get { return zoneClassCount; } set { zoneClassCount = value; } }
         public string InZoneField { get { return ftrField; } set { ftrField = value; } }
         public void convertFeatureToRaster(IFeatureClass InFeatureClass, string fldName)
         {
@@ -938,14 +1058,24 @@ namespace esriUtil.FunctionRasters
                 string vl = newFldNames[i];
                 newFldNamesIndex[i] = zoneTable.FindField(vl);
             }            
-            IQueryFilter qfz = new QueryFilterClass();
-            IQueryFilterDefinition qfzD = (IQueryFilterDefinition)qfz;
-            qfzD.PostfixClause = "ORDER BY " + linkFieldName;
-            IQueryFilter qfzs = new QueryFilterClass();
-            IQueryFilterDefinition qfzsD = (IQueryFilterDefinition)qfzs;
-            qfzsD.PostfixClause = "ORDER BY Zone, Band";
-            ICursor curZ = zoneTable.Update(qfz, false);
-            ICursor curZs = zonalSummaryTable.Search(qfzs, false);
+            //IQueryFilter qfz = new QueryFilterClass();
+            //IQueryFilterDefinition qfzD = (IQueryFilterDefinition)qfz;
+            //qfzD.PostfixClause = "ORDER BY " + linkFieldName;
+            //IQueryFilter qfzs = new QueryFilterClass();
+            //IQueryFilterDefinition qfzsD = (IQueryFilterDefinition)qfzs;
+            //qfzsD.PostfixClause = "ORDER BY Zone, Band";
+            //ICursor curZ = zoneTable.Update(qfz, false);
+            //ICursor curZs = zonalSummaryTable.Search(qfzs, false);
+            ITableSort tblSortZ = new TableSortClass();
+            tblSortZ.Table = zoneTable;
+            tblSortZ.Fields = linkFieldName;
+            ITableSort tblSortZs = new TableSortClass();
+            tblSortZs.Table = zonalSummaryTable;
+            tblSortZs.Fields = "Zone, Band";
+            tblSortZs.Sort(null);
+            tblSortZ.Sort(null);
+            ICursor curZ = tblSortZ.Rows;
+            ICursor curZs = tblSortZs.Rows;
             IRow rwZ = curZ.NextRow();
             while (rwZ != null)
             {
@@ -962,10 +1092,12 @@ namespace esriUtil.FunctionRasters
                         rwZ.set_Value(newZNameIndex, zsVl);
                     }
                 }
-                curZ.UpdateRow(rwZ);
+                rwZ.Store();
+                //curZ.UpdateRow(rwZ);
                 rwZ = curZ.NextRow();
             }
-            
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(curZ);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(curZs);
         }
     }
 }

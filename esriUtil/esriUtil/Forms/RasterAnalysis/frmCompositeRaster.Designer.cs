@@ -155,8 +155,8 @@
         private System.Windows.Forms.ListBox lsbRaster;
         private System.Windows.Forms.Button btnMinus;
         private System.Windows.Forms.Button btnClear;
-        private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.TextBox txtOutNm;
         private System.Windows.Forms.Label label1;
+        public System.Windows.Forms.Button btnExecute;
     }
 }

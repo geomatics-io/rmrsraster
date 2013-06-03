@@ -16,10 +16,12 @@ namespace esriUtil.Forms.RasterAnalysis
 {
     public partial class frmFlipRaster : Form
     {
-        public frmFlipRaster(IMap map)
+        public frmFlipRaster(IMap map,rasterUtil.surfaceType surfaceType = rasterUtil.surfaceType.FLIP)
         {
             InitializeComponent();
             rsUtil = new rasterUtil();
+            sType = surfaceType;
+            this.Text = sType.ToString() + " Raster";
             mp = map;
             if (mp != null)
             {
@@ -27,10 +29,12 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             populateComboBox();
         }
-        public frmFlipRaster(IMap map, ref rasterUtil rasterUtility, bool AddToMap)
+        public frmFlipRaster(IMap map, ref rasterUtil rasterUtility, bool AddToMap, rasterUtil.surfaceType surfaceType = rasterUtil.surfaceType.FLIP)
         {
             InitializeComponent();
             rsUtil = rasterUtility;
+            sType = surfaceType;
+            this.Text = sType.ToString() + " Raster";
             addToMap = AddToMap;
             mp = map;
             if (mp != null)
@@ -39,11 +43,15 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             populateComboBox();
         }
+        private rasterUtil.surfaceType sType = rasterUtil.surfaceType.FLIP;
         private bool addToMap = true;
+        public bool AddToMap { get { return addToMap; } }
         private IMap mp = null;
+        public IMap Map { get { return mp; } }
         private viewUtility vUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
+        public rasterUtil RasterUtil { get { return rsUtil; } }
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
         public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
         private void getFeaturePath()
@@ -78,9 +86,9 @@ namespace esriUtil.Forms.RasterAnalysis
             return;
         }
         private IRaster outraster = null;
-        public IRaster OutRaster { get { return outraster; } }
+        public IRaster OutRaster { get { return outraster; } set { outraster = value; } }
         private string outrastername = "";
-        public string OutRasterName { get { return outrastername; } }
+        public string OutRasterName { get { return outrastername; } set { outrastername = value; } }
         public void addRasterToComboBox(string rstName, IRaster rst)
         {
             if (!cmbInRaster1.Items.Contains(rstName))
@@ -124,7 +132,7 @@ namespace esriUtil.Forms.RasterAnalysis
             getFeaturePath();
         }
 
-        private void btnClip_Click(object sender, EventArgs e)
+        public void btnClip_Click(object sender, EventArgs e)
         {
             string rstNm = cmbInRaster1.Text;
             string outNm = txtOutName.Text;
@@ -147,7 +155,25 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rst = rstDic[rstNm];
-                outraster = rsUtil.flipRasterFunction(rst);
+                switch (sType)
+                {
+                    case rasterUtil.surfaceType.SLOPE:
+                        outraster = rsUtil.calcSlopeFunction(rst);
+                        break;
+                    case rasterUtil.surfaceType.ASPECT:
+                        outraster = rsUtil.calcAspectFunction(rst);
+                        break;
+                    case rasterUtil.surfaceType.EASTING:
+                        outraster = rsUtil.calcEastWestFunction(rst);
+                        break;
+                    case rasterUtil.surfaceType.NORTHING:
+                        outraster = rsUtil.calcNorthSouthFunction(rst);
+                        break;
+                    default:
+                        outraster = rsUtil.flipRasterFunction(rst);
+                        break;
+                }
+                
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

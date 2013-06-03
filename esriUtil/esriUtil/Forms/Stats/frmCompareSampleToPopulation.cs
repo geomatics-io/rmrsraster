@@ -198,9 +198,16 @@ namespace esriUtil.Forms.Stats
                 esriUtil.Statistics.ModelHelper.runProgressBar("KS test");
                 ITable sample1 = ftrDic[popStr];
                 ITable sample2 = ftrDic[sampStr];
-                esriUtil.Statistics.dataPrepCompareSamples ksTest = new Statistics.dataPrepCompareSamples(sample1, sample2, explanitoryVariables, strataField, chbPCA.Checked);
+                esriUtil.Statistics.dataPrepCompareSamples ksTest = new Statistics.dataPrepCompareSamples(sample1, sample2, explanitoryVariables, strataField);
                 ksTest.writeModel(outModel);
                 ksTest.getReport();
+                //DialogResult mR = MessageBox.Show("Do you want to adjust your sample?", "Adjust Sample", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                //if (mR == System.Windows.Forms.DialogResult.Yes)
+                //{
+                    //featureUtil fU = new featureUtil();
+                    //fU.selectKSFeaturesToSample(sample2, sample1, outModel, strataField);
+                //}
+
             }
             catch(Exception ex)
             {

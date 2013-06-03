@@ -122,20 +122,15 @@ namespace esriUtil.Forms.Sampling
             string outModelPath = txtOutputPath.Text;
             if (outModelPath == null || outModelPath == "")
             {
-                MessageBox.Show("You must select an output model", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must select an output model or specify a numeric integer", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (smpFtrNm == null || smpFtrNm == "")
+            {
+                MessageBox.Show("You must select a feature Class or Table", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             
-            if (smpFtrNm == null || smpFtrNm == "")
-            {
-                MessageBox.Show("You must select a feature Class", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (mapFld == null || mapFld == "")
-            {
-                MessageBox.Show("You must select a map field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
             
             
             this.Visible = false;
@@ -159,6 +154,14 @@ namespace esriUtil.Forms.Sampling
                 else
                 {
                     esriUtil.Statistics.dataPrepBase.modelTypes mType = esriUtil.Statistics.ModelHelper.getModelType(outModelPath);
+                    if (mapFld == null || mapFld == "")
+                    {
+                        if (mType == Statistics.dataPrepBase.modelTypes.Accuracy || mType == Statistics.dataPrepBase.modelTypes.Cluster)
+                        {
+                            MessageBox.Show("You must select a map field", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                    }
                     switch (mType)
                     {
                         case esriUtil.Statistics.dataPrepBase.modelTypes.Accuracy:
@@ -166,6 +169,22 @@ namespace esriUtil.Forms.Sampling
                             break;
                         case esriUtil.Statistics.dataPrepBase.modelTypes.Cluster:
                             ftrUtil.selectClusterFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha,chbEqual.Checked);
+                            break;
+                        case Statistics.dataPrepBase.modelTypes.KS:
+                            rp.Visible = false;
+                            ITable sts = null;
+                            if (MessageBox.Show("Do you want to supplement samples if needed?", "Supplement samples", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                            {
+                                sts = getTableFromUser();
+                            }
+                            rp.Visible = true;
+                            ftrUtil.selectKSFeaturesToSample(ftrCls,sts, outModelPath, mapFld);
+                            break;
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
+                            ftrUtil.selectCovCorrFeaturesToSample(ftrCls, outModelPath, prop, alpha);
+                            break;
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
+                            ftrUtil.selectPcaFeaturesToSample(ftrCls, outModelPath, prop, alpha);
                             break;
                         case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
                         case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:
@@ -175,8 +194,6 @@ namespace esriUtil.Forms.Sampling
                         case esriUtil.Statistics.dataPrepBase.modelTypes.SoftMax:
                         case esriUtil.Statistics.dataPrepBase.modelTypes.Cart:
                         case esriUtil.Statistics.dataPrepBase.modelTypes.L3:
-                        case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
-                        case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
                         case esriUtil.Statistics.dataPrepBase.modelTypes.TTEST:
                         default:
                             rp.addMessage("Sample selection for this model type is not currently supported!");
@@ -201,6 +218,28 @@ namespace esriUtil.Forms.Sampling
                 rp.enableClose();
                 this.Close();
             }
+        }
+
+        private ITable getTableFromUser()
+        {
+            ITable outTbl = null;
+            string outPath = null;
+            string outName = "";
+            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
+            gxDialog.AllowMultiSelect = false;
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
+            flt = new ESRI.ArcGIS.Catalog.GxFilterTablesAndFeatureClassesClass();
+            gxDialog.ObjectFilter = flt;
+            gxDialog.Title = "Supplemental Table";
+            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
+            if (gxDialog.DoModalOpen(0, out eGxObj))
+            {
+                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
+                outPath = gxObj.FullName;
+                outName = gxObj.BaseName;
+                outTbl = geoUtil.getTable(outPath);
+            }
+            return outTbl;
         }
 
         private void btnOpenRaster_Click(object sender, EventArgs e)

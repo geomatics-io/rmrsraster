@@ -58,7 +58,6 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)orig).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
@@ -71,16 +70,18 @@ namespace esriUtil.FunctionRasters
                 pbBigLoc.SetCoords((pTlc.X * cells), (pTlc.Y * cells));
                 IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
                 orig.Read(pbBigLoc, (IPixelBlock)pbBig);
+                
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
-                    noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                    System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
+                    //Console.WriteLine(ipPixelBlock.get_PixelType(nBand).ToString());
+                    //noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            float outVl = System.Convert.ToSingle(getTransformedValue(pixelValuesBig,c,r,cells,noDataValue));
+                            float outVl = System.Convert.ToSingle(getTransformedValue(pbBig,nBand,c,r,cells));
                             //Console.WriteLine("summed value = " + outVl.ToString());
                             pixelValues.SetValue(outVl, c, r);
                         }
@@ -107,6 +108,6 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract object getTransformedValue(System.Array bigArr,int startClms,int startRws,int cells,float noDataValue);
+        public abstract object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms,int startRws,int cells);
     }
 }

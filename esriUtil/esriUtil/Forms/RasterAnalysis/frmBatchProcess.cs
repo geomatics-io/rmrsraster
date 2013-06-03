@@ -246,6 +246,9 @@ namespace esriUtil.Forms.RasterAnalysis
                     l.AddRange(Enum.GetNames(typeof(rasterUtil.focalType)));
                     nm = l.ToArray();
                     break;
+                case batchCalculations.batchGroups.AGGREGATION:
+                    nm = Enum.GetNames(typeof(rasterUtil.focalType));
+                    break;
                 case batchCalculations.batchGroups.ZONALSTATS:
                     nm = Enum.GetNames(typeof(rasterUtil.zoneType));
                     break;
@@ -253,11 +256,13 @@ namespace esriUtil.Forms.RasterAnalysis
                     nm = Enum.GetNames(typeof(rasterUtil.rasterType));
                     break;
                 case batchCalculations.batchGroups.MOSAIC:
+                    l.Clear();
                     l.AddRange(Enum.GetNames(typeof(esriMosaicMethod)));
                     l.AddRange(Enum.GetNames(typeof(rstMosaicOperatorType)));
                     nm = l.ToArray();
                     break;
                 case batchCalculations.batchGroups.MERGE:
+                    l.Clear();
                     l.AddRange(Enum.GetNames(typeof(rasterUtil.mergeType)));
                     nm = l.ToArray();
                     break;
@@ -266,6 +271,9 @@ namespace esriUtil.Forms.RasterAnalysis
                     break;
                 case batchCalculations.batchGroups.FOCALSAMPLE:
                     nm = Enum.GetNames(typeof(rasterUtil.focalType));
+                    break;
+                case batchCalculations.batchGroups.SURFACE:
+                    nm = Enum.GetNames(typeof(rasterUtil.surfaceType));
                     break;
                 default:
                     break;

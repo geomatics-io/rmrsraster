@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "servicesToolBar", "services
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmrsUtilitywebsite", "RmrsUtilitywebsite\RmrsUtilitywebsite.csproj", "{716A590C-797D-43DE-BF20-B44C35FF7ACC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RMRSBatchProcess", "RMRSBatchProcess\RMRSBatchProcess.csproj", "{C1069E50-D285-490A-A6D3-86434242E2BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +161,36 @@ Global
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|Win32.ActiveCfg = Release|x86
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|x86.ActiveCfg = Debug|x86
 		{716A590C-797D-43DE-BF20-B44C35FF7ACC}.Release|x86.Build.0 = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|Win32.ActiveCfg = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|x86.ActiveCfg = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Debug|x86.Build.0 = Debug|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|Any CPU.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|Mixed Platforms.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|Mixed Platforms.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|Win32.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|x86.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (3.5)|x86.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|Any CPU.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|Mixed Platforms.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|Mixed Platforms.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|Win32.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|x86.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release (4.0)|x86.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|Any CPU.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|Mixed Platforms.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|Mixed Platforms.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|Win32.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|x86.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release 3.5|x86.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Any CPU.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Mixed Platforms.Build.0 = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Win32.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|x86.ActiveCfg = Release|x86
+		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

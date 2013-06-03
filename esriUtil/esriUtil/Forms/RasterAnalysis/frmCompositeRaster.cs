@@ -16,9 +16,18 @@ namespace esriUtil.Forms.RasterAnalysis
 {
     public partial class frmCompositeRaster : Form
     {
-        public frmCompositeRaster(IMap map)
+        public frmCompositeRaster(IMap map, bool composite=true)// title="Create Composite Raster")
         {
             InitializeComponent();
+            if (composite)
+            {
+                this.Text = "Create Composite Raster";
+            }
+            else
+            {
+                mStr = "Combine";
+                this.Text = "Create Combine Raster";
+            }
             rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
@@ -26,11 +35,20 @@ namespace esriUtil.Forms.RasterAnalysis
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
+
             
         }
-        public frmCompositeRaster(IMap map, ref rasterUtil rasterUtility, bool AddToMap)
+        public frmCompositeRaster(IMap map, ref rasterUtil rasterUtility, bool AddToMap, bool composite = true)// = "Create Composite Raster")
         {
             InitializeComponent();
+            if (composite)
+            {
+                this.Text = "Create Composite Raster";
+            }
+            else
+            {
+                this.Text = "Create Combine Raster";
+            }
             rsUtil = rasterUtility;
             addToMap = AddToMap;
             mp = map;
@@ -40,6 +58,7 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             populateComboBox();
         }
+        private string mStr = "Composite";
         private bool addToMap = true;
         private IMap mp = null;
         private viewUtility vUtil = null;
@@ -172,12 +191,13 @@ namespace esriUtil.Forms.RasterAnalysis
             getFeaturePath();
         }
 
-        private void btnExecute_Click(object sender, EventArgs e)
+        public void btnExecute_Click(object sender, EventArgs e)
         {
+            
             string rstNm = txtOutNm.Text;
             if (rstNm == null || rstNm == "")
             {
-                MessageBox.Show("You must specify a output name","No Output",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("You must specify a output name", "No Output", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (lsbRaster.Items.Count < 1)
@@ -193,13 +213,20 @@ namespace esriUtil.Forms.RasterAnalysis
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
-            rp.addMessage("Building Composite Raster. This may take a while...");
+            rp.addMessage("Building " + mStr + " Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.compositeBandFunction(rsLst.ToArray());
-                if (mp != null&&addToMap)
+                if (this.Text == "Create Composite Raster")
+                {
+                    outraster = rsUtil.compositeBandFunction(rsLst.ToArray());
+                }
+                else
+                {
+                    outraster = rsUtil.calcCombineRasterFunction(rsLst.ToArray());
+                }
+                if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
                     rp.Show();
@@ -224,11 +251,10 @@ namespace esriUtil.Forms.RasterAnalysis
                 TimeSpan ts = dt2.Subtract(dt);
                 string t = " in " + ts.Days.ToString() + " days " + ts.Hours.ToString() + " hours " + ts.Minutes.ToString() + " minutes and " + ts.Seconds.ToString() + " seconds .";
                 rp.stepPGBar(100);
-                rp.addMessage("Finished Composite Raster" + t);
+                rp.addMessage("Finished " + mStr + " Raster" + t);
                 rp.enableClose();
                 this.Close();
             }
-
         }
 
         private void btnMinus_Click(object sender, EventArgs e)

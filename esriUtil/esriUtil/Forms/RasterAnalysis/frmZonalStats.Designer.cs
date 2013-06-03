@@ -46,6 +46,7 @@
             this.lblZone = new System.Windows.Forms.Label();
             this.txtTableName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.chbClassCounts = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // cmbZonalStat
@@ -205,11 +206,22 @@
             this.label3.TabIndex = 50;
             this.label3.Text = "Output Table Name";
             // 
+            // chbClassCounts
+            // 
+            this.chbClassCounts.AutoSize = true;
+            this.chbClassCounts.Location = new System.Drawing.Point(10, 363);
+            this.chbClassCounts.Name = "chbClassCounts";
+            this.chbClassCounts.Size = new System.Drawing.Size(87, 17);
+            this.chbClassCounts.TabIndex = 51;
+            this.chbClassCounts.Text = "Class Counts";
+            this.chbClassCounts.UseVisualStyleBackColor = true;
+            // 
             // frmZonalStats
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(271, 395);
+            this.Controls.Add(this.chbClassCounts);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtTableName);
             this.Controls.Add(this.lblZone);
@@ -256,5 +268,6 @@
         private System.Windows.Forms.Label lblZone;
         private System.Windows.Forms.TextBox txtTableName;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox chbClassCounts;
     }
 }

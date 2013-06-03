@@ -215,5 +215,372 @@ namespace esriUtil
                 System.Windows.Forms.MessageBox.Show(e.ToString());
             }
         }
+
+        public void selectKSFeaturesToSample(ITable sampledTable,ITable samplesToDrawFromTable, string ksModelPath, string groupFieldName = "")
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)sampledTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Sampled Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            if (samplesToDrawFromTable != null)
+            {
+                objInfo2 = (IObjectClassInfo2)samplesToDrawFromTable;
+                if (!objInfo2.CanBypassEditSession())
+                {
+                    System.Windows.Forms.MessageBox.Show("Samples to draw from table participates in a composite relationship. Please export this table as a new table and try again!");
+                    return;
+                }
+            }
+            if (groupFieldName == null) groupFieldName = "";
+            try
+            {
+                esriUtil.Statistics.dataPrepCompareSamples dpComp = new Statistics.dataPrepCompareSamples(ksModelPath);
+                Dictionary<string,object[]> sampledBinPropDic = calcBinValues(dpComp, sampledTable); //key = stratfield_bin, values = [0] ratios {10} for random selection [1] counts {10} from sample
+                //bins and ratios calculated next use ratios to select from class and bin
+
+                IWorkspace wks = ((IDataset)sampledTable).Workspace;
+                IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+                if (wksE.IsBeingEdited())
+                {
+                    wksE.StopEditing(true);
+                }
+           
+                System.Random rd = new Random();
+                string sampleFldName = geoUtil.createField(sampledTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+                List<string> labels = dpComp.Labels.ToList();
+            
+                ICursor cur = sampledTable.Update(null, false);
+                int sIndex = cur.FindField(sampleFldName);
+                int cIndex = cur.FindField(groupFieldName);
+                int bIndex = cur.FindField("BIN");
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    string clustStr = labels[0];
+                    if (cIndex > -1)
+                    {
+                        clustStr = rw.get_Value(cIndex).ToString();
+                    }
+                    int b = System.Convert.ToInt32(rw.get_Value(bIndex));
+                    double rNum = rd.NextDouble();
+                    double r = ((double[])sampledBinPropDic[clustStr][0])[b];
+
+                    int ss = 0;
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+                if (samplesToDrawFromTable != null)
+                {
+                    appendSamples(sampledTable, samplesToDrawFromTable, sampledBinPropDic,dpComp);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+        }
+
+        private void appendSamples(ITable sampledTable, ITable samplesToDrawFromTable, Dictionary<string, object[]> sampledBinPropDic,Statistics.dataPrepCompareSamples dpComp)
+        {
+            Dictionary<string,object[]> bigSampleDic = calcBinValues(dpComp,samplesToDrawFromTable);
+            Dictionary<string, double[]> ratioDic = new Dictionary<string, double[]>();
+            bool check = false;
+            foreach (KeyValuePair<string, object[]> kvp in sampledBinPropDic)
+            {
+                string ky = kvp.Key;
+                
+                int[] cntArr = (int[])kvp.Value[1];
+                int totalCnt = cntArr.Sum();
+                //double[] ratioArr = (double[])kvp.Value[0];
+                int[] cntArr2 = (int[])bigSampleDic[ky][1];
+                double[] ratioArr2 = dpComp.binPropDic1[ky][0];// (double[])bigSampleDic[ky][0];
+                double[] nrArr = new double[ratioArr2.Length];
+                for (int i = 0; i < cntArr.Length; i++)
+                {
+                    double nr = 0;
+                    double r = ratioArr2[i];
+                    int tCntS = cntArr[i];
+                    int sN = (int)((totalCnt*r) - tCntS);
+                    if (sN > 0)
+                    {
+                        check = true;
+                        nr = System.Convert.ToDouble(sN) / cntArr2[i];
+                    }
+                    nrArr[i] = nr;
+                }
+                ratioDic.Add(ky, nrArr);
+            }
+            if (!check) return;
+            Random rd = new Random();
+            string[] labels = dpComp.Labels;
+            List<int> bFldsIndex = new List<int>();
+            List<int> sFldsIndex = new List<int>();
+            for (int i = 0; i < sampledTable.Fields.FieldCount; i++)
+            {
+                IField sfld = sampledTable.Fields.get_Field(i);
+                string sfldName = sfld.Name;
+                int bfldIndex = samplesToDrawFromTable.FindField(sfldName);
+                if (bfldIndex > -1 && sfld.Editable)
+                {
+                    bFldsIndex.Add(bfldIndex);
+                    sFldsIndex.Add(i);
+                }
+            }
+            ICursor cur = samplesToDrawFromTable.Search(null, false);
+            int cIndex = cur.FindField(dpComp.StrataField);
+            int bIndex = cur.FindField("BIN");
+            IRow rw = cur.NextRow();
+            int sIndex = sampledTable.FindField("Sample");
+            int wIndex = sampledTable.FindField("Weight");
+            while (rw != null)
+            {
+                string clustStr = labels[0];
+                if (cIndex > -1)
+                {
+                    clustStr = rw.get_Value(cIndex).ToString();
+                }
+                int b = System.Convert.ToInt32(rw.get_Value(bIndex));
+                double rNum = rd.NextDouble();
+                double r = ratioDic[clustStr][b];
+                if (rNum < r)
+                {
+                    IRow srw = sampledTable.CreateRow();
+                    for (int i = 0; i < sFldsIndex.Count; i++)
+                    {
+                        try
+                        {
+                            srw.set_Value(sFldsIndex[i], rw.get_Value(bFldsIndex[i]));
+                        }
+                        catch
+                        {
+                            
+                        }
+                    }
+                    if (sIndex > -1) srw.set_Value(sIndex, 1);
+                    if (wIndex > -1) srw.set_Value(wIndex, sampledBinPropDic[clustStr][2]);
+                    srw.Store();
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private Dictionary<string, object[]> calcBinValues(Statistics.dataPrepCompareSamples dpComp, ITable inTable)
+        {
+            Dictionary<string, object[]> outDic = new Dictionary<string, object[]>();//{double[10],int[10],double} ratios, counts, weight
+            Dictionary<string, double> minDic = new Dictionary<string, double>();//the min value of each bin
+            Dictionary<string, double> spanDic = new Dictionary<string, double>();//the span of each bin
+            Dictionary<string, int> cntDic = new Dictionary<string,int>();//counts by class
+            Statistics.dataPrepPrincipleComponents pca = dpComp.PCA;
+            string[] labels = dpComp.Labels;
+            for (int i = 0; i < labels.Length; i++)
+            {
+                string lbl = labels[i];
+                double[][] minmax1 = dpComp.minMaxDic1[lbl];
+                double[][] minmax2 = dpComp.minMaxDic2[lbl];
+                double min = minmax1[0][0];
+                if (minmax2[0][0] < min) min = minmax2[0][0];
+                double max = minmax1[1][0];
+                if (minmax2[1][0] > max) max = minmax2[1][0];
+                double span = (max - min) / 10;
+                minDic.Add(lbl, min);
+                spanDic.Add(lbl, span);
+                cntDic.Add(lbl,0);
+                double[] ratios = new double[10];
+                int[] cnts = new int[10];
+                object[] outObjectValues = new object[3];
+                outObjectValues[0] = ratios;
+                outObjectValues[1] = cnts;
+                outObjectValues[2] = 1;
+                outDic.Add(lbl, outObjectValues);
+            }
+            int[] vArrIndex = new int[dpComp.Variables.Length];
+            for (int i = 0; i < vArrIndex.Length; i++)
+            {
+                vArrIndex[i]=inTable.FindField(dpComp.Variables[i]);
+            }
+            string binFldName = geoUtil.createField(inTable, "BIN", esriFieldType.esriFieldTypeInteger, false);
+            string strataFldName = dpComp.StrataField;
+            string weightFldName = "Weight";
+            int binFldNameIndex = inTable.FindField(binFldName);
+            int strataFldNameIndex = inTable.FindField(strataFldName);
+            int weightFldNameINdex = inTable.FindField(weightFldName);
+            ICursor cur = inTable.Update(null, false);
+            IRow rw = cur.NextRow();
+            double[] varr = new double[vArrIndex.Length];
+            int totalCnt = 0;
+            while (rw != null)
+            {
+                bool check = true;
+                for (int i = 0; i < varr.Length; i++)
+			    {
+                    object vlObj = rw.get_Value(vArrIndex[i]);
+                    if(vlObj==null)
+                    {
+                        check = false;
+                        break;
+                    }
+                    varr[i]=System.Convert.ToDouble(vlObj);
+			    }
+                if(check)
+                {
+                    double vl = dpComp.PCA.computNew(varr)[0];
+                    double min;
+                    double span;
+                    string g = labels[0];
+                    double w = 1;
+                    if(strataFldNameIndex>-1)
+                    {
+                        g = rw.get_Value(strataFldNameIndex).ToString();
+                    }
+                    if (weightFldNameINdex > -1)
+                    {
+                        w = System.Convert.ToDouble(rw.get_Value(weightFldNameINdex));
+                    }
+                    object[] oOut = outDic[g];
+                    int[] cntArr = (int[])oOut[1];
+                    oOut[2] = w;
+                    min = minDic[g];
+                    span = spanDic[g];
+                    //weightDic[g] = w;
+                    cntDic[g] += 1;
+                    int b = (int)((vl-min)/span);
+                    if (b >= cntArr.Length) b = cntArr.Length - 1;
+                    if (b < 0) b = 0;
+                    //Console.WriteLine("\nValue = " + vl.ToString() + "\nmin = " + min.ToString() + "\nSpan = " + span.ToString() + "\nbin = " + b.ToString());
+                    cntArr[b] = cntArr[b]+1;
+                    rw.set_Value(binFldNameIndex,b);
+                    cur.UpdateRow(rw);
+                    totalCnt+=1;
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            foreach(KeyValuePair<string,object[]> kvp in outDic)
+            {
+                string ky = kvp.Key;
+                int gCnt = cntDic[ky];
+                double[] prop = dpComp.binPropDic1[ky][0];
+                object[] outObj = kvp.Value;
+                int[] cntArr = (int[])outObj[1];
+                double[] rArr = (double[])outObj[0];
+                for (int i = 0; i < cntArr.Length; i++)
+			    {
+                    double p = System.Convert.ToDouble(cntArr[i])/gCnt;
+                    double po = prop[i];
+                    rArr[i] = po/p;
+			    }
+            }
+
+            return outDic;
+        }
+
+        public void selectCovCorrFeaturesToSample(ITable inputTable, string covCorrModelPath, double proptionOfMean=0.1, double alpha = 0.05)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            Statistics.dataPrepVarCovCorr covCor = new Statistics.dataPrepVarCovCorr();
+            covCor.buildModel(covCorrModelPath);
+            System.Random rd = new Random();
+            double tSamples = System.Convert.ToDouble(esriUtil.Statistics.dataPrepSampleSize.sampleSizeMaxMean(covCor.MeanVector,covCor.StdVector,proptionOfMean,alpha));
+            int tRecords = inputTable.RowCount(null);
+            double gR = tSamples / tRecords;
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            IQueryFilter qf0 = new QueryFilterClass();
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = sampleFldName;
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            try
+            {
+                ICursor cur = inputTable.Update(qf, false);
+                int sIndex = cur.FindField(sampleFldName);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    double r = gR;
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+        }
+
+        public void selectPcaFeaturesToSample(ITable inputTable, string pcaModelPath, double proportionOfMean, double alpha)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            Statistics.dataPrepPrincipleComponents pca = new Statistics.dataPrepPrincipleComponents();
+            pca.buildModel(pcaModelPath);
+            System.Random rd = new Random();
+            double tSamples = System.Convert.ToDouble(esriUtil.Statistics.dataPrepSampleSize.sampleSizeMaxMean(pca.MeanVector, pca.StdVector, proportionOfMean, alpha));
+            int tRecords = inputTable.RowCount(null);
+            double gR = tSamples / tRecords;
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            IQueryFilter qf0 = new QueryFilterClass();
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = sampleFldName;
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            try
+            {
+                ICursor cur = inputTable.Update(qf, false);
+                int sIndex = cur.FindField(sampleFldName);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    double r = gR;
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+        }
     }
 }

@@ -120,7 +120,9 @@
     <Compile Include="commandAddFunctionModelToMap.cs" />
     <Compile Include="commandAddTiledImageServer.cs" />
     <Compile Include="commandAdjustedAccuracyAssessment.cs" />
+    <Compile Include="commandAggregateRaster.cs" />
     <Compile Include="commandArithmeticRaster.cs" />
+    <Compile Include="commandAspect.cs" />
     <Compile Include="commandBatchProcess.cs" />
     <Compile Include="commandBuildRasterFromModel.cs" />
     <Compile Include="commandCalculateRasterStatistics.cs" />
@@ -135,6 +137,7 @@
     <Compile Include="commandCreateMosaic.cs" />
     <Compile Include="commandDeleteFunctionModel.cs" />
     <Compile Include="commandDeleteModel.cs" />
+    <Compile Include="commandEasting.cs" />
     <Compile Include="commandExplodeSample.cs" />
     <Compile Include="commandExportToCsv.cs" />
     <Compile Include="commandExtractRasterBands.cs" />
@@ -152,6 +155,7 @@
     <Compile Include="commandMathRaster.cs" />
     <Compile Include="commandMergeRasters.cs" />
     <Compile Include="commandMultivariateRegression.cs" />
+    <Compile Include="commandNorthing.cs" />
     <Compile Include="commandNullDataToValue.cs" />
     <Compile Include="commandAddData.cs" />
     <Compile Include="commandAddRasterData.cs" />
@@ -171,10 +175,12 @@
     <Compile Include="commandSaveRaster.cs" />
     <Compile Include="commandSedByArival.cs" />
     <Compile Include="commandSelectSamplesFromFeature.cs" />
+    <Compile Include="commandSeperateProcess.cs" />
     <Compile Include="commandSetNull.cs" />
     <Compile Include="commandSetupToolbar.cs" />
     <Compile Include="commandShiftRaster.cs" />
     <Compile Include="commandShowReport.cs" />
+    <Compile Include="commandSlope.cs" />
     <Compile Include="commandSoftMaxNnet.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandStratifiedVarCov.cs" />
@@ -190,6 +196,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Config.esriaddinx</DependentUpon>
     </Compile>
+    <Compile Include="commandCombineRaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoveRmrsRasterUtility.cs" />
     <Compile Include="rmrsRasterUtilityExtension.cs" />
@@ -564,6 +571,44 @@
   </ItemGroup>
   <ItemGroup>
     <AddInContent Include="Images\commandTTest.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandCombineRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandAggregateRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandAspect.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSlope.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandNorthing.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandEasting.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RMRSBatchProcess.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <AddInContent Include="Images\commandSeperateProcess.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
   </ItemGroup>

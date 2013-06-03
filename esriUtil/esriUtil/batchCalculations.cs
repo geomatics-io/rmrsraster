@@ -15,13 +15,14 @@ namespace esriUtil
         public batchCalculations()
         {
             rsUtil = new rasterUtil();
+            //rp.Show();
         }
         public batchCalculations(rasterUtil rasterUtility, esriUtil.Forms.RunningProcess.frmRunningProcessDialog runningDialog)
         {
             rsUtil = rasterUtility;
             if (rp != null) rp = runningDialog;
         }
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION };
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE };
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -199,6 +200,9 @@ namespace esriUtil
                                     case batchGroups.ZONALSTATS:
                                         tblDic[outName] = createZonalStats(paramArr);
                                         break;
+                                    case batchGroups.ZONALCLASSCOUNTS:
+                                        tblDic[outName] = createZonalClassCounts(paramArr);
+                                        break;
                                     case batchGroups.SAVEFUNCTIONRASTER:
                                         rstDic[outName] = saveRaster(paramArr);
                                         break;
@@ -241,7 +245,24 @@ namespace esriUtil
                                     case batchGroups.CONVERTPIXELTYPE:
                                         rstDic[outName] = convertPixelType(paramArr);
                                         break;
-                                    
+                                    case batchGroups.SURFACE:
+                                        rstDic[outName] = createSurfaceFunction(paramArr);
+                                        break;
+                                    case batchGroups.COMBINE:
+                                        rstDic[outName] = createCombineFunction(paramArr);
+                                        break;
+                                    case batchGroups.CONSTANT:
+                                        rstDic[outName] = createConstantRaster(paramArr);
+                                        break;
+                                    case batchGroups.ROTATE:
+                                        rstDic[outName] = createRotateRaster(paramArr);
+                                        break;
+                                    case batchGroups.SHIFT:
+                                        rstDic[outName] = createShiftRaster(paramArr);
+                                        break;
+                                    case batchGroups.NULLTOVALUE:
+                                        rstDic[outName] = createNullToValueRaster(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -270,6 +291,91 @@ namespace esriUtil
                 rp.stepPGBar(100);
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
+            }
+        }
+
+        private IRaster createNullToValueRaster(string[] paramArr)
+        {
+            IRaster inRs = getRaster(paramArr[0]);
+            double d = System.Convert.ToDouble(paramArr[1]);
+            return rsUtil.setnullToValueFunction(inRs, d);
+        }
+
+        private IRaster createShiftRaster(string[] paramArr)
+        {
+            IRaster inRs = getRaster(paramArr[0]);
+            double shiftX = System.Convert.ToDouble(paramArr[1]);
+            double shiftY = System.Convert.ToDouble(paramArr[2]);
+            return rsUtil.shiftRasterFunction(inRs,shiftX,shiftY);
+        }
+
+        private IRaster createRotateRaster(string[] paramArr)
+        {
+            IRaster inRs = getRaster(paramArr[0]);
+            double d = System.Convert.ToDouble(paramArr[1]);
+            return rsUtil.RotateRasterFunction(inRs, d);
+        }
+
+        private IRaster createConstantRaster(string[] paramArr)
+        {
+            IRaster inRs = getRaster(paramArr[0]);
+            double d = System.Convert.ToDouble(paramArr[1]);
+            return rsUtil.constantRasterFunction(inRs, d);
+        }
+
+        private IRaster createCombineFunction(string[] paramArr)
+        {
+            IRaster[] inRasters = new IRaster[paramArr.Length];
+            for (int i = 0; i < paramArr.Length; i++)
+            {
+                inRasters[i] = getRaster(paramArr[i]);
+            }
+            return rsUtil.calcCombineRasterFunction(inRasters);
+        }
+
+        private IRaster createSurfaceFunction(string[] paramArr)
+        {
+            IRaster rs = getRaster(paramArr[0]);
+            string sTypeStr = paramArr[1];
+            rasterUtil.surfaceType sType = (rasterUtil.surfaceType)Enum.Parse(typeof(rasterUtil.surfaceType), sTypeStr);
+            IRaster oRs = null;
+            switch (sType)
+            {
+                case rasterUtil.surfaceType.SLOPE:
+                    oRs = rsUtil.calcSlopeFunction(rs);
+                    break;
+                case rasterUtil.surfaceType.ASPECT:
+                    oRs = rsUtil.calcAspectFunction(rs);
+                    break;
+                case rasterUtil.surfaceType.EASTING:
+                    oRs = rsUtil.calcEastWestFunction(rs);
+                    break;
+                case rasterUtil.surfaceType.NORTHING:
+                    oRs = rsUtil.calcNorthSouthFunction(rs);
+                    break;
+                case rasterUtil.surfaceType.FLIP:
+                    oRs = rsUtil.flipRasterFunction(rs);
+                    break;
+                default:
+                    break;
+            }
+            return oRs;
+        }
+
+        private ITable createZonalClassCounts(string[] paramArr)
+        {
+            if (paramArr.Length < 4)
+            {
+                IRaster rs1 = getRaster(paramArr[0]);
+                IRaster rs2 = getRaster(paramArr[1]);
+                return rsUtil.zonalStats(rs1, rs2, paramArr[2], null, rp,true);
+            }
+            else
+            {
+                IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
+                string inFtrFld = paramArr[1];
+                IRaster vRs = getRaster(paramArr[2]);
+                return rsUtil.zonalStats(inFtrCls, inFtrFld, vRs, paramArr[3], null, rp,true);
             }
         }
 
@@ -854,6 +960,9 @@ namespace esriUtil
                 case batchGroups.ZONALSTATS:
                     msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;OutTableName;MAX,MIN,SUM)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;OutTableName;MAX,MIN,SUM)";
                     break;
+                case batchGroups.ZONALCLASSCOUNTS:
+                    msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;OutTableName)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;OutTableName)";
+                    break; 
                 case batchGroups.SAVEFUNCTIONRASTER:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;outName;outWorkspace;rasterType)";
                     break;
@@ -895,6 +1004,21 @@ namespace esriUtil
                     break;
                 case batchGroups.PREDICT:
                     msg = "outTable = " + batchFunction.ToString() + "(inTable;modelPath)";
+                    break;
+                case batchGroups.COMBINE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;inRaster2;inRaster3)";
+                    break;
+                case batchGroups.CONSTANT:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;constantValue)";
+                    break;
+                case batchGroups.ROTATE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;degrees)";
+                    break;
+                case batchGroups.SHIFT:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;CellsX,CellsY)";
+                    break;
+                case batchGroups.NULLTOVALUE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;newValue)";
                     break;
                 default:
                     break;

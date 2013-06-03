@@ -21,11 +21,11 @@ namespace esriUtil.Statistics
             sBarRun = false;
             if (statusBarThread != null)
             {
-                if (statusBarThread.IsAlive)
+                if (statusBarThread.ThreadState == System.Threading.ThreadState.Unstarted)
                 {
-                    statusBarThread.Interrupt();
-                    statusBarThread.Abort();
+                    statusBarThread.Start();
                 }
+                statusBarThread.Join(100);
                    
             }
             if (sBar != null)
@@ -37,12 +37,9 @@ namespace esriUtil.Statistics
         }
         public static void runProgressBar(string message)
         {
-            if (statusBarThread == null)
-            {
-                sBarRun = true;
-                statusBarThread = new System.Threading.Thread(() => genericProgressBar(message));
-                statusBarThread.Start();
-            }
+            sBarRun = true;
+            statusBarThread = new System.Threading.Thread(() => genericProgressBar(message));
+            statusBarThread.Start();
         }
         private static void genericProgressBar(string message)
         {
@@ -662,6 +659,7 @@ namespace esriUtil.Statistics
                 }
                 rw = cur.NextRow();
             }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
         private void predictTTest(ITable inputTable, int[] fldIndexArr)
@@ -726,7 +724,7 @@ namespace esriUtil.Statistics
                 }
                 rw = cur.NextRow();
             }
-
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
         private void predictCluster(ITable inputTable, int[] fldIndexArr)

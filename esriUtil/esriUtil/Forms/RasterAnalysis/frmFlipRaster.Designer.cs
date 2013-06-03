@@ -113,11 +113,11 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox txtOutName;
         private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox cmbInRaster1;
         private System.Windows.Forms.Button btnOpenRaster;
+        public System.Windows.Forms.TextBox txtOutName;
+        public System.Windows.Forms.ComboBox cmbInRaster1;
     }
 }

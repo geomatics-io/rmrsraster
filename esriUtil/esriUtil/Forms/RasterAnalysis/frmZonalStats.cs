@@ -235,9 +235,9 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must specify an output table name","No Value",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
-            if (lsbStats.Items.Count < 1)
+            if (lsbStats.Items.Count < 1&& !chbClassCounts.Checked)
             {
-                MessageBox.Show("You must select at least on Zonal Statistic", "No Stats", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must select at least on Zonal Statistic or check class count", "No Stats", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             List<rasterUtil.zoneType> rsLst = new List<rasterUtil.zoneType>();
@@ -262,14 +262,14 @@ namespace esriUtil.Forms.RasterAnalysis
                 if(rstDic.ContainsKey(zNm))
                 {
                     IRaster zRs = rstDic[zNm];
-                    outTbl = rsUtil.zonalStats(zRs,vRs,oTbl,rsLst.ToArray(),rp);
+                    outTbl = rsUtil.zonalStats(zRs,vRs,oTbl,rsLst.ToArray(),rp,chbClassCounts.Checked);
                 }
                 else
                 {
                     rp.addMessage("Running Zonal Statistics on feature class...");
                     rp.Refresh();
                     IFeatureClass zFtr = ftrDic[zNm];
-                    outTbl = rsUtil.zonalStats(zFtr,zFld,vRs,oTbl,rsLst.ToArray(),rp);
+                    outTbl = rsUtil.zonalStats(zFtr,zFld,vRs,oTbl,rsLst.ToArray(),rp,chbClassCounts.Checked);
                 }
                 if (mp != null&&addToMap)
                 {

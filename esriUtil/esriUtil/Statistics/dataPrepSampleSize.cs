@@ -100,38 +100,48 @@ namespace esriUtil.Statistics
             rp.Show();
             dataPrepBase.modelTypes mType = ModelHelper.getModelType(modelPath);
             rp.addMessage("Model Type = " + mType.ToString());
-            switch (mType)
+            try
             {
-                case dataPrepBase.modelTypes.Accuracy:
-                    fillAaReport(modelPath,rp,proportion,alpha);
-                    break;
-                case dataPrepBase.modelTypes.LinearRegression:
-                    fillLrReport(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.MvlRegression:
-                    fillMvrReport(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.LogisticRegression:
-                    fillLogisticReport(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.PLR:
-                    fillPlrReport(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.CovCorr:
-                    fillCovCorr(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.PCA:
-                    fillPcaReport(modelPath, rp, proportion, alpha);
-                    break;
-                case dataPrepBase.modelTypes.Cluster:
-                    fillCluserReport(modelPath, rp, proportion, alpha);
-                    break;
-                default:
-                    rp.addMessage("Can't estimate sample size for this type of model!");
-                    break;
+                switch (mType)
+                {
+                    case dataPrepBase.modelTypes.Accuracy:
+                        fillAaReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.LinearRegression:
+                        fillLrReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.MvlRegression:
+                        fillMvrReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.LogisticRegression:
+                        fillLogisticReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.PLR:
+                        fillPlrReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.CovCorr:
+                        fillCovCorr(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.PCA:
+                        fillPcaReport(modelPath, rp, proportion, alpha);
+                        break;
+                    case dataPrepBase.modelTypes.Cluster:
+                        fillCluserReport(modelPath, rp, proportion, alpha);
+                        break;
+                    default:
+                        rp.addMessage("Can't estimate sample size for this type of model!");
+                        break;
+                }
             }
-            rp.stepPGBar(100);
-            rp.enableClose();
+            catch (Exception e)
+            {
+                rp.addMessage(e.ToString());
+            }
+            finally
+            {
+                rp.stepPGBar(100);
+                rp.enableClose();
+            }
 
 
         }

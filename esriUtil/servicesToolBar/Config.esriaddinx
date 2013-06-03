@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>4/9/2013</Date>
+  <Date>5/22/2013</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -87,6 +87,13 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandStratifiedVarCov" class="commandStratifiedVarCov" message="calculates means and variance covariance for a specfied strata" caption="Stratified VarCov" tip="click to open stratified variance covariance form" category="stats" image="Images\commandStratifiedVarCov.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandCompareSampleSize" class="commandCompareSampleSize" message="Compares means and variances by strata/cluster using a paired T-test " caption="Compare Sample to Population" tip="click to open compare sample to population form" category="stats" image="Images\commandCompareSampleSize.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandTTest" class="commandTTest" message="performs a T-Test analysis by groups for multilple independent variables" caption="T-Test" tip="Click to open T-Test form" category="stats" image="Images\commandTTest.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandAggregateRaster" class="commandAggregateRaster" message="Aggregates cell values based on the number of cells" caption="Aggregate Cells" tip="click to open Aggregate form" category="rasterUtilities" image="Images\commandAggregateRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCombineRaster" class="commandCombineRaster" message="Combines Rasters to produce a single band raster with unique value combinations." caption="Combine Raster" tip="click to open the combine form" category="rasterUtilities" image="Images\commandCombineRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSlope" class="commandSlope" message="Calculates the slope of a dem" caption="Slope Raster" tip="click to open slope form" category="rasterUtilities" image="Images\commandSlope.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandAspect" class="commandAspect" message="Creates an Aspect Surface" caption="Calculate Aspect" tip="click to open Aspect Form" category="rasterUtilities" image="Images\commandAspect.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandNorthing" class="commandNorthing" message="converts aspect into a northing number" caption="Northing" tip="Click to open Northing form" category="rasterUtilities" image="Images\commandNorthing.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandEasting" class="commandEasting" message="calcualtes the amount of east direction given aspect" caption="Easting" tip="Click to open Easting Form" category="rasterUtilities" image="Images\commandEasting.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSeperateProcess" class="commandSeperateProcess" message="Runs a list of batch commands in a seperate process" caption="Run Seperate Process" tip="click to open run seperate process" category="rasterUtilities" image="Images\commandSeperateProcess.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">
