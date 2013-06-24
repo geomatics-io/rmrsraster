@@ -58,7 +58,7 @@ namespace esriUtil.Forms.RasterAnalysis
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
             if (featureClass)
             {
-                flt = new ESRI.ArcGIS.Catalog.GxFilterPolygonFeatureClassesClass();
+                flt = new ESRI.ArcGIS.Catalog.GxFilterGeoDatasetsClass();//.GxFilterPolygonFeatureClassesClass();
             }
             else
             {
@@ -74,14 +74,30 @@ namespace esriUtil.Forms.RasterAnalysis
                 outName = gxObj.BaseName;
                 if (featureClass)
                 {
-                    if (!ftrDic.ContainsKey(outName))
+                    IRaster rRs = rsUtil.returnRaster(outName);
+                    if (rRs == null)
                     {
-                        ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
-                        cmbSampleFeatureClass.Items.Add(outName);
+                        if (!ftrDic.ContainsKey(outName))
+                        {
+                            ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
+                            cmbSampleFeatureClass.Items.Add(outName);
+                        }
+                        else
+                        {
+                            ftrDic[outName] = geoUtil.getFeatureClass(outPath);
+                        }
                     }
                     else
                     {
-                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
+                        if (!rstDic.ContainsKey(outName))
+                        {
+                            rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                            cmbRaster.Items.Add(outName);
+                        }
+                        else
+                        {
+                            rstDic[outName] = rsUtil.returnRaster(outPath);
+                        }
                     }
                     cmbSampleFeatureClass.Text = outName;
                 }
@@ -133,13 +149,22 @@ namespace esriUtil.Forms.RasterAnalysis
                     string lyrNm = lyr.Name;
                     IFeatureLayer ftrLyr = (IFeatureLayer)lyr;
                     IFeatureClass ftrCls = ftrLyr.FeatureClass;
-                    if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon)
+                    try
                     {
-                        if (!ftrDic.ContainsKey(lyrNm))
+                        if (ftrCls != null)
                         {
-                            ftrDic.Add(lyrNm, ftrCls);
-                            cmbSampleFeatureClass.Items.Add(lyrNm);
+                            if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon)
+                            {
+                                if (!ftrDic.ContainsKey(lyrNm))
+                                {
+                                    ftrDic.Add(lyrNm, ftrCls);
+                                    cmbSampleFeatureClass.Items.Add(lyrNm);
+                                }
+                            }
                         }
+                    }
+                    catch
+                    {
                     }
                     lyr = ftrLyrs.Next();
 
@@ -155,6 +180,7 @@ namespace esriUtil.Forms.RasterAnalysis
                     {
                         rstDic.Add(lyrNm, rst);
                         cmbRaster.Items.Add(lyrNm);
+                        cmbSampleFeatureClass.Items.Add(lyrNm);
                     }
                     lyr = rstLyrs.Next();
 
@@ -202,9 +228,24 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rst = rstDic[rstNm];
-                IFeatureClass ftrCls = ftrDic[ftrNm];
-                IGeometry geo = geoUtil.createGeometry(ftrCls);
-                outraster = rsUtil.clipRasterFunction(rst, geo, clType);
+                IRaster inRst;
+                IRaster outraster;
+                if(rstDic.TryGetValue(ftrNm,out inRst))
+                {
+                    List<double[]> mmLst = new List<double[]>();
+                    mmLst.Add(new double[2]{0,1});
+                    ESRI.ArcGIS.Geometry.IGeometry geo = (ESRI.ArcGIS.Geometry.IGeometry)((IRasterProps)inRst).Extent;
+                    IRaster rs1 = rsUtil.calcGreaterFunction(inRst, 0);
+                    IRaster rs2 = rsUtil.setValueRangeToNodata(rs1, mmLst);
+                    IRaster rs3 = rsUtil.calcArithmaticFunction(rs2, inRst, esriRasterArithmeticOperation.esriRasterMultiply);
+                    outraster = rsUtil.clipRasterFunction(rs3, geo, esriRasterClippingType.esriRasterClippingOutside);
+                }
+                else
+                {
+                    IFeatureClass ftrCls = ftrDic[ftrNm];
+                    IGeometry geo = geoUtil.createGeometry(ftrCls);
+                    outraster = rsUtil.clipRasterFunction(rst, geo, clType);
+                }
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
@@ -219,6 +260,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 outrastername = outNm;
                 this.DialogResult = DialogResult.OK;
+                
             }
             catch (Exception ex)
             {

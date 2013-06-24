@@ -146,6 +146,7 @@
     <Compile Include="commandFocalAnalysis.cs" />
     <Compile Include="commandFocalSample.cs" />
     <Compile Include="commandFunctionalModeling.cs" />
+    <Compile Include="commandGlm.cs" />
     <Compile Include="commandHelp.cs" />
     <Compile Include="commandLandfireSegmentation.cs" />
     <Compile Include="commandLandscapeMetrics.cs" />
@@ -603,6 +604,9 @@
     </AddInContent>
   </ItemGroup>
   <ItemGroup>
+    <AddInContent Include="Images\commandGlm.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
     <Content Include="RMRSBatchProcess.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

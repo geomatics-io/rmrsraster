@@ -582,5 +582,146 @@ namespace esriUtil
                 System.Windows.Forms.MessageBox.Show(e.ToString());
             }
         }
+
+        public IFeatureClass exportFeatures(IFeatureClass inputFeatureClass, string outPath, ISpatialFilter filter)
+        {
+            
+            // Create a name object for the source (shapefile) workspace and open it.
+            IDataset inDset = (IDataset)inputFeatureClass;
+            IWorkspace sourceWorkspace = (inDset).Workspace;
+
+            // Create a name object for the target (file GDB) workspace and open it.
+            string outDbStr = geoUtil.parseDbStr(outPath);
+            string outName = System.IO.Path.GetFileName(outPath);
+            IWorkspace targetWorkspace = geoUtil.OpenWorkSpace(outDbStr);
+            outName = geoUtil.getSafeOutputNameNonRaster(targetWorkspace, outName);
+            
+            // Create a name object for the source dataset.
+            IFeatureClassName sourceFeatureClassName = new FeatureClassNameClass();
+            IDatasetName sourceDatasetName = (IDatasetName)sourceFeatureClassName;
+            sourceDatasetName.Name = inDset.Name;
+            sourceDatasetName.WorkspaceName = (IWorkspaceName)((IDataset)sourceWorkspace).FullName;
+
+            // Create a name object for the target dataset.
+            IFeatureClassName targetFeatureClassName = new FeatureClassNameClass();
+            IDatasetName targetDatasetName = (IDatasetName)targetFeatureClassName;
+            targetDatasetName.Name = outName;
+            targetDatasetName.WorkspaceName = (IWorkspaceName)((IDataset)targetWorkspace).FullName; ;
+
+            // Open source feature class to get field definitions.
+            //IName sourceName = (IName)sourceFeatureClassName;
+            IFeatureClass sourceFeatureClass = inputFeatureClass;
+
+            // Create the objects and references necessary for field validation.
+            IFieldChecker fieldChecker = new FieldCheckerClass();
+            IFields sourceFields = sourceFeatureClass.Fields;
+            IFields targetFields = null;
+            IEnumFieldError enumFieldError = null;
+
+            // Set the required properties for the IFieldChecker interface.
+            fieldChecker.InputWorkspace = sourceWorkspace;
+            fieldChecker.ValidateWorkspace = targetWorkspace;
+
+            // Validate the fields and check for errors.
+            fieldChecker.Validate(sourceFields, out enumFieldError, out targetFields);
+            if (enumFieldError != null)
+            {
+                // Handle the errors in a way appropriate to your application.
+                Console.WriteLine("Errors were encountered during field validation.");
+            }
+
+            // Find the shape field.
+            String shapeFieldName = sourceFeatureClass.ShapeFieldName;
+            int shapeFieldIndex = sourceFeatureClass.FindField(shapeFieldName);
+            IField shapeField = sourceFields.get_Field(shapeFieldIndex);
+
+            // Get the geometry definition from the shape field and clone it.
+            IGeometryDef geometryDef = shapeField.GeometryDef;
+            IClone geometryDefClone = (IClone)geometryDef;
+            IClone targetGeometryDefClone = geometryDefClone.Clone();
+            IGeometryDef targetGeometryDef = (IGeometryDef)targetGeometryDefClone;
+
+            // Cast the IGeometryDef to the IGeometryDefEdit interface.
+            IGeometryDefEdit targetGeometryDefEdit = (IGeometryDefEdit)targetGeometryDef;
+
+            // Set the IGeometryDefEdit properties.
+            targetGeometryDefEdit.GridCount_2 = 1;
+            targetGeometryDefEdit.set_GridSize(0, 0.75);
+
+            // Create the converter and run the conversion.
+            IFeatureDataConverter featureDataConverter = new FeatureDataConverterClass();
+            IEnumInvalidObject enumInvalidObject = featureDataConverter.ConvertFeatureClass(sourceFeatureClassName, filter, null, targetFeatureClassName, targetGeometryDef, targetFields, "", 1000, 0);
+
+            // Check for errors.
+            IInvalidObjectInfo invalidObjectInfo = null;
+            enumInvalidObject.Reset();
+            while ((invalidObjectInfo = enumInvalidObject.Next()) != null)
+            {
+                // Handle the errors in a way appropriate to the application.
+                Console.WriteLine("Errors occurred for the following feature: {0}", invalidObjectInfo.InvalidObjectID);
+            }
+            return (IFeatureClass)((IName)targetFeatureClassName).Open();
+
+        }
+        public ITable exportTable(ITable inputTable, string outPath, IQueryFilter filter)
+        {
+            // Create a name object for the source workspace and open it.
+            IDataset inDset = (IDataset)inputTable;
+            IWorkspace sourceWorkspace = (inDset).Workspace;
+
+            // Create a name object for the target (file GDB) workspace and open it.
+            string outDbStr = geoUtil.parseDbStr(outPath);
+            string outName = System.IO.Path.GetFileName(outPath);
+            IWorkspace targetWorkspace = geoUtil.OpenWorkSpace(outDbStr);
+            outName = geoUtil.getSafeOutputNameNonRaster(targetWorkspace, outName);
+
+            // Create a name object for the source dataset.
+            ITableName sourceTableName = new TableNameClass();
+            IDatasetName sourceDatasetName = (IDatasetName)sourceTableName;
+            sourceDatasetName.Name = inDset.Name;
+            sourceDatasetName.WorkspaceName = (IWorkspaceName)((IDataset)sourceWorkspace).FullName;
+
+            // Create a name object for the target dataset.
+            ITableName targetTableName = new TableNameClass();
+            IDatasetName targetDatasetName = (IDatasetName)targetTableName;
+            targetDatasetName.Name = outName;
+            targetDatasetName.WorkspaceName = (IWorkspaceName)((IDataset)targetWorkspace).FullName; ;
+
+            // Open source feature class to get field definitions.
+            //IName sourceName = (IName)sourceFeatureClassName;
+            ITable sourceTable = inputTable;
+
+            // Create the objects and references necessary for field validation.
+            IFieldChecker fieldChecker = new FieldCheckerClass();
+            IFields sourceFields = sourceTable.Fields;
+            IFields targetFields = null;
+            IEnumFieldError enumFieldError = null;
+
+            // Set the required properties for the IFieldChecker interface.
+            fieldChecker.InputWorkspace = sourceWorkspace;
+            fieldChecker.ValidateWorkspace = targetWorkspace;
+
+            // Validate the fields and check for errors.
+            fieldChecker.Validate(sourceFields, out enumFieldError, out targetFields);
+            if (enumFieldError != null)
+            {
+                // Handle the errors in a way appropriate to your application.
+                Console.WriteLine("Errors were encountered during field validation.");
+            }
+
+            // Create the converter and run the conversion.
+            IFeatureDataConverter featureDataConverter = new FeatureDataConverterClass();
+            IEnumInvalidObject enumInvalidObject = featureDataConverter.ConvertTable(sourceDatasetName, filter, targetDatasetName, targetFields,"",1000,0);
+
+            // Check for errors.
+            IInvalidObjectInfo invalidObjectInfo = null;
+            enumInvalidObject.Reset();
+            while ((invalidObjectInfo = enumInvalidObject.Next()) != null)
+            {
+                // Handle the errors in a way appropriate to the application.
+                Console.WriteLine("Errors occurred for the following feature: {0}", invalidObjectInfo.InvalidObjectID);
+            }
+            return (Table)((IName)targetTableName).Open();
+        }
     }
 }

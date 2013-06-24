@@ -22,7 +22,8 @@ namespace esriUtil
             rsUtil = rasterUtility;
             if (rp != null) rp = runningDialog;
         }
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE };
+        featureUtil ftrUtil = new featureUtil();
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS }
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -46,6 +47,8 @@ namespace esriUtil
         public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } set { rstDic = value; } }
         public Dictionary<string, IFeatureClass> FeatureClassDictionary { get { return ftrDic; } set { ftrDic = value; } }
         public Dictionary<string, ITable> TableDictionary { get { return tblDic; } set { tblDic = value; } }
+        private Dictionary<string, string> modelDic = new Dictionary<string, string>();
+        public Dictionary<string, string> ModelDictionary { get { return modelDic; } set { modelDic = value; } }
         private List<string> lnLst = new List<string>();
         public void manuallyAddBatchLines(string[] lines)
         {
@@ -239,6 +242,9 @@ namespace esriUtil
                                     case batchGroups.PREDICT:
                                         tblDic[outName] = predictNewValues(paramArr);
                                         break;
+                                    case batchGroups.BUILDMODEL:
+                                        modelDic[outName] = buildModels(paramArr);
+                                        break;
                                     case batchGroups.AGGREGATION:
                                         rstDic[outName] = createAggregationFunction(paramArr);
                                         break;
@@ -262,6 +268,15 @@ namespace esriUtil
                                         break;
                                     case batchGroups.NULLTOVALUE:
                                         rstDic[outName] = createNullToValueRaster(paramArr);
+                                        break;
+                                    case batchGroups.SELECTSAMPLES:
+                                        tblDic[outName] = selectSamples(paramArr);
+                                        break;
+                                    case batchGroups.EXPORTTABLE:
+                                        tblDic[outName] = exportTable(paramArr);
+                                        break;
+                                    case batchGroups.EXPORTFEATURECLASS:
+                                        ftrDic[outName] = exportFeatureClass(paramArr);
                                         break;
                                     default:
                                         break;
@@ -292,6 +307,405 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IFeatureClass exportFeatureClass(string[] paramArr)
+        {
+            IFeatureClass inputFeatureClass = getFeatureClass(paramArr[0]);
+            ISpatialFilter filter = new SpatialFilterClass();
+            string wC = paramArr[1];
+            if (wC == null || wC == "") wC = "*";
+            filter.WhereClause = wC;
+            string outPath = paramArr[2];
+            return ftrUtil.exportFeatures(inputFeatureClass, outPath, filter);
+        }
+
+        private ITable exportTable(string[] paramArr)
+        {
+            ITable inputTable = getTable(paramArr[0]);
+            IQueryFilter filter = new  QueryFilterClass();
+            string wC = paramArr[1];
+            if (wC == null || wC == "") wC = "*";
+            filter.WhereClause = wC;
+            string outPath = paramArr[2];
+            return ftrUtil.exportTable(inputTable, outPath, filter);
+        }
+
+        private ITable selectSamples(string[] paramArr)
+        {
+            ITable inTbl = getTable(paramArr[0]);
+            string sFld = paramArr[1];//can be "" for no strata
+            string mdl = getModelPath(paramArr[2]);
+            Statistics.dataPrepBase.modelTypes mType = Statistics.ModelHelper.getModelType(mdl);
+            int ns;
+            int pLeng = paramArr.Length;
+            bool eW = false;
+            double prop = 0.1;
+            double alpha = 0.05;
+            if (Int32.TryParse(mdl, out ns))
+            {
+                //MessageBox.Show(ns.ToString());
+                
+                if (pLeng > 3)
+                {
+                    if (paramArr[3].ToLower() == "true") eW = true;
+                }
+                ftrUtil.selectEqualFeaturesToSample(inTbl, sFld, ns, eW);
+            }
+            else
+            {
+                switch (mType)
+                {
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.Accuracy:
+                        prop = System.Convert.ToDouble(paramArr[3]);
+                        alpha = System.Convert.ToDouble(paramArr[4]);
+                        if (paramArr[5].ToLower() == "true") eW = true;
+                        ftrUtil.selectAccuracyFeaturesToSample(inTbl, mdl, sFld, prop, alpha, eW);
+                        break;
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.Cluster:
+                        prop = System.Convert.ToDouble(paramArr[3]);
+                        alpha = System.Convert.ToDouble(paramArr[4]);
+                        if (paramArr[5].ToLower() == "true") eW = true;
+                        ftrUtil.selectClusterFeaturesToSample(inTbl, mdl, sFld, prop, alpha, eW);
+                        break;
+                    case Statistics.dataPrepBase.modelTypes.KS:
+                        ITable sts = getTable(paramArr[3]);
+                        ftrUtil.selectKSFeaturesToSample(inTbl, sts,mdl, sFld);
+                        break;
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
+                        prop = System.Convert.ToDouble(paramArr[3]);
+                        alpha = System.Convert.ToDouble(paramArr[4]);
+                        if (paramArr[5].ToLower() == "true") eW = true;
+                        ftrUtil.selectCovCorrFeaturesToSample(inTbl, mdl, prop, alpha);
+                        break;
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
+                        prop = System.Convert.ToDouble(paramArr[3]);
+                        alpha = System.Convert.ToDouble(paramArr[4]);
+                        if (paramArr[5].ToLower() == "true") eW = true;
+                        ftrUtil.selectPcaFeaturesToSample(inTbl, mdl, prop, alpha);
+                        break;
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.LogisticRegression:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.PLR:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.RandomForest:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.SoftMax:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.Cart:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.L3:
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.TTEST:
+                    default:
+                        rp.addMessage("Sample selection for this model type is not currently supported!");
+                        break;
+                }
+            }
+            return inTbl;
+        }
+
+        private string buildModels(string[] paramArr)
+        {
+            //first varible has model type last variable has output model name
+            Statistics.dataPrepBase.modelTypes mType = (Statistics.dataPrepBase.modelTypes)Enum.Parse(typeof(Statistics.dataPrepBase.modelTypes),paramArr[0]);
+            switch (mType)
+            {
+                case esriUtil.Statistics.dataPrepBase.modelTypes.Accuracy:
+                    createAAModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.AdjustedAccuracy:
+                    createAAAModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
+                    createLinearRegressionModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:
+                    createMvlRegressionModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.LogisticRegression:
+                    createLogisticRegressionModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.PLR:
+                    createPlrModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.RandomForest:
+                    createRfModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.SoftMax:
+                    createSmModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.Cart:
+                    createCartModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.L3:
+                    createL3Model(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
+                    createCovCorrModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
+                    createPcaModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.Cluster:
+                    createClusterModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.TTEST:
+                    createTTestModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.PAIREDTTEST:
+                    createPTTestModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.KS:
+                    createKsModel(paramArr);
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.StrataCovCorr:
+                    createStrataVarCovModel(paramArr);
+                    break;
+                default:
+                    break;
+            }
+            return paramArr[paramArr.Length - 1];
+
+        }
+
+        private void createStrataVarCovModel(string[] paramArr)
+        {
+            Statistics.dataPrepStrata dps = null;
+            if (paramArr.Length > 4)
+            {
+                ITable tbl = getTable(paramArr[1]);
+                string[] variables = paramArr[2].Split(new char[] { ',' });
+                string strataField = paramArr[3];
+                dps = new Statistics.dataPrepStrata(tbl, variables, strataField);
+            }
+            else
+            {
+                IRaster StrataRaster = getRaster(paramArr[1]);
+                IRaster VariableRaster = getRaster(paramArr[2]);
+                dps = new Statistics.dataPrepStrata(StrataRaster, VariableRaster);
+            }
+            dps.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createPTTestModel(string[] paramArr)
+        {
+            Statistics.dataPrepPairedTTest dpTT = null;
+            if (paramArr.Length > 4)
+            {
+                ITable tbl = getTable(paramArr[1]);
+                string[] variables = paramArr[2].Split(new char[] { ',' });
+                string strataField = paramArr[3];
+                dpTT = new Statistics.dataPrepPairedTTest(tbl, variables, strataField);
+            }
+            else
+            {
+                IRaster StrataRaster = getRaster(paramArr[1]);
+                IRaster VariableRaster = getRaster(paramArr[2]);
+                dpTT = new Statistics.dataPrepPairedTTest(StrataRaster, VariableRaster);
+            }
+            dpTT.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createTTestModel(string[] paramArr)
+        {
+            Statistics.dataPrepTTest dpTT = null;
+            if (paramArr.Length > 4)
+            {
+                ITable tbl = getTable(paramArr[1]);
+                string[] variables = paramArr[2].Split(new char[]{','});
+                string strataField = paramArr[3];
+                dpTT = new Statistics.dataPrepTTest(tbl,variables,strataField);
+            }
+            else
+            {
+                IRaster StrataRaster = getRaster(paramArr[1]);
+                IRaster VariableRaster = getRaster(paramArr[2]);
+                dpTT = new Statistics.dataPrepTTest(StrataRaster, VariableRaster);
+            }
+            dpTT.writeModel(paramArr[paramArr.Length-1]);
+        }
+
+        private void createCovCorrModel(string[] paramArr)
+        {
+            Statistics.dataPrepVarCovCorr dpVc = null;
+            if (paramArr.Length > 3)
+            {
+                IRaster rs = getRaster(paramArr[1]);
+                dpVc = new Statistics.dataPrepVarCovCorr(rs);
+            }
+            else
+            {
+                ITable table = getTable(paramArr[1]);
+                string[] variables = paramArr[2].Split(new char[] { ',' });
+                dpVc = new Statistics.dataPrepVarCovCorr(table, variables);
+            }
+            dpVc.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createL3Model(string[] paramArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void createCartModel(string[] paramArr)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void createSmModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepSoftMaxPlr dpSm = new Statistics.dataPrepSoftMaxPlr(table, dependentField, independentFields, categoricalFields);
+            dpSm.writeModel(paramArr[paramArr.Length-1]);
+        }
+
+        private void createPlrModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepLogisticRegression dpLg = new Statistics.dataPrepLogisticRegression(table, dependentField, independentFields, categoricalFields);
+            dpLg.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createLogisticRegressionModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepMultinomialLogisticRegression dpLg = new Statistics.dataPrepMultinomialLogisticRegression(table, dependentField, independentFields, categoricalFields);
+            dpLg.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createMvlRegressionModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepMultivariateLinearRegression dpLg = null;
+            if (paramArr.Length > 5)
+            {
+                bool z = true;
+                if (paramArr[5].ToLower() == "false") z = false;
+                dpLg = new Statistics.dataPrepMultivariateLinearRegression(table, dependentField, independentFields, categoricalFields, z);
+            }
+            else
+            {
+                dpLg = new Statistics.dataPrepMultivariateLinearRegression(table, dependentField, independentFields, categoricalFields);
+            }
+            dpLg.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createLinearRegressionModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[]{','});
+            string[] independentFields = paramArr[3].Split(new char[]{','});
+            string[] categoricalFields = paramArr[4].Split(new char[]{','});
+            Statistics.dataPrepLinearReg dpLg = null;
+            if (paramArr.Length > 5)
+            {
+                bool z = true;
+                if (paramArr[5].ToLower() == "false") z = false;
+                dpLg = new Statistics.dataPrepLinearReg(table, dependentField, independentFields, categoricalFields, z);
+            }
+            else
+            {
+                dpLg = new Statistics.dataPrepLinearReg(table, dependentField, independentFields, categoricalFields);
+            }
+            dpLg.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createAAAModel(string[] paramArr)
+        {
+            IFeatureClass projectArea = getFeatureClass(paramArr[1]);
+            IRaster mapRs = getRaster(paramArr[2]);
+            string orgModel = paramArr[3];
+            string outModel = paramArr[4];
+            Statistics.dataPrepAdjustAccuracyAssessment dpAaa = null;
+            if(mapRs==null)
+            {
+                IFeatureClass map = getFeatureClass(paramArr[2]);
+                dpAaa = new Statistics.dataPrepAdjustAccuracyAssessment(projectArea, map, orgModel, outModel);
+            }
+            else
+            {
+                dpAaa = new Statistics.dataPrepAdjustAccuracyAssessment(projectArea,mapRs,orgModel,outModel);
+            }
+            dpAaa.buildModel();
+        }
+
+        private void createAAModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string dependentField = paramArr[2];
+            string independentField = paramArr[3];
+            Statistics.dataGeneralConfusionMatirx dpAa = new Statistics.dataGeneralConfusionMatirx(table, dependentField, independentField);
+            if (paramArr.Length > 5) dpAa.WeightFeild = paramArr[4];
+            dpAa.writeXTable(paramArr[paramArr.Length-1]);
+        }
+
+        private void createRfModel(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            int trees = System.Convert.ToInt32(paramArr[5]);
+            double ratio = System.Convert.ToDouble(paramArr[6]);
+            int nSplitVar = System.Convert.ToInt32(paramArr[7]);
+            Statistics.dataPrepRandomForest dpRf = new Statistics.dataPrepRandomForest(table,dependentField,independentFields,categoricalFields,trees,ratio,nSplitVar);
+            dpRf.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createPcaModel(string[] paramArr)
+        {
+            Statistics.dataPrepPrincipleComponents dpPca = null;
+            if (paramArr.Length < 4)
+            {
+                IRaster rs = getRaster(paramArr[1]);
+                dpPca = new Statistics.dataPrepPrincipleComponents(rs);
+            }
+            else
+            {
+                ITable table = getTable(paramArr[1]);
+                string[] variables = paramArr[2].Split(new char[] { ',' });
+                dpPca = new Statistics.dataPrepPrincipleComponents(table, variables);
+            }
+            dpPca.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createClusterModel(string[] paramArr)
+        {
+            Statistics.dataPrepCluster dpC = null;
+            if(paramArr.Length<5)
+            {
+                IRaster rs = getRaster(paramArr[1]);
+                int nCls = System.Convert.ToInt32(paramArr[2]);
+                dpC = new Statistics.dataPrepCluster(rs,nCls);
+            }
+            else
+            {
+                ITable tbl = getTable(paramArr[1]);
+                string[] flds = paramArr[2].Split(new char[]{','});
+                int nCls = System.Convert.ToInt32(paramArr[3]);
+                dpC = new Statistics.dataPrepCluster(tbl,flds,nCls);
+            }
+            dpC.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createKsModel(string[] paramArr)
+        {
+            ITable sample1 = getTable(paramArr[1]);
+            ITable sample2 = getTable(paramArr[2]);
+            string[] explanitoryVariables = paramArr[3].Split(new char[] { ',' });
+            string strataField = "";
+            if (paramArr.Length > 5) strataField = paramArr[4];
+            Statistics.dataPrepCompareSamples dpKs = new Statistics.dataPrepCompareSamples(sample1, sample2, explanitoryVariables, strataField);
+            dpKs.writeModel(paramArr[paramArr.Length - 1]);
         }
 
         private IRaster createNullToValueRaster(string[] paramArr)
@@ -397,7 +811,7 @@ namespace esriUtil
         {
             string tblStr = paramArr[0];
             ITable tbl = geoUtil.getTable(tblStr);
-            string mPath = paramArr[1];
+            string mPath = getModelPath(paramArr[1]);
             Statistics.ModelHelper mH = new Statistics.ModelHelper(mPath);
             mH.predictNewData(tbl);
             return tbl;
@@ -844,6 +1258,33 @@ namespace esriUtil
             }
         }
 
+        private ITable getTable(string p)
+        {
+            string tp = p.Trim();
+            if (tblDic.ContainsKey(tp))
+            {
+                return tblDic[tp];
+            }
+            else
+            {
+                ITable outTbl = geoUtil.getTable(tp);
+                return outTbl;
+            }
+        }
+
+        private string getModelPath(string p)
+        {
+            string tp = p.Trim();
+            if (modelDic.ContainsKey(tp))
+            {
+                return modelDic[tp];
+            }
+            else
+            {
+                return p;
+            }
+        }
+
         private IRaster createArithmeticFunction(string[] paramArr)
         {
             string inRs1Str = paramArr[0];
@@ -893,7 +1334,12 @@ namespace esriUtil
             {
                 string[] lnArr = ln.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
                 outName = lnArr[0].Trim();
-                string lnS = lnArr[1].Trim();
+                List<string> allLnsLst = new List<string>();
+                for (int i = 1; i < lnArr.Length; i++)
+                {
+                    allLnsLst.Add(lnArr[i]);
+                }
+                string lnS = String.Join("=",allLnsLst.ToArray()).Trim();
                 int lP = lnS.IndexOf("(");
                 int rP = lnS.IndexOf(")");
                 func = lnS.Substring(0, lP).ToUpper();
@@ -1005,6 +1451,9 @@ namespace esriUtil
                 case batchGroups.PREDICT:
                     msg = "outTable = " + batchFunction.ToString() + "(inTable;modelPath)";
                     break;
+                case batchGroups.BUILDMODEL:
+                    msg = "outModel = " + batchFunction.ToString() + "(modelType;model parameters)";
+                    break;
                 case batchGroups.COMBINE:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;inRaster2;inRaster3)";
                     break;
@@ -1019,6 +1468,15 @@ namespace esriUtil
                     break;
                 case batchGroups.NULLTOVALUE:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;newValue)";
+                    break;
+                case batchGroups.SELECTSAMPLES:
+                    msg = "outTbl = " + batchFunction.ToString() + "(inTable;inStatumField;inModel;Proportion;Alpha;false)";
+                    break;
+                case batchGroups.EXPORTTABLE:
+                    msg = "outTbl = " + batchFunction.ToString() + "(inTable;query;outTablePath)";
+                    break;
+                case batchGroups.EXPORTFEATURECLASS:
+                    msg = "outFeatureClass = " + batchFunction.ToString() + "(inFeatureClass;query;outFeatureClassPath)";
                     break;
                 default:
                     break;

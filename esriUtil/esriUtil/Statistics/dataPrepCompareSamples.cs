@@ -605,7 +605,7 @@ namespace esriUtil.Statistics
                 {
                     xAxes[i] = min + halfMin + (span * i);
                 }
-                Forms.Stats.frmHistogram hs = new Forms.Stats.frmHistogram();
+                Forms.Stats.frmChart hs = new Forms.Stats.frmChart();
                 hs.Text = "Empirical Distribution and Histogram";
                 System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaPop = hs.chrHistogram.ChartAreas.Add(k);
                 System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaCDF = hs.chrHistogram.ChartAreas.Add("Empirical");

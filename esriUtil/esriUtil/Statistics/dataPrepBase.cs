@@ -9,7 +9,7 @@ namespace esriUtil.Statistics
 {
     public abstract class dataPrepBase
     {
-        public enum modelTypes { Accuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, PCA, Cluster, TTEST, PAIREDTTEST, KS }
+        public enum modelTypes { Accuracy, AdjustedAccuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, StrataCovCorr, PCA, Cluster, TTEST, PAIREDTTEST, KS, GLM }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         public geoDatabaseUtility GeoUtil { get { return geoUtil; } }
         private string intablepath = "";
@@ -41,7 +41,28 @@ namespace esriUtil.Statistics
             } 
         }
         public string[] DependentFieldNames { get;set;}
-        public string[] IndependentFieldNames { get ;set; }
+        private string[] independentfieldnames;
+        public string[] IndependentFieldNames
+        {
+            get
+            {
+                return independentfieldnames;
+            }
+            set
+            {
+                independentfieldnames = value;
+                minValues = new double[independentfieldnames.Length];
+                maxValues = new double[independentfieldnames.Length];
+                sumValues = new double[independentfieldnames.Length];
+                for (int i = 0; i < minValues.Length; i++)
+                {
+                    minValues[i] = Double.MaxValue;
+                    maxValues[i] = Double.MinValue;
+                }
+            }
+            
+        }
+        public double[] minValues, maxValues, sumValues;
         public string[] ClassFieldNames { get; set; }
         public Dictionary<string, List<string>> UniqueClassValues
         {

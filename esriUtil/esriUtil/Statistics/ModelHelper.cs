@@ -198,11 +198,21 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.PAIREDTTEST:
                     outRs = getPairedTTestRaster();
                     break;
+                case dataPrepBase.modelTypes.GLM:
+                    outRs = getGLMRaster();
+                    break;
                 default:
                     Console.WriteLine("Can't make a raster out of model");
                     break;
             }
             return outRs;
+        }
+
+        private IRaster getGLMRaster()
+        {
+            dataPrepGlm glm = new dataPrepGlm();
+            glm.getGlmModel(mdlp, true);
+            return rsUtil.calcGlmFunction(coefRst, glm);
         }
 
         private IRaster getPairedTTestRaster()
@@ -385,10 +395,22 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.KS:
                     openKsTest(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.GLM:
+                    openGLM(alpha,report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openGLM(double alpha, bool report)
+        {
+            dataPrepGlm glm = new dataPrepGlm();
+            glm.getGlmModel(mdlp);
+            depvar = glm.DependentFieldNames;
+            depvar = glm.IndependentFieldNames;
+            if (report) glm.getReport(alpha);
         }
 
         private void openKsTest(double alpha, bool report)
@@ -478,7 +500,10 @@ namespace esriUtil.Statistics
             alglib.decisionforest df = rf.getDfModel(mdlp,false);
             depvar = rf.DependentFieldNames;
             indvar = rf.IndependentFieldNames;
-            if (report) rf.getReport();
+            if (report)
+            {
+                rf.getReport();
+            }
         }
 
         private void openRpPlr(double alpha, bool report = true)
@@ -593,9 +618,53 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.PAIREDTTEST:
                     predictPairedTTest(inputTable, fldIndexArr);
                     break;
+                case dataPrepBase.modelTypes.GLM:
+                    predictGLM(inputTable,fldIndexArr);
+                    break;
                 default:
                     break;
             }
+        }
+
+        private void predictGLM(ITable inputTable, int[] fldIndexArr)
+        {
+            string outFldName = DependentVariables[0] + "_P";
+            outFldName = geoUtil.createField(inputTable, outFldName, esriFieldType.esriFieldTypeDouble, false);
+            int outFldIndex = inputTable.FindField(outFldName);
+            dataPrepGlm glm = new dataPrepGlm();
+            glm.getGlmModel(mdlp,true);
+            double[] input = new double[IndependentVariables.Length];
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(null, false);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                bool checkVl = true;
+                for (int i = 0; i < fldIndexArr.Length; i++)
+                {
+                    object vlObj = rw.get_Value(fldIndexArr[i]);
+                    if(vlObj==null)
+                    {
+                        checkVl= false;
+                        break;
+                    }
+                    double vl = System.Convert.ToDouble(vlObj);
+                    input[i] = vl;
+                }
+                if(checkVl)
+                {
+                    double nVl = glm.computeNew(input);
+                    rw.set_Value(outFldIndex, nVl);
+                    cur.UpdateRow(rw);
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
         private void predictPairedTTest(ITable inputTable, int[] fldIndexArr)
@@ -1091,6 +1160,98 @@ namespace esriUtil.Statistics
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
 
+        }
+
+        public static Forms.Stats.frmChart generateProbabilityGraphic(string[] IndependentFieldNames)
+        {
+            Forms.Stats.frmChart outFrm = new Forms.Stats.frmChart();
+            System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
+            System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
+            System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
+            System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
+            tbLbl.Name = "tbLbl";
+            tbLbl.SetBounds(470, 236, 70, 23);
+            tbLbl.Text = "Bins";
+            tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            tb.Name = "tbQ";
+            tb.SetRange(0, 10);
+            tb.SetBounds(350, 236, 120, 30);
+            tb.Show();
+            tb.TickFrequency = 1;
+            tb.LargeChange = 1;
+            tb.SmallChange = 1;
+            cmbPrimaryLbl.Text = "Variable";
+            cmbPrimary.Name = "cmbPrimary";
+            cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            System.Drawing.Point cmbPt = new System.Drawing.Point(200,236);
+            System.Drawing.Point lblPt = new System.Drawing.Point(150,236);
+            cmbPrimary.Location = cmbPt;
+            cmbPrimaryLbl.Location = lblPt;
+            cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
+            cmbPrimary.Size = new System.Drawing.Size(120, 23);
+            cmbPrimary.Items.AddRange(IndependentFieldNames);
+            
+            
+            outFrm.Text = "Probability Distribution";
+            System.Windows.Forms.DataVisualization.Charting.ChartArea probArea = outFrm.chrHistogram.ChartAreas.Add("Probs");
+            System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm.chrHistogram.Titles.Add("T");
+            probArea.AxisX.Title = "Selected Variable Values";
+            probArea.AxisY.Title = "Proportion";
+            probArea.AxisY.Maximum = 1;
+            System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm.chrHistogram.Legends.Add("Legend");
+            chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+            chTitle.Text = "Modeled Distributions";
+            outFrm.Controls.Add(cmbPrimaryLbl);
+            outFrm.Controls.Add(cmbPrimary);
+            outFrm.Controls.Add(tbLbl);
+            outFrm.Controls.Add(tb);
+            outFrm.Width = 540;
+
+            return outFrm;
+        }
+        public static Forms.Stats.frmChart generateRegressionGraphic(string[] IndependentFieldNames)
+        {
+            Forms.Stats.frmChart outFrm = new Forms.Stats.frmChart();
+            System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
+            System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
+            System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
+            System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
+            tbLbl.Name = "tbLbl";
+            tbLbl.SetBounds(470, 236, 70, 23);
+            tbLbl.Text = "Bins";
+            tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            tb.Name = "tbQ";
+            tb.SetRange(0, 10);
+            tb.SetBounds(350, 236, 120, 30);
+            tb.Show();
+            tb.TickFrequency = 1;
+            tb.LargeChange = 1;
+            tb.SmallChange = 1;
+            cmbPrimaryLbl.Text = "Variable";
+            cmbPrimary.Name = "cmbPrimary";
+            cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            System.Drawing.Point cmbPt = new System.Drawing.Point(200, 236);
+            System.Drawing.Point lblPt = new System.Drawing.Point(150, 236);
+            cmbPrimary.Location = cmbPt;
+            cmbPrimaryLbl.Location = lblPt;
+            cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
+            cmbPrimary.Size = new System.Drawing.Size(120, 23);
+            cmbPrimary.Items.AddRange(IndependentFieldNames);
+            outFrm.Text = "Predicted Distribution";
+            System.Windows.Forms.DataVisualization.Charting.ChartArea yArea = outFrm.chrHistogram.ChartAreas.Add("Y");
+            System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm.chrHistogram.Titles.Add("T");
+            yArea.AxisX.Title = "Selected Variable Values";
+            yArea.AxisY.Title = "Predicted Values";
+            System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm.chrHistogram.Legends.Add("Legend");
+            chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+            chTitle.Text = "Modeled Distributions";
+            outFrm.Controls.Add(cmbPrimaryLbl);
+            outFrm.Controls.Add(cmbPrimary);
+            outFrm.Controls.Add(tbLbl);
+            outFrm.Controls.Add(tb);
+            outFrm.Width = 540;
+
+            return outFrm;
         }
     }
 }

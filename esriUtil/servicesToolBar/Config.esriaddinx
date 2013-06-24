@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>5/22/2013</Date>
+  <Date>6/21/2013</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -94,6 +94,7 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandNorthing" class="commandNorthing" message="converts aspect into a northing number" caption="Northing" tip="Click to open Northing form" category="rasterUtilities" image="Images\commandNorthing.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandEasting" class="commandEasting" message="calcualtes the amount of east direction given aspect" caption="Easting" tip="Click to open Easting Form" category="rasterUtilities" image="Images\commandEasting.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSeperateProcess" class="commandSeperateProcess" message="Runs a list of batch commands in a seperate process" caption="Run Seperate Process" tip="click to open run seperate process" category="rasterUtilities" image="Images\commandSeperateProcess.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandGlm" class="commandGlm" message="Creates a GLM given user inputes" caption="Generalized Linear Modeling" tip="click to open GLM form" category="stats" image="Images\commandGlm.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

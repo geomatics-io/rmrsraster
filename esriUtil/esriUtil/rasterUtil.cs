@@ -2228,6 +2228,22 @@ namespace esriUtil
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
         }
+        public IRaster calcGlmFunction(IRaster inRaster, Statistics.dataPrepGlm glm)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.glmFunctionDataset();
+            FunctionRasters.glmFunctionArguments args = new FunctionRasters.glmFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.GlmModel = glm;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
         public IRaster calcTTestFunction(IRaster inRaster, Statistics.dataPrepTTest ttest)
         {
             IRaster rRst = returnRaster(inRaster);
@@ -4441,6 +4457,8 @@ namespace esriUtil
                 Console.WriteLine("failed isNullData " + inValue.ToString());
                 return true;
             }
-        }        
+        }
+
+        
     }
 }

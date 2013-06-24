@@ -246,6 +246,9 @@ namespace esriUtil.Forms.RasterAnalysis
                     l.AddRange(Enum.GetNames(typeof(rasterUtil.focalType)));
                     nm = l.ToArray();
                     break;
+                case batchCalculations.batchGroups.BUILDMODEL:
+                    nm = Enum.GetNames(typeof(Statistics.dataPrepBase.modelTypes));
+                    break;
                 case batchCalculations.batchGroups.AGGREGATION:
                     nm = Enum.GetNames(typeof(rasterUtil.focalType));
                     break;

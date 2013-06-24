@@ -217,18 +217,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
-    <Compile Include="Forms\Stats\frmHistogram.cs">
+    <Compile Include="Forms\Stats\frmChart.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\Stats\frmHistogram.Designer.cs">
-      <DependentUpon>frmHistogram.cs</DependentUpon>
+    <Compile Include="Forms\Stats\frmChart.Designer.cs">
+      <DependentUpon>frmChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmGlm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmGlm.Designer.cs">
+      <DependentUpon>frmGlm.cs</DependentUpon>
     </Compile>
     <Compile Include="FunctionRasters\combineFunctionArguments.cs" />
     <Compile Include="FunctionRasters\combineFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\glmFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\glmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionDataset.cs" />
     <Compile Include="segmentation.cs" />
     <Compile Include="Statistics\dataPrepCompareSamples.cs" />
+    <Compile Include="Statistics\dataPrepGlm.cs" />
     <Compile Include="Statistics\dataPrepPairedTTest.cs" />
     <Compile Include="featureUtil.cs" />
     <Compile Include="fiaIntegration.cs" />
@@ -972,8 +981,11 @@
     <EmbeddedResource Include="Forms\Stats\frmFormatZoneData.resx">
       <DependentUpon>frmFormatZoneData.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\Stats\frmHistogram.resx">
-      <DependentUpon>frmHistogram.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\Stats\frmChart.resx">
+      <DependentUpon>frmChart.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmGlm.resx">
+      <DependentUpon>frmGlm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmLogisticRegression.resx">
       <DependentUpon>frmLogisticRegression.cs</DependentUpon>

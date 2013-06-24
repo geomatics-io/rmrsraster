@@ -84,6 +84,7 @@ namespace esriUtil.Statistics
                     int fldClmCntT = 1;
                     int indexFld = allFieldIndexArray[i];
                     object vl = rw.get_Value(indexFld);
+                    updateMinMaxSum(vl, i);
                     double dblVl = 0;
                     try
                     {
@@ -119,6 +120,19 @@ namespace esriUtil.Statistics
                 rwCnt += 1;
             }
             
+        }
+        private void updateMinMaxSum(object vl, int i)
+        {
+            try
+            {
+                double nVl = System.Convert.ToDouble(vl);
+                if (nVl < minValues[i]) minValues[i] = nVl;
+                if (nVl > maxValues[i]) maxValues[i] = nVl;
+                sumValues[i] = sumValues[i] + nVl;
+            }
+            catch
+            {
+            }
         }
         public override double[,] getMatrix()
         {
@@ -344,6 +358,9 @@ namespace esriUtil.Statistics
                 sw.WriteLine(Deviance.ToString());
                 sw.WriteLine(X2.ToString());
                 sw.WriteLine(PValue.ToString());
+                sw.WriteLine(String.Join(",", (from double d in minValues select d.ToString()).ToArray()));
+                sw.WriteLine(String.Join(",", (from double d in maxValues select d.ToString()).ToArray()));
+                sw.WriteLine(String.Join(",", (from double d in sumValues select d.ToString()).ToArray()));
                 sw.WriteLine(String.Join(",",(from double d in Coefficients select d.ToString()).ToArray()));
                 sw.WriteLine(String.Join(",",(from double d in StandardError select d.ToString()).ToArray()));
                 sw.WriteLine(String.Join(",",(from Accord.Statistics.Testing.WaldTest d in WaldStatistic select d.Statistic.ToString()).ToArray()));
@@ -374,6 +391,9 @@ namespace esriUtil.Statistics
                 deviance = System.Convert.ToDouble(sr.ReadLine());
                 x2 = System.Convert.ToDouble(sr.ReadLine());
                 pv = System.Convert.ToDouble(sr.ReadLine());
+                minValues = (from string s in (sr.ReadLine().Split(new char[] { ',' })) select System.Convert.ToDouble(s)).ToArray();
+                maxValues = (from string s in (sr.ReadLine().Split(new char[] { ',' })) select System.Convert.ToDouble(s)).ToArray();
+                sumValues = (from string s in (sr.ReadLine().Split(new char[] { ',' })) select System.Convert.ToDouble(s)).ToArray();
                 coefficients = (from string s in (sr.ReadLine().Split(new char[]{','})) select System.Convert.ToDouble(s)).ToArray();
                 standarderror = (from string s in (sr.ReadLine().Split(new char[] { ',' })) select System.Convert.ToDouble(s)).ToArray();
                 waldstat = new Accord.Statistics.Testing.WaldTest[coefficients.Length];
@@ -411,6 +431,86 @@ namespace esriUtil.Statistics
             rd.addMessage("p-value: " + String.Join(", ", (from Accord.Statistics.Testing.WaldTest d in WaldStatistic select d.PValue.ToString()).ToArray()));
             rd.Show();
             rd.enableClose();
+            if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+            {
+                //if (lr == null) lr = buildModel();
+                Forms.Stats.frmChart hist = ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
+                System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+                cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+                System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+                tb.Scroll += new EventHandler(tb_RegionChanged);
+                hist.chrHistogram.Show();
+                cmbPrimary.SelectedItem = IndependentFieldNames[0];
+                hist.Show();
+            }
+        }
+
+        void tb_RegionChanged(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues(frm);
+        }
+        public void updateFormValues(Forms.Stats.frmChart hist)
+        {
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            System.Windows.Forms.DataVisualization.Charting.Chart ch = hist.chrHistogram;
+            ch.Series.Clear();
+            string cmbTxt = cmbPrimary.Text;
+            int tbVl = tb.Value;
+            double oVl = tbVl / 10d;
+            int cmbInd = System.Array.IndexOf(IndependentFieldNames, cmbTxt);
+            double[] meanArray = new double[sumValues.Length];
+            for (int i = 0; i < meanArray.Length; i++)
+            {
+                double mV = minValues[i];
+                meanArray[i] = mV + ((maxValues[i] - mV) * oVl);
+            }
+            double mVl = minValues[cmbInd];
+            double rng = maxValues[cmbInd] - mVl;
+            double stp = rng / 10;
+            double[] xVlArr = new double[10];
+            for (int i = 0; i < 10; i++)
+            {
+                xVlArr[i] = (i * stp) + mVl;
+            }
+            for (int i = 0; i < Categories.Length; i++)
+            {
+                System.Windows.Forms.DataVisualization.Charting.Series s = ch.Series.Add(Categories[i]);
+                s.BorderWidth = 3;
+                s.LegendText = Categories[i];
+                s.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+                s.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                s.ChartArea = "Probs";
+            }
+            for (int j = 0; j < xVlArr.Length; j++)
+            {
+                meanArray[cmbInd] = xVlArr[j];
+                double pVl = computNew(meanArray);
+                double pVl2 = 1 - pVl;
+                double[] probArr = {pVl2,pVl};
+                for (int k = 0; k < probArr.Length; k++)
+                {
+                    System.Windows.Forms.DataVisualization.Charting.Series s = ch.Series[k];
+                    s.Points.AddXY(xVlArr[j], probArr[k]);
+
+                }
+
+
+            }
+
+        }
+        private void cmbPrimary_SelectedValueChanged(object sender, EventArgs e)
+        {
+
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues(frm);
+
+
+
+
         }
         /// <summary>
         /// return the probability of getting a positive outcome 1

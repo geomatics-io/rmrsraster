@@ -83,8 +83,12 @@
     <Content Include="HTML\FAQ.htm" />
     <Content Include="HTML\FunctionDatasets.htm" />
     <Content Include="HTML\FunctionModeling.htm" />
+    <None Include="HTML\RasterAnalysisMenu.htm" />
+    <None Include="HTML\SamplingMenu.htm" />
+    <None Include="HTML\StatisticalModeling.htm" />
     <Content Include="HTML\tutorials.htm" />
     <Content Include="HTML\UnderConstruction.htm" />
+    <None Include="HTML\WebServicesMenu.htm" />
     <Content Include="HTML\welcome.htm" />
     <Content Include="IMAGES\accuracyAssessment.gif" />
     <Content Include="IMAGES\Construction.gif" />
@@ -92,10 +96,14 @@
     <Content Include="IMAGES\gettingData.gif" />
     <Content Include="IMAGES\humanDeminsions.gif" />
     <Content Include="IMAGES\ImageAnalysisWindow.gif" />
+    <Content Include="IMAGES\rasterAnalysisMenu.gif" />
     <Content Include="IMAGES\RasterOverlay.gif" />
     <Content Include="IMAGES\RMRS.gif" />
     <Content Include="IMAGES\rmrsToolbar.gif" />
+    <Content Include="IMAGES\sampleMenuImage.gif" />
     <Content Include="IMAGES\statisticalModeling.gif" />
+    <Content Include="IMAGES\statisticalModelingMenu.gif" />
+    <Content Include="IMAGES\webServicesMenuImage.gif" />
     <Content Include="IMAGES\workFlow.gif" />
   </ItemGroup>
   <ItemGroup>

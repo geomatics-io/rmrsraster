@@ -115,6 +115,7 @@ namespace esriUtil.Statistics
                     int fldClmCntT = 1;
                     int indexFld = allFieldIndexArray[i];
                     object vl = rw.get_Value(indexFld);
+                    updateMinMaxSum(vl, i);
                     double dblVl = 0;
                     try
                     {
@@ -221,6 +222,19 @@ namespace esriUtil.Statistics
             else s2[0] = s.Last();
             standarderrors = s2;
         }
+        private void updateMinMaxSum(object vl, int i)
+        {
+            try
+            {
+                double nVl = System.Convert.ToDouble(vl);
+                if (nVl < minValues[i]) minValues[i] = nVl;
+                if (nVl > maxValues[i]) maxValues[i] = nVl;
+                sumValues[i] = sumValues[i] + nVl;
+            }
+            catch
+            {
+            }
+        }
         private string outPath = "";
         public string OutModelPath { get { return outPath; } }
         public string writeModel(string outModelPath)
@@ -243,6 +257,9 @@ namespace esriUtil.Statistics
                 sw.WriteLine(AdjustedRsquared.ToString());
                 sw.WriteLine(String.Join(" ",(from double d in Coefficients select d.ToString()).ToArray()));
                 sw.WriteLine(String.Join(" ", (from double d in StandardErrors select d.ToString()).ToArray()));
+                sw.WriteLine(String.Join(" ", (from double d in minValues select d.ToString()).ToArray()));
+                sw.WriteLine(String.Join(" ", (from double d in maxValues select d.ToString()).ToArray()));
+                sw.WriteLine(String.Join(" ", (from double d in sumValues select d.ToString()).ToArray()));
                 sw.Close();
             }
             return outPath;
@@ -274,6 +291,9 @@ namespace esriUtil.Statistics
                 ar2 = System.Convert.ToDouble(sr.ReadLine());
                 coefficients = (from string s in (sr.ReadLine().Split(new char[]{' '})) select System.Convert.ToDouble(s)).ToArray();
                 standarderrors = (from string s in (sr.ReadLine().Split(new char[] { ' ' })) select System.Convert.ToDouble(s)).ToArray();
+                minValues = (from string s in (sr.ReadLine().Split(new char[] { ' ' })) select System.Convert.ToDouble(s)).ToArray();
+                maxValues = (from string s in (sr.ReadLine().Split(new char[] { ' ' })) select System.Convert.ToDouble(s)).ToArray();
+                sumValues = (from string s in (sr.ReadLine().Split(new char[] { ' ' })) select System.Convert.ToDouble(s)).ToArray();
                 sr.Close();
 
             }
@@ -356,6 +376,70 @@ namespace esriUtil.Statistics
             rd.addMessage("STE:   " + string.Join(", ", (from double d in StandardErrors select d.ToString()).ToArray()) + "\n");
             rd.Show();
             rd.enableClose();
+            Forms.Stats.frmChart hist = ModelHelper.generateRegressionGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
+        }
+
+        void tb_RegionChanged(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues(frm);
+        }
+        public void updateFormValues(Forms.Stats.frmChart hist)
+        {
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            System.Windows.Forms.DataVisualization.Charting.Chart ch = hist.chrHistogram;
+            ch.Series.Clear();
+            string cmbTxt = cmbPrimary.Text;
+            int tbVl = tb.Value;
+            double oVl = tbVl / 10d;
+            int cmbInd = System.Array.IndexOf(IndependentFieldNames, cmbTxt);
+            double[] meanArray = new double[sumValues.Length];
+            for (int i = 0; i < meanArray.Length; i++)
+            {
+                double mV = minValues[i];
+                meanArray[i] = mV + ((maxValues[i] - mV) * oVl);
+            }
+            double mVl = minValues[cmbInd];
+            double rng = maxValues[cmbInd] - mVl;
+            double stp = rng / 10;
+            double[] xVlArr = new double[10];
+            for (int i = 0; i < 10; i++)
+            {
+                xVlArr[i] = (i * stp) + mVl;
+            }
+            System.Windows.Forms.DataVisualization.Charting.Series s = ch.Series.Add(DependentFieldNames[0]);
+            s.BorderWidth = 3;
+            s.LegendText = DependentFieldNames[0];
+            s.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+            s.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            s.ChartArea = "Y";
+            for (int j = 0; j < xVlArr.Length; j++)
+            {
+                meanArray[cmbInd] = xVlArr[j];
+                double vl = computeNew(meanArray);
+                s.Points.AddXY(xVlArr[j], vl);
+            }
+
+        }
+        private void cmbPrimary_SelectedValueChanged(object sender, EventArgs e)
+        {
+
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues(frm);
+
+
+
+
         }
 
         public double computeNew(double[] input)
