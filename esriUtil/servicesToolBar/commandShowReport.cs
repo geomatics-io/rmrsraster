@@ -14,11 +14,18 @@ namespace servicesToolBar
 
         protected override void OnClick()
         {
-            string mPath = esriUtil.Statistics.ModelHelper.openModelFileDialog();
-            if(mPath!="")
+            try
             {
-                esriUtil.Statistics.ModelHelper br = new esriUtil.Statistics.ModelHelper(mPath);
-                br.openModelReport(mPath, 0.05);    
+                string mPath = esriUtil.Statistics.ModelHelper.openModelFileDialog();
+                if (mPath != "")
+                {
+                    esriUtil.Statistics.ModelHelper br = new esriUtil.Statistics.ModelHelper(mPath);
+                    br.openModelReport(mPath, 0.05);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
             }
         }
 

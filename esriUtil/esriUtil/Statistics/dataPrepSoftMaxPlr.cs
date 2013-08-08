@@ -378,20 +378,34 @@ namespace esriUtil.Statistics
             rd.addMessage("Average Cross Entropy Error = " + AverageCrossEntropyError.ToString());
             rd.addMessage("Classification Error = " + ClassificationError.ToString());
             rd.addMessage("Relative Classification Error = " + RelativeClassificationError.ToString());
+            
+            try
+            {
+                if (ModelHelper.chartingAvailable() && System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    createRegChart();
+                    
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts");
+            }
             rd.Show();
             rd.enableClose();
-            if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-            {
-                if (lm == null) lm = getMnlModel();
-                Forms.Stats.frmChart hist = ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
-                System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
-                cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
-                System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
-                tb.Scroll += new EventHandler(tb_RegionChanged);
-                hist.chrHistogram.Show();
-                cmbPrimary.SelectedItem = IndependentFieldNames[0];
-                hist.Show();
-            }
+        }
+
+        private void createRegChart()
+        {
+            if (lm == null) lm = getMnlModel();
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
         }
 
         void tb_RegionChanged(object sender, EventArgs e)

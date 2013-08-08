@@ -2618,7 +2618,7 @@ namespace esriUtil
             IRasterFunction rsFunc = new ConstantFunction();
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = returnRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(rasterValue,outRs);
+            //functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
         }
@@ -2652,7 +2652,7 @@ namespace esriUtil
             IRasterFunction rsFunc = new ConstantFunction();
             frDset.Init(rsFunc, rasterFunctionArguments);
             IRaster outRs = returnRaster((IRasterDataset)frDset);
-            functionModel.estimateStatistics(rasterValue,outRs);
+            //functionModel.estimateStatistics(rasterValue,outRs);
             return outRs;
 
         }
@@ -2805,43 +2805,48 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new ClipFunctionClass();
+            IRasterFunction rsFunc = new esriUtil.FunctionRasters.clipFunctionDataset();
+            //IRasterFunction rsFunc = new ClipFunctionClass();
             rsFunc.PixelType = ((IRasterProps)rRst).PixelType;
             IEnvelope env = geo.Envelope;
-            //IRasterProps rsProps = (IRasterProps)rRst;
-            IPnt cSize = getCellSize(rRst);
-            double hX = cSize.X / 2;
-            double hY = cSize.Y / 2;
-            double xMin = env.XMin;
-            double xMax = env.XMax;
-            double yMin = env.YMin;
-            double yMax = env.YMax;
-            int clm, rw;
-            rRst2.MapToPixel(xMin, yMin,out clm,out rw);
-            rRst2.PixelToMap(clm, rw, out xMin, out yMin);
-            xMin = xMin - hX;
-            yMin = yMin - hY;
-            rRst2.MapToPixel(xMax, yMax, out clm, out rw);
-            rRst2.PixelToMap(clm, rw, out xMax, out yMax);
-            xMax = xMax + hX;
-            yMax = yMax + hY;
-            env.PutCoords(xMin, yMin, xMax, yMax);
-            //IEnvelope rsExtent = rsProps.Extent;
-            //rsFunc.RasterInfo.CellSize = cSize;           
-            //double w = (((env.XMax - env.XMin) / cSize.X) + 1)*cSize.X;
-            //double h = (((env.YMax - env.YMin) / cSize.Y) + 1)*cSize.Y;
-            //double lw = (System.Convert.ToInt32((env.XMin - rsExtent.XMin) / cSize.X) - 1)*cSize.X;
-            //double lh = (System.Convert.ToInt32((env.YMin - rsExtent.YMin) / cSize.Y) - 1)*cSize.Y;
-            //env.XMin = rsExtent.XMin + lw;
-            //env.YMin = rsExtent.YMin + lh;
-            //env.XMax = env.XMin + w;
-            //env.YMax = env.YMin + h;
-            //rsFunc.RasterInfo.Extent = env;
-            IClipFunctionArguments args = new ClipFunctionArgumentsClass();
-            args.ClippingGeometry = geo;
-            args.ClippingType = clipType;
-            args.Extent = env;
-            args.Raster = rRst;
+            ////IRasterProps rsProps = (IRasterProps)rRst;
+            //IPnt cSize = getCellSize(rRst);
+            //double hX = cSize.X / 2;
+            //double hY = cSize.Y / 2;
+            //double xMin = env.XMin;
+            //double xMax = env.XMax;
+            //double yMin = env.YMin;
+            //double yMax = env.YMax;
+            //int clm, rw;
+            //rRst2.MapToPixel(xMin, yMin,out clm,out rw);
+            //rRst2.PixelToMap(clm, rw, out xMin, out yMin);
+            //xMin = xMin - hX;
+            //yMin = yMin - hY;
+            //rRst2.MapToPixel(xMax, yMax, out clm, out rw);
+            //rRst2.PixelToMap(clm, rw, out xMax, out yMax);
+            //xMax = xMax + hX;
+            //yMax = yMax + hY;
+            //env.PutCoords(xMin, yMin, xMax, yMax);
+            ////IEnvelope rsExtent = rsProps.Extent;
+            ////rsFunc.RasterInfo.CellSize = cSize;           
+            ////double w = (((env.XMax - env.XMin) / cSize.X) + 1)*cSize.X;
+            ////double h = (((env.YMax - env.YMin) / cSize.Y) + 1)*cSize.Y;
+            ////double lw = (System.Convert.ToInt32((env.XMin - rsExtent.XMin) / cSize.X) - 1)*cSize.X;
+            ////double lh = (System.Convert.ToInt32((env.YMin - rsExtent.YMin) / cSize.Y) - 1)*cSize.Y;
+            ////env.XMin = rsExtent.XMin + lw;
+            ////env.YMin = rsExtent.YMin + lh;
+            ////env.XMax = env.XMin + w;
+            ////env.YMax = env.YMin + h;
+            ////rsFunc.RasterInfo.Extent = env;
+            esriUtil.FunctionRasters.clipFunctionArgument args = new esriUtil.FunctionRasters.clipFunctionArgument();// ClipFunctionArgumentsClass();
+            args.Geometry = geo;
+            //args.Extent = env;
+            args.ClipType = clipType;
+            //args.ClippingGeometry = geo;
+            //args.ClippingType = clipType;
+            //args.Extent = env;
+            //args.Raster = rRst;
+            args.InRaster = rRst;
             frDset.Init(rsFunc, args);
             //frDset.Simplify();
             return createRaster((IRasterDataset)frDset);
@@ -2985,6 +2990,20 @@ namespace esriUtil
             IRasterFunction rsFunc = new AspectFunctionClass();
             frDset.Init(rsFunc, inRaster);
             IRaster outRs = createRaster((IRasterDataset)frDset);
+            //IRasterBandCollection rsBc = (IRasterBandCollection)outRs;
+            //for (int i = 0; i < rsBc.Count; i++)
+            //{
+            //    IRasterBand rsB = rsBc.Item(i);
+            //    IRasterBandEdit rsBE = (IRasterBandEdit)rsB;
+            //    IRasterStatistics rStats = new RasterStatisticsClass();
+            //    rsB.Statistics.Maximum = 360;
+            //    rsB.Statistics.Minimum = 0;
+            //    rsB.Statistics.Mean = 180;
+            //    rsB.Statistics.StandardDeviation = 60;
+            //    rsB.Statistics.SkipFactorX = 1;
+            //    rsB.Statistics.SkipFactorY = 1;
+            //    rsBE.AlterStatistics(rStats);
+            //} 
             //functionModel.estimateStatistics(outRs,functionModel.dem.Aspect);
             return outRs;
         }

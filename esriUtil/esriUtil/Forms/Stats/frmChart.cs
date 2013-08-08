@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using ESRI.ArcGIS.esriSystem;
+using System.Windows.Forms.DataVisualization;
 
 namespace esriUtil.Forms.Stats
 {

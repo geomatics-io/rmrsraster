@@ -436,14 +436,14 @@ namespace esriUtil
                     double min;
                     double span;
                     string g = labels[0];
-                    double w = 1;
+                    object w = 1;
                     if(strataFldNameIndex>-1)
                     {
                         g = rw.get_Value(strataFldNameIndex).ToString();
                     }
                     if (weightFldNameINdex > -1)
                     {
-                        w = System.Convert.ToDouble(rw.get_Value(weightFldNameINdex));
+                        w = rw.get_Value(weightFldNameINdex);
                     }
                     object[] oOut = outDic[g];
                     int[] cntArr = (int[])oOut[1];

@@ -7,6 +7,7 @@ using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesRaster;
 using esriUtil.Statistics;
+using System.Windows.Forms.DataVisualization;
 
 namespace esriUtil.Statistics
 {
@@ -988,19 +989,39 @@ namespace esriUtil.Statistics
             //need to simplify for regression analysis (don't need the mlc class)
             dataPrepRandomForest rf = new dataPrepRandomForest();
             rf.getDfModel(mdlp);
+            bool reg = rf.Regression;
             string depVarName = DependentVariables[0];
             //System.Windows.Forms.MessageBox.Show("number of categories = " + rf.NumberOfClasses.ToString());
-            string[] outFldNameArr = new string[rf.NumberOfClasses+1];
+            string[] outFldNameArr = null;
+            if (reg)
+            {
+                outFldNameArr = new string[1];
+            }
+            else
+            {
+                outFldNameArr = new string[rf.NumberOfClasses + 1];
+            }
             int[] outFldNameIndex = new int[outFldNameArr.Length];
             string nName = depVarName + "_mlc";
-            outFldNameArr[rf.NumberOfClasses] = geoUtil.createField(inputTable, nName, esriFieldType.esriFieldTypeString,false);
-            outFldNameIndex[rf.NumberOfClasses] = inputTable.Fields.FindField(outFldNameArr[rf.NumberOfClasses]);
-            for (int i = 0; i < outFldNameArr.Length-1; i++)
+            if (reg)
             {
-                nName = "p_"+rf.Categories[i];
-                outFldNameArr[i] = geoUtil.createField(inputTable, nName, esriFieldType.esriFieldTypeDouble,false);
-                outFldNameIndex[i] = inputTable.Fields.FindField(outFldNameArr[i]);
+                nName = depVarName + "_p";
+                outFldNameArr[0] = geoUtil.createField(inputTable, nName, esriFieldType.esriFieldTypeDouble, false);
+                outFldNameIndex[0] = inputTable.Fields.FindField(outFldNameArr[0]);
             }
+            else
+            { 
+                outFldNameArr[rf.NumberOfClasses] = geoUtil.createField(inputTable, nName, esriFieldType.esriFieldTypeString, false);
+                outFldNameIndex[rf.NumberOfClasses] = inputTable.Fields.FindField(outFldNameArr[rf.NumberOfClasses]);
+                for (int i = 0; i < outFldNameArr.Length - 1; i++)
+                {
+                    nName = "p_" + rf.Categories[i];
+                    outFldNameArr[i] = geoUtil.createField(inputTable, nName, esriFieldType.esriFieldTypeDouble, false);
+                    outFldNameIndex[i] = inputTable.Fields.FindField(outFldNameArr[i]);
+                }
+            }
+            
+            
             //System.Windows.Forms.MessageBox.Show(String.Join(", ", outFldNameArr));
             //System.Windows.Forms.MessageBox.Show(String.Join(", ", (from int i in outFldNameIndex select i.ToString()).ToArray()));
             double[] input = new double[fldIndexArr.Length];
@@ -1012,29 +1033,47 @@ namespace esriUtil.Statistics
             }
             ICursor cur = inputTable.Update(null, false);
             IRow rw = cur.NextRow();
-            while (rw != null)
+            if (reg)
             {
-                for (int i = 0; i < fldIndexArr.Length; i++)
+                while (rw != null)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
-                }
-                double[] nVl = rf.computNew(input);
-                double maxVl = 0;
-                int maxP = 0;
-                for (int i = 0; i < outFldNameIndex.Length-1; i++)
-                {
-                    double vl = nVl[i];
-                    if (vl > maxVl)
+                    for (int i = 0; i < fldIndexArr.Length; i++)
                     {
-                        maxVl = vl;
-                        maxP = i;
+                        double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
+                        input[i] = vl;
                     }
-                    rw.set_Value(outFldNameIndex[i], vl);
+                    double[] nVl = rf.computNew(input);
+                    rw.set_Value(outFldNameIndex[0], nVl[0]);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
                 }
-                rw.set_Value(outFldNameIndex[rf.NumberOfClasses],rf.Categories[maxP]);
-                cur.UpdateRow(rw);
-                rw = cur.NextRow();
+            }
+            else
+            {
+                while (rw != null)
+                {
+                    for (int i = 0; i < fldIndexArr.Length; i++)
+                    {
+                        double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
+                        input[i] = vl;
+                    }
+                    double[] nVl = rf.computNew(input);
+                    double maxVl = 0;
+                    int maxP = 0;
+                    for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                    {
+                        double vl = nVl[i];
+                        if (vl > maxVl)
+                        {
+                            maxVl = vl;
+                            maxP = i;
+                        }
+                        rw.set_Value(outFldNameIndex[i], vl);
+                    }
+                    rw.set_Value(outFldNameIndex[rf.NumberOfClasses], rf.Categories[maxP]);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
@@ -1161,96 +1200,146 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
 
         }
-
-        public static Forms.Stats.frmChart generateProbabilityGraphic(string[] IndependentFieldNames)
+        private static void testDvAss()
         {
-            Forms.Stats.frmChart outFrm = new Forms.Stats.frmChart();
-            System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
-            System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
-            System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
-            System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
-            tbLbl.Name = "tbLbl";
-            tbLbl.SetBounds(470, 236, 70, 23);
-            tbLbl.Text = "Bins";
-            tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            tb.Name = "tbQ";
-            tb.SetRange(0, 10);
-            tb.SetBounds(350, 236, 120, 30);
-            tb.Show();
-            tb.TickFrequency = 1;
-            tb.LargeChange = 1;
-            tb.SmallChange = 1;
-            cmbPrimaryLbl.Text = "Variable";
-            cmbPrimary.Name = "cmbPrimary";
-            cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            System.Drawing.Point cmbPt = new System.Drawing.Point(200,236);
-            System.Drawing.Point lblPt = new System.Drawing.Point(150,236);
-            cmbPrimary.Location = cmbPt;
-            cmbPrimaryLbl.Location = lblPt;
-            cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
-            cmbPrimary.Size = new System.Drawing.Size(120, 23);
-            cmbPrimary.Items.AddRange(IndependentFieldNames);
-            
-            
-            outFrm.Text = "Probability Distribution";
-            System.Windows.Forms.DataVisualization.Charting.ChartArea probArea = outFrm.chrHistogram.ChartAreas.Add("Probs");
-            System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm.chrHistogram.Titles.Add("T");
-            probArea.AxisX.Title = "Selected Variable Values";
-            probArea.AxisY.Title = "Proportion";
-            probArea.AxisY.Maximum = 1;
-            System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm.chrHistogram.Legends.Add("Legend");
-            chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
-            chTitle.Text = "Modeled Distributions";
-            outFrm.Controls.Add(cmbPrimaryLbl);
-            outFrm.Controls.Add(cmbPrimary);
-            outFrm.Controls.Add(tbLbl);
-            outFrm.Controls.Add(tb);
-            outFrm.Width = 540;
+            System.Windows.Forms.DataVisualization.Charting.Chart  ch = new System.Windows.Forms.DataVisualization.Charting.Chart();
+        }
+        public static bool chartingAvailable(bool askForDownload=true)
+        {
+            bool av = false;
+            try
+            {
+                testDvAss();
+                av = true;
+            }
+            catch
+            {
 
+                if (askForDownload && (System.Windows.Forms.MessageBox.Show("Can't make graphics because you do not have Microsoft Chart Controls for Microsoft .NET Framework 3.5.\nDo you want to download and install the controls?", "Chart", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes))
+                {
+                    System.Diagnostics.Process prc = new System.Diagnostics.Process();
+                    prc.StartInfo.FileName = "http://www.microsoft.com/en-us/download/details.aspx?id=14422";
+                    prc.Start();
+                    //prc.WaitForExit();
+                    //if (chartingAvailable(false))
+                    //{
+                    //    av= true;
+                    //}
+                    //else
+                    //{
+                    //    av = false;
+                    //}
+                    //av = false;
+                }
+                av = false;
+            }
+            return av;
+        }
+        public static object generateProbabilityGraphic(string[] IndependentFieldNames)
+        {
+            object outFrm = null;
+            try
+            {
+                Forms.Stats.frmChart outFrm1 = new Forms.Stats.frmChart();
+                System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
+                System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
+                System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
+                System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
+                tbLbl.Name = "tbLbl";
+                tbLbl.SetBounds(470, 236, 70, 23);
+                tbLbl.Text = "Bins";
+                tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                tb.Name = "tbQ";
+                tb.SetRange(0, 10);
+                tb.SetBounds(350, 236, 120, 30);
+                tb.Show();
+                tb.TickFrequency = 1;
+                tb.LargeChange = 1;
+                tb.SmallChange = 1;
+                cmbPrimaryLbl.Text = "Variable";
+                cmbPrimary.Name = "cmbPrimary";
+                cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                System.Drawing.Point cmbPt = new System.Drawing.Point(200, 236);
+                System.Drawing.Point lblPt = new System.Drawing.Point(150, 236);
+                cmbPrimary.Location = cmbPt;
+                cmbPrimaryLbl.Location = lblPt;
+                cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
+                cmbPrimary.Size = new System.Drawing.Size(120, 23);
+                cmbPrimary.Items.AddRange(IndependentFieldNames);
+
+
+                outFrm1.Text = "Probability Distribution";
+                System.Windows.Forms.DataVisualization.Charting.ChartArea probArea = outFrm1.chrHistogram.ChartAreas.Add("Probs");
+                System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm1.chrHistogram.Titles.Add("T");
+                probArea.AxisX.Title = "Selected Variable Values";
+                probArea.AxisY.Title = "Proportion";
+                probArea.AxisY.Maximum = 1;
+                System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm1.chrHistogram.Legends.Add("Legend");
+                chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+                chTitle.Text = "Modeled Distributions";
+                outFrm1.Controls.Add(cmbPrimaryLbl);
+                outFrm1.Controls.Add(cmbPrimary);
+                outFrm1.Controls.Add(tbLbl);
+                outFrm1.Controls.Add(tb);
+                outFrm1.Width = 540;
+                outFrm = outFrm1;
+            }
+            catch(Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
             return outFrm;
         }
-        public static Forms.Stats.frmChart generateRegressionGraphic(string[] IndependentFieldNames)
+        public static object generateRegressionGraphic(string[] IndependentFieldNames)
         {
-            Forms.Stats.frmChart outFrm = new Forms.Stats.frmChart();
-            System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
-            System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
-            System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
-            System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
-            tbLbl.Name = "tbLbl";
-            tbLbl.SetBounds(470, 236, 70, 23);
-            tbLbl.Text = "Bins";
-            tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            tb.Name = "tbQ";
-            tb.SetRange(0, 10);
-            tb.SetBounds(350, 236, 120, 30);
-            tb.Show();
-            tb.TickFrequency = 1;
-            tb.LargeChange = 1;
-            tb.SmallChange = 1;
-            cmbPrimaryLbl.Text = "Variable";
-            cmbPrimary.Name = "cmbPrimary";
-            cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            System.Drawing.Point cmbPt = new System.Drawing.Point(200, 236);
-            System.Drawing.Point lblPt = new System.Drawing.Point(150, 236);
-            cmbPrimary.Location = cmbPt;
-            cmbPrimaryLbl.Location = lblPt;
-            cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
-            cmbPrimary.Size = new System.Drawing.Size(120, 23);
-            cmbPrimary.Items.AddRange(IndependentFieldNames);
-            outFrm.Text = "Predicted Distribution";
-            System.Windows.Forms.DataVisualization.Charting.ChartArea yArea = outFrm.chrHistogram.ChartAreas.Add("Y");
-            System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm.chrHistogram.Titles.Add("T");
-            yArea.AxisX.Title = "Selected Variable Values";
-            yArea.AxisY.Title = "Predicted Values";
-            System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm.chrHistogram.Legends.Add("Legend");
-            chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
-            chTitle.Text = "Modeled Distributions";
-            outFrm.Controls.Add(cmbPrimaryLbl);
-            outFrm.Controls.Add(cmbPrimary);
-            outFrm.Controls.Add(tbLbl);
-            outFrm.Controls.Add(tb);
-            outFrm.Width = 540;
-
+            object outFrm = null;
+            try
+            {
+                Forms.Stats.frmChart outFrm1 = new Forms.Stats.frmChart();
+                System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
+                System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
+                System.Windows.Forms.TrackBar tb = new System.Windows.Forms.TrackBar();
+                System.Windows.Forms.Label tbLbl = new System.Windows.Forms.Label();
+                tbLbl.Name = "tbLbl";
+                tbLbl.SetBounds(470, 236, 70, 23);
+                tbLbl.Text = "Bins";
+                tbLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                tb.Name = "tbQ";
+                tb.SetRange(0, 10);
+                tb.SetBounds(350, 236, 120, 30);
+                tb.Show();
+                tb.TickFrequency = 1;
+                tb.LargeChange = 1;
+                tb.SmallChange = 1;
+                cmbPrimaryLbl.Text = "Variable";
+                cmbPrimary.Name = "cmbPrimary";
+                cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                System.Drawing.Point cmbPt = new System.Drawing.Point(200, 236);
+                System.Drawing.Point lblPt = new System.Drawing.Point(150, 236);
+                cmbPrimary.Location = cmbPt;
+                cmbPrimaryLbl.Location = lblPt;
+                cmbPrimaryLbl.Size = new System.Drawing.Size(50, 23);
+                cmbPrimary.Size = new System.Drawing.Size(120, 23);
+                cmbPrimary.Items.AddRange(IndependentFieldNames);
+                outFrm1.Text = "Predicted Distribution";
+                System.Windows.Forms.DataVisualization.Charting.ChartArea yArea = outFrm1.chrHistogram.ChartAreas.Add("Y");
+                System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm1.chrHistogram.Titles.Add("T");
+                yArea.AxisX.Title = "Selected Variable Values";
+                yArea.AxisY.Title = "Predicted Values";
+                System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm1.chrHistogram.Legends.Add("Legend");
+                chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+                chTitle.Text = "Modeled Distributions";
+                outFrm1.Controls.Add(cmbPrimaryLbl);
+                outFrm1.Controls.Add(cmbPrimary);
+                outFrm1.Controls.Add(tbLbl);
+                outFrm1.Controls.Add(tb);
+                outFrm1.Width = 540;
+                outFrm = outFrm1;
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
             return outFrm;
         }
     }

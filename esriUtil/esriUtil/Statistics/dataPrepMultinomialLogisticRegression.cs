@@ -531,20 +531,34 @@ namespace esriUtil.Statistics
                 double[] c = WaldPvalue[i];
                 rd.addMessage(String.Join(", ", (from double d in c select d.ToString()).ToArray()));
             }
+            try
+            {
+                
+                if (ModelHelper.chartingAvailable() && System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    regChart();
+                    //if (mlr == null) mlr = buildModel();
+                    
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts");
+            }
             rd.Show();
             rd.enableClose();
-            if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-            {
-                //if (mlr == null) mlr = buildModel();
-                Forms.Stats.frmChart hist = ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
-                System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
-                cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
-                System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
-                tb.Scroll += new EventHandler(tb_RegionChanged);
-                hist.chrHistogram.Show();
-                cmbPrimary.SelectedItem = IndependentFieldNames[0];
-                hist.Show();
-            }
+        }
+
+        private void regChart()
+        {
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
         }
 
         void tb_RegionChanged(object sender, EventArgs e)

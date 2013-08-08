@@ -458,11 +458,25 @@ namespace esriUtil
                 case esriUtil.Statistics.dataPrepBase.modelTypes.StrataCovCorr:
                     createStrataVarCovModel(paramArr);
                     break;
+                case Statistics.dataPrepBase.modelTypes.GLM:
+                    createGLMFunction(paramArr);
+                    break;
                 default:
                     break;
             }
             return paramArr[paramArr.Length - 1];
 
+        }
+
+        private void createGLMFunction(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepGlm dpGlm = new Statistics.dataPrepGlm(table, dependentField, independentFields, categoricalFields);
+            dpGlm.Link = (Statistics.dataPrepGlm.LinkFunction)Enum.Parse(typeof(Statistics.dataPrepGlm.LinkFunction), paramArr[5]);
+            dpGlm.writeModel(paramArr[paramArr.Length - 1]);
         }
 
         private void createStrataVarCovModel(string[] paramArr)
@@ -821,7 +835,7 @@ namespace esriUtil
         {
             IRasterBandCollection rsBC = new RasterClass();
             string rstStr = paramArr[0];
-            string mPath = paramArr[1];
+            string mPath = getModelPath(paramArr[1]);
             foreach (string s in rstStr.Split(new char[]{','}))
             {
                 IRaster rs = getRaster(s);
@@ -1265,6 +1279,10 @@ namespace esriUtil
             {
                 return tblDic[tp];
             }
+            else if (ftrDic.ContainsKey(tp))
+            {
+                return (ITable)ftrDic[tp];
+            }
             else
             {
                 ITable outTbl = geoUtil.getTable(tp);
@@ -1477,6 +1495,9 @@ namespace esriUtil
                     break;
                 case batchGroups.EXPORTFEATURECLASS:
                     msg = "outFeatureClass = " + batchFunction.ToString() + "(inFeatureClass;query;outFeatureClassPath)";
+                    break;
+                case batchGroups.SURFACE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;surfaceType)";
                     break;
                 default:
                     break;

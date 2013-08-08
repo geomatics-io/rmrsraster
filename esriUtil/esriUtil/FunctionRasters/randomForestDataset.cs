@@ -25,6 +25,7 @@ namespace esriUtil.FunctionRasters
         public string Name { get { return myName; } set { myName = value; } }
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
+        private double[] xVls = null;
         public bool Valid { get { return myValidFlag; } }
         public void Bind(object pArgument)
         {
@@ -33,6 +34,7 @@ namespace esriUtil.FunctionRasters
                 randomForestArguments arg = (randomForestArguments)pArgument;
                 inrsBandsCoef = arg.InRasterCoefficients;
                 outrs = arg.OutRaster;
+                xVls = new double[((IRasterBandCollection)inrsBandsCoef).Count];
                 //Console.WriteLine("Number of Bands in outrs = " + ((IRasterBandCollection)outrs).Count.ToString());
                 df = arg.RandomForestModel;
                 IRasterProps rsProp = (IRasterProps)outrs;
@@ -59,12 +61,7 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                // Call Read method of the Raster Function Helper object.
-
-                //System.Array noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;
-                //Console.WriteLine("Before Read");
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                //Console.WriteLine("After Read");
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
@@ -74,18 +71,10 @@ namespace esriUtil.FunctionRasters
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                //System.Array[] pArr = new System.Array[outPb.Planes];
                 System.Array[] cArr = new System.Array[ipPixelBlock.Planes];
-                //for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
-                //{
-                //    System.Array pixelValues = (System.Array)(outPb.get_PixelData(coefnBand));
-                //    pArr[coefnBand] = pixelValues;
-                //}
-
                 for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++)
                 {
-                    //float[,] td = new float[ipPixelBlock.Width, ipPixelBlock.Height];
-                    System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);//(System.Array)(td);
+                    System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);
                     cArr[outBand] = pixelValues;
                 }
 
@@ -93,28 +82,36 @@ namespace esriUtil.FunctionRasters
                 {
                     for (int k = pBColIndex; k < pBWidth; k++)
                     {
-                        double[] xVls = new double[outPb.Planes];
                         bool ndT = true;
                         for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                         {
-                            //float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
                             object pObj = outPb.GetVal(coefnBand, k, i);
-                            
                             if (pObj==null)
                             {
                                 ndT = false;
+                                //Console.WriteLine("Pixel Value = null for band " + coefnBand.ToString());
                                 break;
                             }
-                            float pixelValue = Convert.ToSingle(pObj);
+                            double pixelValue = Convert.ToDouble(pObj);
+                            //Console.WriteLine("Pixel Value = " + pixelValue.ToString());
                             xVls[coefnBand] = pixelValue;
                         }
                         if (ndT)
                         {
-                            double[] pp = df.computNew(xVls);
-                            for (int p = 0; p < pp.Length; p++)
+                            try
                             {
-                                double pVl = pp[p];
-                                cArr[p].SetValue(System.Convert.ToSingle(pVl), k, i);
+                                double[] pp = df.computNew(xVls);
+                                for (int p = 0; p < pp.Length; p++)
+                                {
+                                    double pVl = pp[p];
+                                    float spVl = System.Convert.ToSingle(pVl);
+                                    //Console.WriteLine("Computed Value = " + spVl.ToString());
+                                    cArr[p].SetValue(spVl, k, i);
+                                }
+                            }
+                            catch(Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
                             }
                         }
 

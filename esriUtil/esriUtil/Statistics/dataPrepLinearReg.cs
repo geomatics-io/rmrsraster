@@ -5,6 +5,7 @@ using System.Text;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Geodatabase;
 using Accord.Statistics.Analysis;
+using System.Windows.Forms.DataVisualization;
 
 namespace esriUtil.Statistics
 {
@@ -374,9 +375,24 @@ namespace esriUtil.Statistics
             rd.addMessage("Param: Intercept, " + String.Join(", ", IndependentFieldNames));
             rd.addMessage("Coef:  " + string.Join(", ", (from double d in Coefficients select d.ToString()).ToArray()));
             rd.addMessage("STE:   " + string.Join(", ", (from double d in StandardErrors select d.ToString()).ToArray()) + "\n");
+            try
+            {
+                if (ModelHelper.chartingAvailable())
+                {
+                    regChart();
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts");
+            }
             rd.Show();
             rd.enableClose();
-            Forms.Stats.frmChart hist = ModelHelper.generateRegressionGraphic(IndependentFieldNames);
+        }
+
+        private void regChart()
+        {
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateRegressionGraphic(IndependentFieldNames);
             System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
             cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
             System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];

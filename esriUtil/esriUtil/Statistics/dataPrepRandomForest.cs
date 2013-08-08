@@ -314,8 +314,10 @@ namespace esriUtil.Statistics
                 sw.WriteLine(InTablePath);
                 sw.WriteLine(String.Join(",",IndependentFieldNames));
                 sw.WriteLine(String.Join(",",DependentFieldNames));
-                sw.WriteLine(String.Join(",", ClassFieldNames));
-                sw.WriteLine(String.Join(",", Categories));
+                if (ClassFieldNames == null || ClassFieldNames.Length == 0) sw.WriteLine();
+                else sw.WriteLine(String.Join(",", ClassFieldNames));
+                if (Categories == null || Categories.Length == 0) sw.WriteLine();
+                else sw.WriteLine(String.Join(",", Categories));
                 sw.WriteLine(NumberOfTrees.ToString());
                 sw.WriteLine(Ratio.ToString());
                 sw.WriteLine(NumberOfSplitVariables.ToString());
@@ -559,8 +561,11 @@ namespace esriUtil.Statistics
             rd.pgbProcess.Visible = false;
             rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
             rd.addMessage("Sample size = " + n.ToString());
-            rd.addMessage("Number of Classes = " + NumberOfClasses.ToString());
-            rd.addMessage("Class Names and order = " + String.Join(", ",Categories));
+            if (!(Categories == null || Categories.Length == 0))
+            {
+                rd.addMessage("Number of Classes = " + NumberOfClasses.ToString());
+                rd.addMessage("Class Names and order = " + String.Join(", ", Categories));
+            }
             rd.addMessage("Number of Parameters = " + NumberOfVariables.ToString());
             rd.addMessage("Number of Trees = " + NumberOfTrees.ToString());
             rd.addMessage("Data Ratio = " + Ratio.ToString());
@@ -576,29 +581,120 @@ namespace esriUtil.Statistics
             rd.addMessage("OOBAverage Relative Error = " + OOBAverageRelativeError.ToString());
             rd.addMessage("OOBAverage Cross Entropy Error = " + OOBAverageCrossEntropyError.ToString());
             rd.addMessage("OOBRelative Classification Error = " + OOBRelativeClassificationError.ToString());
-            rd.Show();
-            rd.enableClose();
-            if (!Regression)
+            try
             {
-                if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                if (ModelHelper.chartingAvailable())
                 {
-                    if (df == null) df = getDfModel();
-                    Forms.Stats.frmChart hist = ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
-                    System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
-                    cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
-                    System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
-                    tb.Scroll += new EventHandler(tb_RegionChanged);
-                    hist.chrHistogram.Show();
-                    cmbPrimary.SelectedItem = IndependentFieldNames[0];
-                    hist.Show();
+                    if (!Regression)
+                    {
+                        if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        {
+                            getRegChart();
+                            
+                        }
+                    }
+                    else
+                    {
+                        if (System.Windows.Forms.MessageBox.Show("Do you want to build predicted values graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        {
+                            getProbChart();
+                            
+                        }
+                    }
                 }
             }
-            else
+            catch
             {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts");
+            }
+            finally
+            {
+                rd.Show();
+                rd.enableClose();
             }
 
         }
 
+        private void getProbChart()
+        {
+            if (df == null) df = getDfModel();
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateRegressionGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged_R);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged_R);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
+        }
+
+        private void getRegChart()
+        {
+            if (df == null) df = getDfModel();
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
+        }
+        void tb_RegionChanged_R(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues_R(frm);
+        }
+        public void updateFormValues_R(Forms.Stats.frmChart hist)
+        {
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            System.Windows.Forms.DataVisualization.Charting.Chart ch = hist.chrHistogram;
+            ch.Series.Clear();
+            string cmbTxt = cmbPrimary.Text;
+            int tbVl = tb.Value;
+            double oVl = tbVl / 10d;
+            int cmbInd = System.Array.IndexOf(IndependentFieldNames, cmbTxt);
+            double[] meanArray = new double[sumValues.Length];
+            for (int i = 0; i < meanArray.Length; i++)
+            {
+                double mV = minValues[i];
+                meanArray[i] = mV + ((maxValues[i] - mV) * oVl);
+            }
+            double mVl = minValues[cmbInd];
+            double rng = maxValues[cmbInd] - mVl;
+            double stp = rng / 10;
+            double[] xVlArr = new double[10];
+            for (int i = 0; i < 10; i++)
+            {
+                xVlArr[i] = (i * stp) + mVl;
+            }
+            System.Windows.Forms.DataVisualization.Charting.Series s = ch.Series.Add(DependentFieldNames[0]);
+            s.BorderWidth = 3;
+            s.LegendText = DependentFieldNames[0];
+            s.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+            s.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            s.ChartArea = "Y";
+            for (int j = 0; j < xVlArr.Length; j++)
+            {
+                meanArray[cmbInd] = xVlArr[j];
+                double vl = computNew(meanArray)[0];
+                s.Points.AddXY(xVlArr[j], vl);
+            }
+
+        }
+        private void cmbPrimary_SelectedValueChanged_R(object sender, EventArgs e)
+        {
+
+            System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;
+            Forms.Stats.frmChart frm = (Forms.Stats.frmChart)cmb.Parent;
+            updateFormValues_R(frm);
+
+
+
+
+        }
         void tb_RegionChanged(object sender, EventArgs e)
         {
             System.Windows.Forms.Control cmb = (System.Windows.Forms.Control)sender;

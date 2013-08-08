@@ -451,59 +451,71 @@ namespace esriUtil.Statistics
             rd.addMessage("Param: Intercept, " + String.Join(", ", IndependentFieldNames));
             rd.addMessage("Coef:  " + string.Join(", ", (from double d in Coefficients select d.ToString()).ToArray()));
             rd.addMessage("STE:   " + string.Join(", ", (from double d in StdError select d.ToString()).ToArray()) + "\n");
+            try
+            {
+                if (ModelHelper.chartingAvailable() && System.Windows.Forms.MessageBox.Show("Do you want to build distribution graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    createRegChart();
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts.");
+            }
             rd.Show();
             rd.enableClose();
-            if (System.Windows.Forms.MessageBox.Show("Do you want to build distribution graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+        }
+
+        private void createRegChart()
+        {
+            if (glm == null)
             {
-                if (glm == null)
+                Accord.Statistics.Links.ILinkFunction lFunc = new Accord.Statistics.Links.IdentityLinkFunction();
+                switch (Link)
                 {
-                    Accord.Statistics.Links.ILinkFunction lFunc = new Accord.Statistics.Links.IdentityLinkFunction();
-                    switch (Link)
-                    {
-                        case LinkFunction.Absolute:
-                            lFunc = new Accord.Statistics.Links.AbsoluteLinkFunction();
-                            break;
-                        case LinkFunction.Cauchit:
-                            lFunc = new Accord.Statistics.Links.CauchitLinkFunction();
-                            break;
-                        case LinkFunction.Inverse:
-                            lFunc = new Accord.Statistics.Links.InverseLinkFunction();
-                            break;
-                        case LinkFunction.InverseSquared:
-                            lFunc = new Accord.Statistics.Links.InverseSquaredLinkFunction();
-                            break;
-                        case LinkFunction.Logit:
-                            lFunc = new Accord.Statistics.Links.LogitLinkFunction();
-                            break;
-                        case LinkFunction.Log:
-                            lFunc = new Accord.Statistics.Links.LogLinkFunction();
-                            break;
-                        case LinkFunction.LogLog:
-                            lFunc = new Accord.Statistics.Links.LogLogLinkFunction();
-                            break;
-                        case LinkFunction.Probit:
-                            lFunc = new Accord.Statistics.Links.ProbitLinkFunction();
-                            break;
-                        case LinkFunction.Sin:
-                            lFunc = new Accord.Statistics.Links.SinLinkFunction();
-                            break;
-                        case LinkFunction.Threshold:
-                            lFunc = new Accord.Statistics.Links.ThresholdLinkFunction();
-                            break;
-                        default:
-                            break;
-                    }
-                    glm = new Accord.Statistics.Models.Regression.GeneralizedLinearRegression(lFunc, coefficients, stdError);
+                    case LinkFunction.Absolute:
+                        lFunc = new Accord.Statistics.Links.AbsoluteLinkFunction();
+                        break;
+                    case LinkFunction.Cauchit:
+                        lFunc = new Accord.Statistics.Links.CauchitLinkFunction();
+                        break;
+                    case LinkFunction.Inverse:
+                        lFunc = new Accord.Statistics.Links.InverseLinkFunction();
+                        break;
+                    case LinkFunction.InverseSquared:
+                        lFunc = new Accord.Statistics.Links.InverseSquaredLinkFunction();
+                        break;
+                    case LinkFunction.Logit:
+                        lFunc = new Accord.Statistics.Links.LogitLinkFunction();
+                        break;
+                    case LinkFunction.Log:
+                        lFunc = new Accord.Statistics.Links.LogLinkFunction();
+                        break;
+                    case LinkFunction.LogLog:
+                        lFunc = new Accord.Statistics.Links.LogLogLinkFunction();
+                        break;
+                    case LinkFunction.Probit:
+                        lFunc = new Accord.Statistics.Links.ProbitLinkFunction();
+                        break;
+                    case LinkFunction.Sin:
+                        lFunc = new Accord.Statistics.Links.SinLinkFunction();
+                        break;
+                    case LinkFunction.Threshold:
+                        lFunc = new Accord.Statistics.Links.ThresholdLinkFunction();
+                        break;
+                    default:
+                        break;
                 }
-                Forms.Stats.frmChart hist = ModelHelper.generateRegressionGraphic(IndependentFieldNames);
-                System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
-                cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
-                System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
-                tb.Scroll += new EventHandler(tb_RegionChanged);
-                hist.chrHistogram.Show();
-                cmbPrimary.SelectedItem = IndependentFieldNames[0];
-                hist.Show();
+                glm = new Accord.Statistics.Models.Regression.GeneralizedLinearRegression(lFunc, coefficients, stdError);
             }
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateRegressionGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
         }
 
         void tb_RegionChanged(object sender, EventArgs e)

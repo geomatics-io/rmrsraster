@@ -584,9 +584,17 @@ namespace esriUtil.Statistics
                 rd.addMessage(l + " | " + s +" | " + p);
             }
             rd.addMessage("-".PadRight(33, '-'));
+            
+            if (ModelHelper.chartingAvailable())
+            {
+                createKSchart();
+            }
             rd.enableClose();
             rd.Show();
-            
+        }
+
+        private void createKSchart()
+        {
             foreach (KeyValuePair<string, double[][]> kVp in minMaxDic1)
             {
                 string k = kVp.Key;
@@ -605,68 +613,74 @@ namespace esriUtil.Statistics
                 {
                     xAxes[i] = min + halfMin + (span * i);
                 }
-                Forms.Stats.frmChart hs = new Forms.Stats.frmChart();
-                hs.Text = "Empirical Distribution and Histogram";
-                System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaPop = hs.chrHistogram.ChartAreas.Add(k);
-                System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaCDF = hs.chrHistogram.ChartAreas.Add("Empirical");
-                chAreaCDF.AlignWithChartArea = k;
-                System.Windows.Forms.DataVisualization.Charting.Title chTitle = hs.chrHistogram.Titles.Add("T");
-                chAreaPop.AxisX.Title = "Principle Component 1";
-                chAreaPop.AxisY.Title = "Proportion";
-                chAreaCDF.AxisY.Title = "Proportion";
-                chAreaCDF.AxisX.Title = "Principle Component 1";
-                chAreaCDF.AxisY.Maximum = 1;
-                chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
-                chTitle.Text = "Distribution for " + k;
-                System.Windows.Forms.DataVisualization.Charting.Series srPop = hs.chrHistogram.Series.Add("Population");
-                System.Windows.Forms.DataVisualization.Charting.Series srSamp = hs.chrHistogram.Series.Add("Sample");
-                srPop.Color = System.Drawing.Color.Blue;
-                srSamp.Color = System.Drawing.Color.Orange;
-                srPop.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
-                srSamp.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
-                srPop.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
-                srSamp.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
-                System.Windows.Forms.DataVisualization.Charting.Legend popLeg = hs.chrHistogram.Legends.Add("LP");
-                System.Windows.Forms.DataVisualization.Charting.Legend sampLeg = hs.chrHistogram.Legends.Add("LS");
-                popLeg.DockedToChartArea = k;
-                sampLeg.DockedToChartArea =  k;
-                popLeg.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Right;
-                sampLeg.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Right;
-                popLeg.IsDockedInsideChartArea = false;
-                sampLeg.IsDockedInsideChartArea = false;
-                //EDF graphic
-                System.Windows.Forms.DataVisualization.Charting.Series srPop2 = hs.chrHistogram.Series.Add("Population2");
-                System.Windows.Forms.DataVisualization.Charting.Series srSamp2 = hs.chrHistogram.Series.Add("Sample2");
-                srPop2.Color = System.Drawing.Color.Blue;
-                srSamp2.Color = System.Drawing.Color.Orange;
-                srPop2.BorderWidth = 2;
-                srSamp2.BorderWidth = 2;
-                srPop2.LegendText = "Population";
-                srSamp2.LegendText = "Sample";
-                srPop2.ChartArea = "Empirical";
-                srSamp2.ChartArea = "Empirical";
-                srPop2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-                srSamp2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-                srPop2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
-                srSamp2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
-                double ypSum = 0;
-                double ysSum = 0;
-                for (int i = 0; i < binProp1.Length; i++)
+                try
                 {
-                    double bp1 = binProp1[i];
-                    double bp2 = binProp2[i];
-                    ypSum += bp1;
-                    ysSum += bp2;
-                    srPop.Points.AddXY(xAxes[i], bp1);
-                    srSamp.Points.AddXY(xAxes[i], bp2);
-                    srPop2.Points.AddXY(xAxes[i], ypSum);
-                    srSamp2.Points.AddXY(xAxes[i], ysSum);
+                    Forms.Stats.frmChart hs = new Forms.Stats.frmChart();
+                    hs.Text = "Empirical Distribution and Histogram";
+                    System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaPop = hs.chrHistogram.ChartAreas.Add(k);
+                    System.Windows.Forms.DataVisualization.Charting.ChartArea chAreaCDF = hs.chrHistogram.ChartAreas.Add("Empirical");
+                    chAreaCDF.AlignWithChartArea = k;
+                    System.Windows.Forms.DataVisualization.Charting.Title chTitle = hs.chrHistogram.Titles.Add("T");
+                    chAreaPop.AxisX.Title = "Principle Component 1";
+                    chAreaPop.AxisY.Title = "Proportion";
+                    chAreaCDF.AxisY.Title = "Proportion";
+                    chAreaCDF.AxisX.Title = "Principle Component 1";
+                    chAreaCDF.AxisY.Maximum = 1;
+                    chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+                    chTitle.Text = "Distribution for " + k;
+                    System.Windows.Forms.DataVisualization.Charting.Series srPop = hs.chrHistogram.Series.Add("Population");
+                    System.Windows.Forms.DataVisualization.Charting.Series srSamp = hs.chrHistogram.Series.Add("Sample");
+                    srPop.Color = System.Drawing.Color.Blue;
+                    srSamp.Color = System.Drawing.Color.Orange;
+                    srPop.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
+                    srSamp.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
+                    srPop.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+                    srSamp.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+                    System.Windows.Forms.DataVisualization.Charting.Legend popLeg = hs.chrHistogram.Legends.Add("LP");
+                    System.Windows.Forms.DataVisualization.Charting.Legend sampLeg = hs.chrHistogram.Legends.Add("LS");
+                    popLeg.DockedToChartArea = k;
+                    sampLeg.DockedToChartArea = k;
+                    popLeg.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Right;
+                    sampLeg.Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Right;
+                    popLeg.IsDockedInsideChartArea = false;
+                    sampLeg.IsDockedInsideChartArea = false;
+                    //EDF graphic
+                    System.Windows.Forms.DataVisualization.Charting.Series srPop2 = hs.chrHistogram.Series.Add("Population2");
+                    System.Windows.Forms.DataVisualization.Charting.Series srSamp2 = hs.chrHistogram.Series.Add("Sample2");
+                    srPop2.Color = System.Drawing.Color.Blue;
+                    srSamp2.Color = System.Drawing.Color.Orange;
+                    srPop2.BorderWidth = 2;
+                    srSamp2.BorderWidth = 2;
+                    srPop2.LegendText = "Population";
+                    srSamp2.LegendText = "Sample";
+                    srPop2.ChartArea = "Empirical";
+                    srSamp2.ChartArea = "Empirical";
+                    srPop2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                    srSamp2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+                    srPop2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+                    srSamp2.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Int32;
+                    double ypSum = 0;
+                    double ysSum = 0;
+                    for (int i = 0; i < binProp1.Length; i++)
+                    {
+                        double bp1 = binProp1[i];
+                        double bp2 = binProp2[i];
+                        ypSum += bp1;
+                        ysSum += bp2;
+                        srPop.Points.AddXY(xAxes[i], bp1);
+                        srSamp.Points.AddXY(xAxes[i], bp2);
+                        srPop2.Points.AddXY(xAxes[i], ypSum);
+                        srSamp2.Points.AddXY(xAxes[i], ysSum);
+                    }
+                    hs.chrHistogram.Show();
+                    hs.Show();
                 }
-                hs.chrHistogram.Show();
-                hs.Show();
-
+                catch
+                {
+                    System.Windows.Forms.MessageBox.Show("Cannot create charts");
+                }
             }
-
         }
+        
     }
 }

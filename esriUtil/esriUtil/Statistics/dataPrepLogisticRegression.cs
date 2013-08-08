@@ -429,20 +429,33 @@ namespace esriUtil.Statistics
             rd.addMessage("STE:  " + String.Join(", ", (from double d in StandardError select d.ToString()).ToArray()));
             rd.addMessage("\n\nWald stats for coefficients:\nchi-sq: "+ String.Join(", ", (from Accord.Statistics.Testing.WaldTest d in WaldStatistic select d.Statistic.ToString()).ToArray()));
             rd.addMessage("p-value: " + String.Join(", ", (from Accord.Statistics.Testing.WaldTest d in WaldStatistic select d.PValue.ToString()).ToArray()));
+            try
+            {
+                
+                if (ModelHelper.chartingAvailable() && System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    createRegChart();
+                    
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Cannot create charts");
+            }
             rd.Show();
             rd.enableClose();
-            if (System.Windows.Forms.MessageBox.Show("Do you want to build probability graphs?", "Graphs", System.Windows.Forms.MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-            {
-                //if (lr == null) lr = buildModel();
-                Forms.Stats.frmChart hist = ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
-                System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
-                cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
-                System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
-                tb.Scroll += new EventHandler(tb_RegionChanged);
-                hist.chrHistogram.Show();
-                cmbPrimary.SelectedItem = IndependentFieldNames[0];
-                hist.Show();
-            }
+        }
+
+        private void createRegChart()
+        {
+            Forms.Stats.frmChart hist = (Forms.Stats.frmChart)ModelHelper.generateProbabilityGraphic(IndependentFieldNames);
+            System.Windows.Forms.ComboBox cmbPrimary = (System.Windows.Forms.ComboBox)hist.Controls["cmbPrimary"];
+            cmbPrimary.SelectedValueChanged += new EventHandler(cmbPrimary_SelectedValueChanged);
+            System.Windows.Forms.TrackBar tb = (System.Windows.Forms.TrackBar)hist.Controls["tbQ"];
+            tb.Scroll += new EventHandler(tb_RegionChanged);
+            hist.chrHistogram.Show();
+            cmbPrimary.SelectedItem = IndependentFieldNames[0];
+            hist.Show();
         }
 
         void tb_RegionChanged(object sender, EventArgs e)
