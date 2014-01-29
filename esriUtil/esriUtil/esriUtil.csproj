@@ -44,7 +44,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
@@ -223,11 +223,41 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
+    <Compile Include="Forms\RasterAnalysis\frmNDVIRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmNDVIRaster.Designer.cs">
+      <DependentUpon>frmNDVIRaster.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmNormalize.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmNormalize.Designer.cs">
+      <DependentUpon>frmNormalize.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSetNullValue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSetNullValue.Designer.cs">
+      <DependentUpon>frmSetNullValue.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTasseledCap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTasseledCap.Designer.cs">
+      <DependentUpon>frmTasseledCap.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Stats\frmChart.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\Stats\frmChart.Designer.cs">
       <DependentUpon>frmChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmCompareClassifications.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmCompareClassifications.Designer.cs">
+      <DependentUpon>frmCompareClassifications.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\Stats\frmGlm.cs">
       <SubType>Form</SubType>
@@ -237,13 +267,22 @@
     </Compile>
     <Compile Include="FunctionRasters\clipFunctionArgument.cs" />
     <Compile Include="FunctionRasters\clipFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\clusterFunctionBinaryDataset.cs" />
+    <Compile Include="FunctionRasters\clusterFunctionGaussianDataset.cs" />
     <Compile Include="FunctionRasters\combineFunctionArguments.cs" />
     <Compile Include="FunctionRasters\combineFunctionDataset.cs" />
     <Compile Include="FunctionRasters\glmFunctionArguments.cs" />
     <Compile Include="FunctionRasters\glmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\regionGroupFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\regionGroupFunctionDataset.cs" />
+    <Compile Include="normalization.cs" />
     <Compile Include="segmentation.cs" />
+    <Compile Include="Statistics\dataPrepClusterBase.cs" />
+    <Compile Include="Statistics\dataPrepClusterBinary.cs" />
+    <Compile Include="Statistics\dataPrepClusterGaussian.cs" />
+    <Compile Include="Statistics\dataPrepCompareClassifications.cs" />
     <Compile Include="Statistics\dataPrepCompareSamples.cs" />
     <Compile Include="Statistics\dataPrepGlm.cs" />
     <Compile Include="Statistics\dataPrepPairedTTest.cs" />
@@ -647,7 +686,7 @@
     <Compile Include="FunctionRasters\asinFunctionDataset.cs" />
     <Compile Include="FunctionRasters\atanFunctionDataset.cs" />
     <Compile Include="FunctionRasters\clusterFunctionArguments.cs" />
-    <Compile Include="FunctionRasters\clusterFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\clusterFunctionKmeanDataset.cs" />
     <Compile Include="FunctionRasters\conditionalFunctionArguments.cs" />
     <Compile Include="FunctionRasters\cosFunctionDataset.cs" />
     <Compile Include="FunctionRasters\absFunctionDataset.cs" />
@@ -821,7 +860,7 @@
     <Compile Include="rasterUtil.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Statistics\dataPrepAdjustAccuracyAssessment.cs" />
-    <Compile Include="Statistics\dataPrepCluster.cs" />
+    <Compile Include="Statistics\dataPrepClusterKmean.cs" />
     <Compile Include="Statistics\dataPrepCompareVarCov.cs" />
     <Compile Include="Statistics\dataPrepLogisticRegression.cs" />
     <Compile Include="Statistics\dataPrepMultivariateLinearRegression.cs" />
@@ -920,6 +959,12 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmMathRaster.resx">
       <DependentUpon>frmMathRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmNDVIRaster.resx">
+      <DependentUpon>frmNDVIRaster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmNormalize.resx">
+      <DependentUpon>frmNormalize.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmNullToValue.resx">
       <DependentUpon>frmNullToValue.cs</DependentUpon>
     </EmbeddedResource>
@@ -941,6 +986,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSetNull.resx">
       <DependentUpon>frmSetNull.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmSetNullValue.resx">
+      <DependentUpon>frmSetNullValue.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSetupToolbar.resx">
       <DependentUpon>frmSetupToolbar.cs</DependentUpon>
     </EmbeddedResource>
@@ -949,6 +997,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSummarizeRaster.resx">
       <DependentUpon>frmSummarizeRaster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmTasseledCap.resx">
+      <DependentUpon>frmTasseledCap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmZonalStats.resx">
       <DependentUpon>frmZonalStats.cs</DependentUpon>
@@ -982,6 +1033,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmCluster.resx">
       <DependentUpon>frmCluster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmCompareClassifications.resx">
+      <DependentUpon>frmCompareClassifications.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmCompareSampleToPopulation.resx">
       <DependentUpon>frmCompareSampleToPopulation.cs</DependentUpon>

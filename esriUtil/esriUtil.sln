@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmrsUtilitywebsite", "RmrsU
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RMRSBatchProcess", "RMRSBatchProcess\RMRSBatchProcess.csproj", "{C1069E50-D285-490A-A6D3-86434242E2BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleSize", "..\..\..\TrainingSamples\code\SampleSize.csproj", "{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,7 @@ Global
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Debug|Mixed Platforms.Build.0 = Release|x86
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Debug|Win32.ActiveCfg = Debug|x86
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Debug|x86.ActiveCfg = Debug|x86
+		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Debug|x86.Build.0 = Debug|x86
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Release|Any CPU.ActiveCfg = Release|x86
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{03E4D743-9242-425D-8FDA-0EB6FDD94945}.Release|Mixed Platforms.Build.0 = Release|x86
@@ -83,6 +86,18 @@ Global
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Mixed Platforms.Build.0 = Release|x86
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Win32.ActiveCfg = Release|x86
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|x86.ActiveCfg = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|Win32.ActiveCfg = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|x86.ActiveCfg = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Debug|x86.Build.0 = Debug|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|Any CPU.ActiveCfg = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|Mixed Platforms.Build.0 = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|Win32.ActiveCfg = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|x86.ActiveCfg = Release|x86
+		{D027EF7C-D0D0-4D02-9BEC-B8E163BD766E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -230,22 +230,17 @@ namespace esriUtil.Forms.RasterAnalysis
                 IRaster rst = rstDic[rstNm];
                 IRaster inRst;
                 IRaster outraster;
+                IGeometry geo;
                 if(rstDic.TryGetValue(ftrNm,out inRst))
                 {
-                    List<double[]> mmLst = new List<double[]>();
-                    mmLst.Add(new double[2]{0,1});
-                    ESRI.ArcGIS.Geometry.IGeometry geo = (ESRI.ArcGIS.Geometry.IGeometry)((IRasterProps)inRst).Extent;
-                    IRaster rs1 = rsUtil.calcGreaterFunction(inRst, 0);
-                    IRaster rs2 = rsUtil.setValueRangeToNodata(rs1, mmLst);
-                    IRaster rs3 = rsUtil.calcArithmaticFunction(rs2, inRst, esriRasterArithmeticOperation.esriRasterMultiply);
-                    outraster = rsUtil.clipRasterFunction(rs3, geo, esriRasterClippingType.esriRasterClippingOutside);
+                    geo = rsUtil.extractDomain(inRst);
                 }
                 else
                 {
                     IFeatureClass ftrCls = ftrDic[ftrNm];
-                    IGeometry geo = geoUtil.createGeometry(ftrCls);
-                    outraster = rsUtil.clipRasterFunction(rst, geo, clType);
+                    geo = geoUtil.createGeometry(ftrCls);
                 }
+                outraster = rsUtil.clipRasterFunction(rst, geo, clType);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

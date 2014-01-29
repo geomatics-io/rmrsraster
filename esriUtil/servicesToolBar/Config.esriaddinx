@@ -2,11 +2,11 @@
   <Name>servicesToolBar</Name>
   <AddInID>{00ebf4c7-7068-4ef2-a175-a79568a85cb9}</AddInID>
   <Description>Toolbar for Raster Processing</Description>
-  <Version>1.6</Version>
+  <Version>1.7</Version>
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>6/21/2013</Date>
+  <Date>1/28/2014</Date>
   <Targets>
     <Target name="Desktop" version="10.0" />
   </Targets>
@@ -95,6 +95,12 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandEasting" class="commandEasting" message="calcualtes the amount of east direction given aspect" caption="Easting" tip="Click to open Easting Form" category="rasterUtilities" image="Images\commandEasting.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSeperateProcess" class="commandSeperateProcess" message="Runs a list of batch commands in a seperate process" caption="Run Seperate Process" tip="click to open run seperate process" category="rasterUtilities" image="Images\commandSeperateProcess.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandGlm" class="commandGlm" message="Creates a GLM given user inputes" caption="Generalized Linear Modeling" tip="click to open GLM form" category="stats" image="Images\commandGlm.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandComparClassifications" class="commandComparClassifications" message="Compares the results of 2 hard classifications" caption="Compare Classifications" tip="Click to open Compare Classifications form" category="stats" image="Images\commandComparClassifications.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandNormalize" class="commandNormalize" message="Bring 2 images to a common radiometric scale" caption="Normalize" tip="click to open Normalize form" category="rasterUtilities" image="Images\commandNormalize.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSetNullValue" class="commandSetNullValue" message="sets the null value" caption="Set Null Value" tip="click to open set null form" category="rasterUtilities" image="Images\commandSetNullValue.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandRegionGroup" class="commandRegionGroup" message="groups like areas into the same region. Based on 4 neighbors" caption="RegionGroup" tip="click to open region group form" category="rasterUtilities" image="Images\commandRegionGroup.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandNdviRaster" class="commandNdviRaster" message="Performs NDVI transformation to a given image" caption="NDVI" tip="Click to open NDVI form" category="rasterUtilities" image="Images\commandNdviRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandTasseledCapETM7" class="commandTasseledCapETM7" message="Performs Tasseled Cap transformation on a Landsat ETM+ image." caption="Tasseled Cap" tip="click to open Tasseled Cap form" category="rasterUtilities" image="Images\commandTasseledCapETM7.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

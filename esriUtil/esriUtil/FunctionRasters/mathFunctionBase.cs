@@ -61,19 +61,23 @@ namespace esriUtil.FunctionRasters
                 #region Load log object
                 for (int nBand = 0; nBand < pPixelBlock.Planes; nBand++)
                 {
-                    float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    //float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     System.Array dArr = (System.Array)pb3.get_PixelData(nBand);
                     for (int r = 0; r < pPixelBlock.Height; r++)
                     {
                         for (int c = 0; c < pPixelBlock.Width; c++)
                         {
-                            vl = System.Convert.ToDouble(dArr.GetValue(c, r));
-                            if (rasterUtil.isNullData(System.Convert.ToSingle(vl), noDataValue))
+                            object objVl = dArr.GetValue(c, r);
+                            if (objVl == null)
                             {
                                 continue;
                             }
-                            pixelValue = System.Convert.ToSingle(getFunctionValue(vl));
-                            dArr.SetValue(pixelValue, c, r);
+                            else
+                            {
+                                vl = System.Convert.ToSingle(objVl);
+                                pixelValue = System.Convert.ToSingle(getFunctionValue(vl));
+                                dArr.SetValue(pixelValue, c, r);
+                            }
                         }
                     }
                     pb3.set_PixelData(nBand, dArr);

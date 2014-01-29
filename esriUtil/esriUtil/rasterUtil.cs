@@ -15,27 +15,10 @@ namespace esriUtil
     {
         public rasterUtil()
         {
-            string globFuncDir = esriUtil.Properties.Settings.Default.FuncDir;
-            string globMosaicDir = esriUtil.Properties.Settings.Default.MosaicDir;
-            string globConvDir = esriUtil.Properties.Settings.Default.ConversionDir;
-            if (globFuncDir == "unknown")
-            {
-                globFuncDir = System.Environment.GetEnvironmentVariable("temp") + "\\func";
-                esriUtil.Properties.Settings.Default.FuncDir = globFuncDir;
-                esriUtil.Properties.Settings.Default.Save();
-            }
-            if (globMosaicDir == "unknown")
-            {
-                globMosaicDir = System.Environment.GetEnvironmentVariable("temp") + "\\mosaic";
-                esriUtil.Properties.Settings.Default.MosaicDir = globMosaicDir;
-                esriUtil.Properties.Settings.Default.Save();
-            }
-            if (globConvDir == "unknown")
-            {
-                globConvDir = System.Environment.GetEnvironmentVariable("temp") + "\\conv";
-                esriUtil.Properties.Settings.Default.ConversionDir = globConvDir;
-                esriUtil.Properties.Settings.Default.Save();
-            }
+            string mainPath = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\RmrsRasterUtilityHelp";
+            string globFuncDir = mainPath + "\\func";
+            string globMosaicDir = mainPath + "\\mosaic";
+            string globConvDir = mainPath + "\\conv";
             System.IO.DirectoryInfo DInfo = new System.IO.DirectoryInfo(globFuncDir);
             if (!DInfo.Exists)
             {
@@ -2196,7 +2179,7 @@ namespace esriUtil
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
         }
-        public IRaster calcClustFunction(IRaster inRaster, Statistics.dataPrepCluster clus)
+        public IRaster calcClustFunctionKmean(IRaster inRaster, Statistics.dataPrepClusterKmean clus)
         {
             IRaster rRst = returnRaster(inRaster);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
@@ -2204,7 +2187,39 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new FunctionRasters.clusterFunctionDataset();
+            IRasterFunction rsFunc = new FunctionRasters.clusterFunctionKmeanDataset();
+            FunctionRasters.clusterFunctionArguments args = new FunctionRasters.clusterFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.ClusterModel = clus;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcClustFunctionBinary(IRaster inRaster, Statistics.dataPrepClusterBinary clus)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.clusterFunctionBinaryDataset();
+            FunctionRasters.clusterFunctionArguments args = new FunctionRasters.clusterFunctionArguments(this);
+            args.InRasterCoefficients = rRst;
+            args.ClusterModel = clus;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+        }
+        public IRaster calcClustFunctionGaussian(IRaster inRaster, Statistics.dataPrepClusterGaussian clus)
+        {
+            IRaster rRst = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.clusterFunctionGaussianDataset();
             FunctionRasters.clusterFunctionArguments args = new FunctionRasters.clusterFunctionArguments(this);
             args.InRasterCoefficients = rRst;
             args.ClusterModel = clus;
@@ -2285,7 +2300,7 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcRegressFunction(object inRaster, List<float[]> slopes)
         {
-            IRaster rRst = returnRaster(inRaster);
+            IRaster rRst = returnRaster(inRaster,rstPixelType.PT_FLOAT);
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -2805,48 +2820,48 @@ namespace esriUtil
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
             frDsetName.FullName = tempAr;
             frDset.FullName = (IName)frDsetName;
-            IRasterFunction rsFunc = new esriUtil.FunctionRasters.clipFunctionDataset();
-            //IRasterFunction rsFunc = new ClipFunctionClass();
+            //IRasterFunction rsFunc = new esriUtil.FunctionRasters.clipFunctionDataset();
+            IRasterFunction rsFunc = new ClipFunctionClass();
             rsFunc.PixelType = ((IRasterProps)rRst).PixelType;
             IEnvelope env = geo.Envelope;
-            ////IRasterProps rsProps = (IRasterProps)rRst;
-            //IPnt cSize = getCellSize(rRst);
-            //double hX = cSize.X / 2;
-            //double hY = cSize.Y / 2;
-            //double xMin = env.XMin;
-            //double xMax = env.XMax;
-            //double yMin = env.YMin;
-            //double yMax = env.YMax;
-            //int clm, rw;
-            //rRst2.MapToPixel(xMin, yMin,out clm,out rw);
-            //rRst2.PixelToMap(clm, rw, out xMin, out yMin);
-            //xMin = xMin - hX;
-            //yMin = yMin - hY;
-            //rRst2.MapToPixel(xMax, yMax, out clm, out rw);
-            //rRst2.PixelToMap(clm, rw, out xMax, out yMax);
-            //xMax = xMax + hX;
-            //yMax = yMax + hY;
-            //env.PutCoords(xMin, yMin, xMax, yMax);
-            ////IEnvelope rsExtent = rsProps.Extent;
-            ////rsFunc.RasterInfo.CellSize = cSize;           
-            ////double w = (((env.XMax - env.XMin) / cSize.X) + 1)*cSize.X;
-            ////double h = (((env.YMax - env.YMin) / cSize.Y) + 1)*cSize.Y;
-            ////double lw = (System.Convert.ToInt32((env.XMin - rsExtent.XMin) / cSize.X) - 1)*cSize.X;
-            ////double lh = (System.Convert.ToInt32((env.YMin - rsExtent.YMin) / cSize.Y) - 1)*cSize.Y;
-            ////env.XMin = rsExtent.XMin + lw;
-            ////env.YMin = rsExtent.YMin + lh;
-            ////env.XMax = env.XMin + w;
-            ////env.YMax = env.YMin + h;
-            ////rsFunc.RasterInfo.Extent = env;
-            esriUtil.FunctionRasters.clipFunctionArgument args = new esriUtil.FunctionRasters.clipFunctionArgument();// ClipFunctionArgumentsClass();
-            args.Geometry = geo;
-            //args.Extent = env;
-            args.ClipType = clipType;
-            //args.ClippingGeometry = geo;
-            //args.ClippingType = clipType;
-            //args.Extent = env;
-            //args.Raster = rRst;
-            args.InRaster = rRst;
+            //IRasterProps rsProps = (IRasterProps)rRst;
+            IPnt cSize = getCellSize(rRst);
+            double hX = cSize.X / 2;
+            double hY = cSize.Y / 2;
+            double xMin = env.XMin;
+            double xMax = env.XMax;
+            double yMin = env.YMin;
+            double yMax = env.YMax;
+            int clm, rw;
+            rRst2.MapToPixel(xMin, yMin,out clm,out rw);
+            rRst2.PixelToMap(clm, rw, out xMin, out yMin);
+            xMin = xMin - hX;
+            yMin = yMin - hY;
+            rRst2.MapToPixel(xMax, yMax, out clm, out rw);
+            rRst2.PixelToMap(clm, rw, out xMax, out yMax);
+            xMax = xMax + hX;
+            yMax = yMax + hY;
+            env.PutCoords(xMin, yMin, xMax, yMax);
+            //IEnvelope rsExtent = rsProps.Extent;
+            //rsFunc.RasterInfo.CellSize = cSize;           
+            //double w = (((env.XMax - env.XMin) / cSize.X) + 1)*cSize.X;
+            //double h = (((env.YMax - env.YMin) / cSize.Y) + 1)*cSize.Y;
+            //double lw = (System.Convert.ToInt32((env.XMin - rsExtent.XMin) / cSize.X) - 1)*cSize.X;
+            //double lh = (System.Convert.ToInt32((env.YMin - rsExtent.YMin) / cSize.Y) - 1)*cSize.Y;
+            //env.XMin = rsExtent.XMin + lw;
+            //env.YMin = rsExtent.YMin + lh;
+            //env.XMax = env.XMin + w;
+            //env.YMax = env.YMin + h;
+            //rsFunc.RasterInfo.Extent = env;
+            //esriUtil.FunctionRasters.clipFunctionArgument args = new esriUtil.FunctionRasters.clipFunctionArgument();// ClipFunctionArgumentsClass();
+            //args.Geometry = geo;
+            IClipFunctionArguments args = new ClipFunctionArgumentsClass();
+            args.Extent = env;
+            //args.ClipType = clipType;
+            args.ClippingGeometry = geo;
+            args.ClippingType = clipType;
+            args.Raster = rRst;
+            //args.InRaster = rRst;
             frDset.Init(rsFunc, args);
             //frDset.Simplify();
             return createRaster((IRasterDataset)frDset);
@@ -2974,6 +2989,37 @@ namespace esriUtil
             //functionModel.estimateStatistics(outRs, functionModel.dem.Slope);
             return outRs;
         }
+        public IRaster calcTasseledCap7Function(object inRaster) //assumes at sensor reflectance
+        {
+            List<float[]> slopes = new List<float[]>();
+            slopes.Add(new float[] { 0f, 0.3561f, 0.3972f, 0.3904f, 0.6966f, 0.2286f, 0.1596f });//brightness
+            slopes.Add(new float[] { 0f, -0.3344f, -0.3544f, -0.4556f, 0.6966f, -0.0242f, -0.2630f });//greenness
+            slopes.Add(new float[] { 0f, 0.2626f, 0.2141f, 0.0926f, 0.0656f, -0.7629f, -0.5388f });//wetness
+            return calcRegressFunction(inRaster, slopes);
+        }
+        public IRaster calcNDVIFunction(object inRaster, int visibleBandId, int irBandId)
+        {
+            IRaster visRs = getBand(inRaster,visibleBandId);
+            IRaster irRs = getBand(inRaster, irBandId);
+            IRaster sRs = calcArithmaticFunction(irRs, visRs, esriRasterArithmeticOperation.esriRasterMinus);
+            IRaster pRs = calcArithmaticFunction(irRs, visRs, esriRasterArithmeticOperation.esriRasterPlus);
+            return calcArithmaticFunction(sRs, pRs, esriRasterArithmeticOperation.esriRasterDivide);
+            //IRaster rRst = returnRaster(inRaster,rstPixelType.PT_FLOAT);
+            //string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            //IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            //IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            //frDsetName.FullName = tempAr;
+            //frDset.FullName = (IName)frDsetName;
+            //IRasterFunction rsFunc = new NDVIFunctionClass();
+            //INDVIFunctionArguments args = new NDVIFunctionArgumentsClass();
+            //args.InfraredBandID = irBandId;
+            //args.VisibleBandID = visibleBandId;
+            //args.Raster = rRst;
+            //frDset.Init(rsFunc, args);
+            //IRaster outRs = createRaster((IRasterDataset)frDset);
+            //functionModel.estimateStatistics(outRs, functionModel.dem.Slope);
+            //return outRs;
+        }
         /// <summary>
         /// calculates an aspect function
         /// </summary>
@@ -3015,7 +3061,7 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcNorthSouthFunction(IRaster DEM)
         {
-            IRaster rs = calcSlopeFunction(DEM);
+            IRaster rs = calcAspectFunction(DEM);
             IRaster rs2 = calcMathRasterFunction(rs,transType.RADIANS);
             IRaster outRs = calcMathRasterFunction(rs2, transType.COS);
             return outRs;
@@ -3027,7 +3073,7 @@ namespace esriUtil
         /// <returns></returns>
         public IRaster calcEastWestFunction(IRaster DEM)
         {
-            IRaster rs = calcSlopeFunction(DEM);
+            IRaster rs = calcAspectFunction(DEM);
             IRaster rs2 = calcMathRasterFunction(rs, transType.RADIANS);
             IRaster outRs = calcMathRasterFunction(rs2, transType.SIN);
             return outRs;
@@ -3122,11 +3168,11 @@ namespace esriUtil
             IRasterProps rsP = (IRasterProps)rs;
             System.Array noDataArr = (System.Array)rsP.NoDataValue;
             double newNoDataVl = getNoDataValue(pType);
-            double[] newNoDataArr = new double[noDataArr.Length];
-            for (int i = 0; i < noDataArr.Length; i++)
-            {
-                newNoDataArr[i] = newNoDataVl;
-            }
+            //double[] newNoDataArr = new double[noDataArr.Length];
+            //for (int i = 0; i < noDataArr.Length; i++)
+            //{
+            //    newNoDataArr[i] = newNoDataVl;
+            //}
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -3163,26 +3209,90 @@ namespace esriUtil
             IRaster outRs = createRaster((IRasterDataset)frDset);
             return outRs;
         }
-        public IRaster setValueRangeToNodata(object inRaster,List<double[]>minMaxList)
+        /// <summary>
+        /// creates a mask of valid values (greater than equal to min and less than equal to max)
+        /// </summary>
+        /// <param name="inRaster"></param>
+        /// <param name="BandRanges"></param>
+        /// <returns></returns>
+        public IRaster maskDataRange(object inRaster, double[][] BandRanges)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new MaskFunctionClass();
+            IMaskFunctionArguments args = new MaskFunctionArgumentsClass();
+            IDoubleArray dbArray = new DoubleArrayClass();
+            foreach (double[] d in BandRanges)
+            {
+                dbArray.Add(d[0]);
+                dbArray.Add(d[1]);
+            }
+            args.Raster = returnRaster(inRaster);
+            args.IncludedRanges = dbArray;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
+        }
+        public IRaster setNullValue(object inRaster, int vl)
         {
             IRaster rs = returnRaster(inRaster);
-            IRasterProps rsProps = (IRasterProps)rs;
             IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-            int bCnt = rsBc.Count;
-            System.Array noDataArr = (System.Array)rsProps.NoDataValue;
-            IRasterBandCollection rsBcOut = new RasterClass();
-            for (int i = 0; i < bCnt; i++)
+            IStringArray stArr = new StrArrayClass();
+            for (int i = 0; i < rsBc.Count; i++)
             {
-                IRaster brs = getBand(rs, i);
-                double noData = System.Convert.ToDouble(noDataArr.GetValue(i));
-                IRemapFilter rFilt = new RemapFilterClass();
-                foreach (double[] d in minMaxList)
-                {
-                    rFilt.AddClass(d[0], d[1], noData);
-                }
-                rsBcOut.AppendBands((IRasterBandCollection)calcRemapFunction(brs, rFilt));
+                stArr.Add(vl.ToString());
+                stArr.Add(vl.ToString());
             }
-            return (IRaster)rsBcOut;
+            return setValueRangeToNodata(rs,stArr);
+            //IRaster rs = returnRaster(inRaster);
+            //IRasterProps rsProps = (IRasterProps)rs;
+            //IRasterBandCollection rsBc = (IRasterBandCollection)rs;
+            //int[] nodataArray = new int[rsBc.Count];
+            //for (int i = 0; i < rsBc.Count; i++)
+            //{
+            //    nodataArray[i] = vl;
+            //}
+            //rsProps.NoDataValue = nodataArray;
+            //return rs;
+        }
+        public IRaster setValueRangeToNodata(object inRaster,IStringArray sArray)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new MaskFunctionClass();
+            IMaskFunctionArguments args = new MaskFunctionArgumentsClass();
+            args.Raster = returnRaster(inRaster);
+            args.NoDataValues = sArray;
+            frDset.Init(rsFunc, args);
+            IRaster outRs = createRaster((IRasterDataset)frDset);
+            return outRs;
+
+            //IRaster rs = returnRaster(inRaster);
+
+            //IRasterProps rsProps = (IRasterProps)rs;
+            //IRasterBandCollection rsBc = (IRasterBandCollection)rs;
+            //int bCnt = rsBc.Count;
+            //System.Array noDataArr = (System.Array)rsProps.NoDataValue;
+            //IRasterBandCollection rsBcOut = new RasterClass();
+            //for (int i = 0; i < bCnt; i++)
+            //{
+            //    IRaster brs = getBand(rs, i);
+            //    double noData = System.Convert.ToDouble(noDataArr.GetValue(i));
+            //    IRemapFilter rFilt = new RemapFilterClass();
+            //    foreach (double[] d in minMaxList)
+            //    {
+            //        rFilt.AddClass(d[0], d[1], noData);
+            //    }
+            //    rsBcOut.AppendBands((IRasterBandCollection)calcRemapFunction(brs, rFilt));
+            //}
+            //return (IRaster)rsBcOut;
         }
         /// <summary>
         /// retrieves the appropriate no data value for a given rstPixeltype
@@ -3259,888 +3369,22 @@ namespace esriUtil
         /// <param name="wks"></param>
         /// <param name="outName"></param>
         /// <returns></returns>
-        public IRaster regionGroup(object inRaster, IWorkspace wks, string outName)
+        public IRaster regionGroup(object inRaster)
         {
-            FunctionRasters.NeighborhoodHelper.regionGroup rg = new FunctionRasters.NeighborhoodHelper.regionGroup();
-            rg.InRaster = inRaster;
-            rg.OutWorkspace = wks;
-            rg.OutRasterName = outName;
-            rg.PixelBlockHeight = 512;
-            rg.PixelBlockWidth = 512;
-            rg.executeRegionGroup();
-            return rg.OutRaster;
-            //#region create new raster
-            //IRaster inRs = (IRaster)returnRaster(inRaster);
-            //IRasterProps rsProp = (IRasterProps)inRs;
-            //if (rsProp.PixelType == rstPixelType.PT_DOUBLE || rsProp.PixelType == rstPixelType.PT_FLOAT)
-            //{
-            //    inRs = convertToDifFormatFunction(inRs, rstPixelType.PT_LONG);
-                
-            //    rsProp = (IRasterProps)inRs;
-            //}
-            //IWorkspace vWks = geoUtil.OpenWorkSpace(wks.PathName);
-            //System.Array noDataValues = (System.Array)rsProp.NoDataValue;
-            //int noDataVl = System.Convert.ToInt32(noDataValues.GetValue(0));
-            //outName = getSafeOutputName(wks, outName);
-            //IRaster regRs = createNewRaster(inRs, wks, outName, 1, rstPixelType.PT_LONG);
-            //#endregion
-            //#region set unique raster values
-            //IRasterProps rsProps2 = (IRasterProps)regRs;
-            //System.Array noDataValues2 = (System.Array)rsProps2.NoDataValue;
-            //int noDataVl2 = System.Convert.ToInt32(noDataValues2.GetValue(0));
-            ////Console.WriteLine("noDataVl2 = " + noDataVl2.ToString());
-            ////Console.WriteLine("noDataVl = " + noDataVl.ToString());
-            //int rws = rsProp.Height;
-            //int clms = rsProp.Width;
-            //#region create VAT Table
-            //IFields flds = new FieldsClass();
-            //IField fld = new FieldClass();
-            //IFieldsEdit fldsE = (IFieldsEdit)flds;
-            //IFieldEdit fldE = (IFieldEdit)fld;
-            //fldE.Name_2 = "Value";
-            //fldE.Type_2 = esriFieldType.esriFieldTypeInteger;
-            //fldE.Precision_2 = 50;
-            //fldsE.AddField(fld);
-            //IField fld2 = new FieldClass();
-            //IFieldEdit fld2E = (IFieldEdit)fld2;
-            //fld2E.Name_2 = "Count";
-            //fld2E.Type_2 = esriFieldType.esriFieldTypeInteger;
-            //fldE.Precision_2 = 50;
-            //fldsE.AddField(fld2);
-            //IField fld3 = new FieldClass();
-            //IFieldEdit fld3E = (IFieldEdit)fld3;
-            //fld3E.Name_2 = "Perimeter";
-            //fld3E.Type_2 = esriFieldType.esriFieldTypeInteger;
-            //fld3E.Precision_2 = 50;
-            //fldsE.AddField(fld3);
-            //ITable vatTable = geoUtil.createTable(vWks, outName + "_vat", flds);
-            //#endregion
-            //IWorkspaceEdit wksE = (IWorkspaceEdit)vWks;
-            //bool weEdit = true;
-            //if (wksE.IsBeingEdited())
-            //{
-            //    weEdit = false;
-            //}
-            //else
-            //{
-            //    wksE.StartEditing(false);
-            //}
-            //wksE.StartEditOperation();
-            //int counter = Int32.MinValue;
-            //if (noDataVl2 >= 0)
-            //{
-
-            //    counter = Int32.MinValue + 2;
-            //}
-            //else
-            //{
-            //    counter = Int32.MinValue + 2;
-            //}
-            ////Console.WriteLine("Counter = " + counter.ToString());
-            //IPnt loc = new PntClass();
-            //try
-            //{
-            //    for (int rp = 0; rp < rws; rp += 511)//rws
-            //    {
-            //        for (int cp = 0; cp < clms; cp += 511)//clms
-            //        {
-            //            Console.WriteLine("Column Row = " + cp.ToString() + ":" + rp.ToString());
-            //            Console.WriteLine("nodata = " + noDataVl.ToString());
-            //            Console.WriteLine("nodata2 = " + noDataVl2.ToString());
-            //            loc.SetCoords(cp, rp);
-                        
-            //            middleRowColumn(inRs, regRs, vatTable, loc, counter, noDataVl, noDataVl2, 1, 1,0,0);
-            //        }
-            //    }
-            //    #endregion
-            //    #region update vat
-            //    wksE.StopEditOperation();
-            //    if (weEdit) wksE.StopEditing(true);
-            //    //wksE.StartEditing(false);
-            //    //wksE.StartEditOperation();
-            //    //Console.WriteLine("Updating Vat Table");
-            //    //updateKeyTable(ref keysTable, ref remapRegionTable);
-            //    //wksE.StopEditOperation();
-            //    //if (weEdit) wksE.StopEditing(true);
-            //    //IRaster2 rs2 = (IRaster2)regRs;
-            //    //IRasterDataset rsDset = rs2.RasterDataset;
-            //    //IRasterDatasetEdit2 rsDsetE = (IRasterDatasetEdit2)rsDset;
-            //    //rsDsetE.AlterAttributeTable(keysTable);
-            //    //wksE.StopEditOperation();
-            //    //wksE.StopEditing(true);
-            //    #endregion
-            //}
-            //catch(Exception e)
-            //{
-            //    Console.WriteLine(e.ToString());
-            //}
-            //finally
-            //{
-            //}
-            //return regRs;
+            IRaster iR1 = returnRaster(inRaster);
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.regionGroupFunctionDataset();
+            FunctionRasters.regionGroupFunctionArguments args = new FunctionRasters.regionGroupFunctionArguments(this);
+            args.InRaster = iR1;
+            frDset.Init(rsFunc, args);
+            IRaster rs = createRaster((IRasterDataset)frDset);
+            return rs;
         }
-
         
-
-        private void middleRowColumn(IRaster inRs, IRaster regRs, ITable vatTable, IPnt loc, int counter, int noDataVl, int noDataVl2, int startRow, int startColumn, int rCnt, int rPerm)
-        {
-            IRasterEdit regRsE = (IRasterEdit)regRs;
-            IPnt pnt = new PntClass();
-            pnt.SetCoords(512, 512);
-            IPixelBlock pb = inRs.CreatePixelBlock(pnt);
-            IPixelBlock pb2 = regRs.CreatePixelBlock(pnt);
-            inRs.Read(loc, pb);
-            regRs.Read(loc, pb2);
-            System.Array inArr = (System.Array)pb.get_SafeArray(0);
-            System.Array outArr = (System.Array)pb2.get_SafeArray(0);
-            int height = pb.Height;
-            int width = pb.Width;
-            int valueIndex = vatTable.FindField("Value");
-            int countIndex = vatTable.FindField("Count");
-            int permIndex = vatTable.FindField("Perimeter");
-            for (int c = startRow; c < width; c++)
-            {
-                for (int r = startColumn; r < height; r++)
-                {
-                    List<string> cr = new List<string>();
-                    cr.Add(c.ToString() + ":" + r.ToString());
-                    //Console.WriteLine(cr[0]);
-                    int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                    if (inVl == noDataVl)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        int outVl32 = System.Convert.ToInt32(outArr.GetValue(c, r));
-                        if (startRow != 1 || startColumn != 1)
-                        {
-                            string[] nextArray = { "", "", "", "" };//determines if the next pixel block must be queried {left,top,right,bottom}
-                            while (cr.Count > 0)
-                            {
-                                rCnt++;
-                                //Console.WriteLine(cr.Count);
-                                string[] crArr = cr[0].Split(new char[] { ':' });
-                                int cl = System.Convert.ToInt32(crArr[0]);
-                                int rw = System.Convert.ToInt32(crArr[1]);
-                                rPerm += findRegion(inVl, counter, noDataVl2, cl, rw, inArr, outArr, cr, nextArray);
-                            }
-                            Console.WriteLine("Cells area = " + rCnt.ToString());
-                            Console.WriteLine("Cells perm = " + rPerm.ToString());
-                            pb2.set_SafeArray(0, (System.Array)outArr);
-                            regRsE.Write(loc, pb2);
-                            for (int i = 0; i < nextArray.Length; i++)
-                            {
-                                string s = nextArray[i];
-                                if (s != "")
-                                {
-                                    Console.WriteLine("previous location  = " + s);
-                                    string[] crArr = s.Split(new char[] { ':' });
-                                    int cl = System.Convert.ToInt32(crArr[0]);
-                                    int rw = System.Convert.ToInt32(crArr[1]);
-                                    IPnt newLoc = new PntClass();
-                                    double nClP = loc.X;
-                                    double nRwP = loc.Y;
-                                    IRasterProps rsProps = (IRasterProps)inRs;
-                                    switch (i)
-                                    {
-                                        case 0:
-                                            nClP = nClP - 511;
-                                            cl = 511;
-                                            break;
-                                        case 1:
-                                            nRwP = nRwP - 511;
-                                            rw = 511;
-                                            break;
-                                        case 2:
-                                            nClP = nClP + 511;
-                                            cl = 0;
-                                            break;
-                                        default:
-                                            nRwP = nRwP + 511;
-                                            rw = 0;
-                                            break;
-                                    }
-                                    if ((nClP >= 0 && nRwP >= 0 & nClP <= rsProps.Width && nRwP <= rsProps.Height))
-                                    {
-                                        Console.WriteLine("new location = " + nClP.ToString() + ":" + nRwP.ToString());
-                                        pb2.set_SafeArray(0, (System.Array)outArr);
-                                        regRsE.Write(loc, pb2);
-                                        newLoc.SetCoords(nClP, nRwP);
-                                        middleRowColumn(inRs, regRs, vatTable, newLoc, counter, noDataVl, noDataVl2, rw, cl, rCnt, rPerm);
-                                    }
-                                }
-                            }
-                            return;
-                        }
-                        else if (outVl32 == noDataVl2)
-                        {
-                            rCnt = 0;
-                            rPerm = 0;
-                            outArr.SetValue(counter, c, r);
-                            string[] nextArray = { "", "", "", "" };//determines if the next pixel block must be queried {left,top,right,bottom}
-                            while (cr.Count > 0)
-                            {
-                                rCnt++;
-                                string[] crArr = cr[0].Split(new char[] { ':' });
-                                int cl = System.Convert.ToInt32(crArr[0]);
-                                int rw = System.Convert.ToInt32(crArr[1]);
-                                rPerm += findRegion(inVl, counter, noDataVl2, cl, rw, inArr, outArr, cr, nextArray);
-                            }
-                            pb2.set_SafeArray(0, (System.Array)outArr);
-                            regRsE.Write(loc, pb2);
-                            for (int i = 0; i < nextArray.Length; i++)
-                            {
-                                string s = nextArray[i];
-                                if (s != "")
-                                {
-                                    Console.WriteLine("previous location  = " + s);
-                                    string[] crArr = s.Split(new char[] { ':' });
-                                    int cl = System.Convert.ToInt32(crArr[0]);
-                                    int rw = System.Convert.ToInt32(crArr[1]);
-                                    IPnt newLoc = new PntClass();
-                                    double nClP = loc.X;
-                                    double nRwP = loc.Y;
-                                    IRasterProps rsProps = (IRasterProps)inRs;
-                                    switch (i)
-                                    {
-                                        case 0:
-                                            nClP = nClP - 511;
-                                            cl = 511;
-                                            break;
-                                        case 1:
-                                            nRwP = nRwP - 511;
-                                            rw = 511;
-                                            break;
-                                        case 2:
-                                            nClP = nClP + 511;
-                                            cl = 0;
-                                            break;
-                                        default:
-                                            nRwP = nRwP + 511;
-                                            rw = 0;
-                                            break;
-                                    }
-                                    if ((nClP >= 0 && nRwP >= 0 & nClP <= rsProps.Width && nRwP <= rsProps.Height))
-                                    {
-                                        Console.WriteLine("new location = " + nClP.ToString() + ":" + nRwP.ToString());
-                                        pb2.set_SafeArray(0, (System.Array)outArr);
-                                        regRsE.Write(loc, pb2);
-                                        newLoc.SetCoords(nClP, nRwP);
-                                        Console.WriteLine("calling middleRow for pbStartLoc (C:R) = " + nClP.ToString() + ":" + nRwP.ToString() + " start locations = " + cl.ToString() + ":" + rw.ToString());
-                                        middleRowColumn(inRs, regRs, vatTable, newLoc, counter, noDataVl, noDataVl2, rw, cl, rCnt, rPerm);
-                                    }
-                                }
-                            }
-                            regRs.Read(loc, pb2);
-                            outArr = (System.Array)pb2.get_SafeArray(0);
-                            IRow row = vatTable.CreateRow();
-                            row.set_Value(valueIndex, counter);
-                            row.set_Value(countIndex, rCnt);
-                            row.set_Value(permIndex, rPerm);
-                            row.Store();
-                            counter++;
-                        }
-                        else
-                        {
-                        }
-                    }
-                }
-            }
-            pb2.set_SafeArray(0, (System.Array)outArr);
-            regRsE.Write(loc, pb2);
-        }
-        private int findRegion(int inValue, int newValue, int noDataValue, int clm, int rw, System.Array inArr, System.Array outArr, List<string> columnrow, string[] nextArray)
-        {
-            int permEdges = 0;
-            string ccr = clm.ToString() + ":" + rw.ToString();
-            if (columnrow == null)
-            {
-                columnrow = new List<string>();
-                columnrow.Add(ccr);
-            }
-            int maxCR = 511;
-            int minCR = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                int cPlus = clm;
-                int rPlus = rw;
-                switch (i)
-                {
-                    case 0:
-                        cPlus += 1;
-                        break;
-                    case 1:
-                        rPlus += 1;
-                        break;
-                    case 2:
-                        cPlus -= 1;
-                        break;
-                    default:
-                        rPlus -= 1;
-                        break;
-                }
-                if (cPlus > maxCR || rPlus > maxCR || cPlus < minCR || rPlus < minCR)
-                {
-                    continue;
-                }
-                try
-                {
-                    string cr = cPlus.ToString() + ":" + rPlus.ToString();
-                    int cVl = System.Convert.ToInt32(outArr.GetValue(cPlus, rPlus));
-                    int pVl = System.Convert.ToInt32(inArr.GetValue(cPlus, rPlus));
-                    if (cVl == noDataValue)
-                    {
-
-                        if (pVl == inValue)
-                        {
-                            try
-                            {
-                                outArr.SetValue(newValue, cPlus, rPlus);
-                                if (!columnrow.Contains(cr))
-                                {
-                                    columnrow.Add(cr);
-                                }
-                                List<int> nPbLst = new List<int>();
-                                bool rPlusMinCheck = (rPlus == minCR);
-                                bool rPlusMaxCheck = (rPlus == maxCR);
-                                bool cPlusMinCheck = (cPlus == minCR);
-                                bool cPlusMaxCheck = (cPlus == maxCR);
-                                if (rPlusMinCheck || rPlusMaxCheck || cPlusMinCheck || cPlusMaxCheck)
-                                {
-                                    string nArrVl = cPlus.ToString() + ":" + rPlus.ToString();
-                                    if (rPlusMinCheck)
-                                    {
-                                        rPlus = maxCR;
-                                        //nPbLst.Add(0);
-                                        nextArray[0] = nArrVl;
-                                    }
-                                    if (rPlusMaxCheck)
-                                    {
-                                        rPlus = minCR;
-                                        //nPbLst.Add(1);
-                                        nextArray[1] = nArrVl;
-                                    }
-                                    if (cPlusMinCheck)
-                                    {
-                                        cPlus = maxCR;
-                                        //nPbLst.Add(2);
-                                        nextArray[2] = nArrVl;
-                                    }
-                                    if(cPlusMaxCheck)
-                                    {
-                                        cPlus = minCR;
-                                        //nPbLst.Add(3);
-                                        nextArray[3] = nArrVl;
-                                    }                                    
-                                }
-                                //foreach (int j in nPbLst)
-                                //{
-                                //    nextArray[j] = cPlus.ToString() + ":" + rPlus.ToString();
-                                //}
-                            }
-                            catch
-                            {
-                            }
-                        }
-                        else
-                        {
-                            permEdges++;
-                        }
-                    }
-                    else
-                    {
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-
-            }
-            try
-            {
-                columnrow.Remove(ccr);
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                columnrow.Clear();
-            }
-            return permEdges;
-
-        }
-
-        /// <summary>
-        /// eliminates slivers within a raster
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="minCells"></param>
-        /// <param name="maxCells"></param>
-        /// <returns></returns>
-        public IRaster eliminateSlivers(object inRaster, int minCells, int maxCells)
-        {
-            IRaster rs = returnRaster(inRaster);
-            IRasterProps rsProps = (IRasterProps)rs;
-            if (rsProps.PixelType == rstPixelType.PT_FLOAT || rsProps.PixelType == rstPixelType.PT_DOUBLE)
-            {
-                return rs;// = convertToDifFormatFunction(rs,rstPixelType.PT_LONG);
-            }
-            IRaster2 rs2 = (IRaster2)rs;
-            IRasterEdit rsE = (IRasterEdit)rs;
-            Dictionary<int, int> idsL = new Dictionary<int, int>();
-            Dictionary<int, int> idsG = new Dictionary<int, int>();
-            getRasterCellCounts(rs, minCells, out idsL, out idsG);
-            IPnt pnt = new PntClass();
-            pnt.SetCoords(512,512);
-            IRasterCursor rsCur = rs2.CreateCursorEx(pnt);
-            bool x = true;
-            while (x)
-            {
-                IPixelBlock3 pb = (IPixelBlock3)rsCur.PixelBlock;
-                int ht = pb.Height;
-                int wd = pb.Width;
-                System.Array inArr = (System.Array)pb.get_PixelData(0);
-                for (int c = 0; c < wd; c++)
-                {
-                    for (int r = 0; r < ht; r++)
-                    {
-                        int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                        int maxCnt = 0;
-                        int fmaxCnt = 0;
-                        int maxVl = inVl;
-                        int fmaxVl = inVl;
-                        if (idsL.TryGetValue(inVl, out maxCnt))
-                        {
-                            //Console.WriteLine(inVl.ToString() + " cnt " + maxCnt.ToString());
-                            int cp1 = c+1;
-                            int cp2 = c-1;
-                            int rp1 = r+1;
-                            int rp2 = r-1;
-                            if (rp1==ht) rp1 = r;
-                            if (rp2<0) rp2 = r;
-                            if (cp1==wd) cp1 = c;
-                            if (cp2<0) cp2 = c;
-                            int inR = System.Convert.ToInt32(inArr.GetValue(cp1, r));
-                            
-                            int inB = System.Convert.ToInt32(inArr.GetValue(c, rp1));
-                            
-                            int inT = System.Convert.ToInt32(inArr.GetValue(c, rp2));
-                            
-                            int inL = System.Convert.ToInt32(inArr.GetValue(cp2, r));
-                            if (inB==inR&&inB==inT&&inB==inL)
-                            {
-                                if (idsG.ContainsKey(inB))
-                                {
-                                    maxVl = inB;
-                                }
-                            }
-                            else
-                            {
-                                int[] vlArr = { inR, inB, inT, inL };
-                                foreach (int vlIter in vlArr)
-                                {
-                                    int itCnt = 0;
-                                    if (idsG.TryGetValue(vlIter, out itCnt))
-                                    {
-                                        if (itCnt > maxCnt)
-                                        {
-                                            fmaxCnt = itCnt;
-                                            fmaxVl = vlIter;
-                                            if (itCnt < maxCells)
-                                            {
-                                                maxCnt = itCnt;
-                                                maxVl = vlIter;
-                                            }
-                                        }
-                                    }
-                                }
-                                if (maxVl == inVl)
-                                {
-                                    maxVl = fmaxVl;
-                                }
-                            }
-                            if (maxVl == inVl)
-                            {
-                                maxVl = getNextNeighbor(inVl,c,r,cp1,cp2,rp1,rp2,ref idsG,inArr, maxCells);
-                            }
-                            inArr.SetValue(maxVl, c, r);
-                            //Console.WriteLine("seeting c, r, value " +c.ToString()+", "+r.ToString()+", "+inVl.ToString() + " to " + maxVl.ToString());
-                        }
-                        else
-                        {
-                        }
-                        
-                    }
-                }
-                pb.set_PixelData(0, inArr);
-                rsE.Write(rsCur.TopLeft, (IPixelBlock)pb);
-                x = rsCur.Next();
-            }
-            rsE.Refresh();
-            return rs;
-        }
-
-        private int getNextNeighbor(int inVl, int c, int r, int cpa, int cpb, int rpa, int rpb, ref Dictionary<int,int> idsG, System.Array inArr, int maxCells)
-        {
-            int ht = inArr.GetUpperBound(1) + 1;
-            int wd = inArr.GetUpperBound(0) + 1;
-            int maxCnt = 0;
-            int maxVl = inVl;
-            int fmaxCnt = 0;
-            int fmaxVl = inVl;
-            int cp1 = cpa + 1;
-            int cp2 = cpb - 1;
-            int rp1 = rpa + 1;
-            int rp2 = rpb - 1;
-            if (rp1 == ht) rp1 = r;
-            if (rp2 < 0) rp2 = r;
-            if (cp1 == wd) cp1 = c;
-            if (cp2 < 0) cp2 = c;
-            if (cp1 == wd & cp2==0 && rp1 == ht&&rp2==0)
-            {
-                return inVl;
-            }
-            int inR = System.Convert.ToInt32(inArr.GetValue(cp1, r));
-
-            int inB = System.Convert.ToInt32(inArr.GetValue(c, rp1));
-
-            int inT = System.Convert.ToInt32(inArr.GetValue(c, rp2));
-
-            int inL = System.Convert.ToInt32(inArr.GetValue(cp2, r));
-            if (inB == inR && inB == inT && inB == inL)
-            {
-                if (idsG.ContainsKey(inB))
-                {
-                    maxVl = inB;
-                }
-            }
-            else
-            {
-                int[] vlArr = { inR, inB, inT, inL };
-                foreach (int vlIter in vlArr)
-                {
-                    int itCnt = 0;
-                    if (idsG.TryGetValue(vlIter, out itCnt))
-                    {
-
-                        if (itCnt > maxCnt)
-                        {
-                            fmaxCnt = itCnt;
-                            fmaxVl = vlIter;
-                            if (itCnt < maxCells)
-                            {
-                                maxCnt = itCnt;
-                                maxVl = vlIter;
-                            }
-                        }
-                    }
-                }
-                if (maxVl == inVl)
-                {
-                    maxVl = fmaxVl;
-                }
-            }
-            if (maxVl == inVl)
-            {
-                maxVl = getNextNeighbor(inVl, c, r, cp1, cp2, rp1, rp2, ref idsG, inArr,maxCells);
-            }
-            return maxVl;
-        }
-
-        private void getRasterCellCounts(IRaster rs, int minCells, out Dictionary<int, int> idsL, out Dictionary<int, int> idsG)
-        {
-            Dictionary<int,int> ids = new Dictionary<int, int>();
-            IRasterProps rsp = (IRasterProps)rs;
-            int noData = System.Convert.ToInt32(((System.Array)rsp.NoDataValue).GetValue(0));
-            idsL = new Dictionary<int, int>();
-            idsG = new Dictionary<int, int>();
-            IPnt pnt = new PntClass();
-            pnt.SetCoords(512, 512);
-            //create dictionary
-            IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(pnt);
-            bool x = true;
-            while (x)
-            {
-                IPixelBlock pb = rsCur.PixelBlock;
-                System.Array inArr = (System.Array)pb.get_SafeArray(0);
-                int ht = pb.Height;
-                int wd = pb.Width;
-                for (int c = 0; c < wd; c++)
-                {
-                    for (int r = 0; r < ht; r++)
-                    {
-                        int vl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                        if (vl == noData)
-                        {
-                            continue;
-                        }
-                        int cnt = 0;
-                        if (ids.TryGetValue(vl, out cnt))
-                        {
-                            cnt += 1;
-                            ids[vl] = cnt;
-                        }
-                        else
-                        {
-                            ids.Add(vl, 1);
-                        }
-                    }
-                }
-                x = rsCur.Next();
-            }
-            //seperate dicitonary to greaterthan and less than = 
-            foreach (KeyValuePair<int, int> kvp in ids)
-            {
-                int vl = kvp.Key;
-                int cnt = kvp.Value;
-                if (cnt >= minCells)
-                {
-                    idsG.Add(vl, cnt);
-                }
-                else
-                {
-                    idsL.Add(vl, cnt);
-                }
-            }
-
-        }
-        /// <summary>
-        /// splits region into multiple regions
-        /// </summary>
-        /// <param name="inRaster"></param>
-        /// <param name="minCells"></param>
-        /// <param name="maxCells"></param>
-        /// <returns></returns>
-        public IRaster splitRegions(object inRaster, int minCells, int maxCells)
-        {
-            IRaster rs = returnRaster(inRaster);
-            IRasterProps rsProps = (IRasterProps)rs;
-            if (rsProps.PixelType == rstPixelType.PT_FLOAT || rsProps.PixelType == rstPixelType.PT_DOUBLE)
-            {
-                return rs;// = convertToDifFormatFunction(rs, rstPixelType.PT_LONG);
-            }
-            IRasterEdit rsE = (IRasterEdit)rs;
-            Dictionary<int, IEnvelope> idsG;
-            int mV = 0;
-            getRasterRegionCells(rs, maxCells, out idsG, out mV);
-            Console.WriteLine("splitting " + idsG.Count.ToString() + " regions");
-            int counter = mV+1;
-            foreach (KeyValuePair<int,IEnvelope> kvp in idsG)
-            {
-                int vId = kvp.Key;
-                IEnvelope env = kvp.Value;
-                double cells = env.ZMax;
-                if (cells < 135)
-                {
-                    Console.WriteLine("Splitting " + vId.ToString() + " number of cells = " + env.ZMax.ToString());
-                }
-                IPnt pbSize = new PntClass();
-                pbSize.SetCoords(env.Width,env.Height);
-                IPixelBlock pb = rs.CreatePixelBlock(pbSize);
-                IPnt pbLoc = new PntClass();
-                double l = env.UpperLeft.X;
-                double t = env.UpperLeft.Y;
-                pbLoc.SetCoords(l,t);
-                //Console.WriteLine("Width and Height = " + env.Width.ToString() + " " + env.Height.ToString());
-                //Console.WriteLine("Start locations = " + l.ToString() + " " + t.ToString());
-                rs.Read(pbLoc, pb);
-                System.Array inArr = (System.Array)pb.get_SafeArray(0);
-                getNewRegions(vId, maxCells, minCells, env, ref inArr, ref counter);
-                pb.set_SafeArray(0, inArr);
-                rsE.Write(pbLoc, pb);
-            }
-            
-
-            return rs;
-        }
-
-        private void getNewRegions(int vId, int maxCells, int minCells, IEnvelope env, ref System.Array inArr, ref int counter)
-        {
-            double cellCount = env.ZMax;
-            int leftover = System.Convert.ToInt32(cellCount - maxCells);
-            if (leftover <= minCells)
-            {
-                return;
-            }
-            int wd = System.Convert.ToInt32(env.Width);
-            int ht = System.Convert.ToInt32(env.Height);
-            for (int c = 0; c < wd; c++)
-            {
-                for (int r = 0; r < ht; r++)
-                {
-                    int inVl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                    if (vId == inVl)
-                    {
-                        if (leftover <= minCells)
-                        {
-                            //Console.WriteLine("Can't split values leftover too small");
-                            inArr.SetValue(counter, c, r);
-                        }
-                        else if (leftover > maxCells)
-                        {
-                            //Console.WriteLine("Trying to get new region");
-                            inArr.SetValue(counter, c, r);
-                            int numCells = 1;
-                            List<IPnt> pntLst = new List<IPnt>();
-                            IPnt pnt = new PntClass();
-                            pnt.SetCoords(c,r);
-                            pntLst.Add(pnt);
-                            while (numCells < maxCells)
-                            {
-                                List<IPnt> pntLst2 = new List<IPnt>();
-                                foreach (IPnt p in pntLst)
-                                {
-                                    int nc = System.Convert.ToInt32(p.X);
-                                    int nr = System.Convert.ToInt32(p.Y);
-                                    pntLst2.AddRange(getNewRegion(vId, minCells, maxCells, nc, nr, wd, ht, ref inArr, counter, ref numCells));
-                                    if (numCells >= maxCells)
-                                    {
-                                        break;
-                                    }
-                                }
-                                pntLst = pntLst2;
-                                if (pntLst.Count < 1)
-                                {
-                                    break;
-                                }
-                            }
-                            counter++;
-                            leftover = leftover - numCells;
-                        }
-                        else
-                        {
-                        }
-                    }
-                }
-            } 
-        }
-
-        private List<IPnt> getNewRegion(int vId, int minCells, int maxCells, int c, int r, int width, int height, ref System.Array inArr, int counter, ref int numCells)
-        {
-            List<IPnt> pntLst = new List<IPnt>();
-            int cp = c + 1;
-            int cm = c - 1;
-            int rp = r + 1;
-            int rm = r - 1;
-            if (cp >= width) cp = c;
-            if (cm < 0) cm = 0;
-            if (rp >= height) rp = r;
-            if(rm<0) rm=0;
-            List<int[]> crLst = new List<int[]>();
-            int[] cr11 = { cp, r };
-            int[] cr01 = { c, rp };
-            int[] cr10 = { cm, r };
-            int[] cr00 = { c, rm };
-            crLst.Add(cr11);
-            crLst.Add(cr01);
-            crLst.Add(cr10);
-            crLst.Add(cr00);
-            foreach (int[] cr in crLst)
-            {
-                int nc = cr[0];
-                int nr = cr[1];
-                if (nc == c && nr == r)
-                {
-                    continue;
-                }
-                int cellVl = System.Convert.ToInt32(inArr.GetValue(nc, nr));
-                //Console.WriteLine(nc.ToString() + nr.ToString());
-                if (cellVl == vId)
-                {
-                    IPnt pnt = new PntClass();
-                    pnt.SetCoords(nc, nr);
-                    inArr.SetValue(counter, nc, nr);
-                    pntLst.Add(pnt);
-                    numCells= numCells+1;
-                    if (numCells >= maxCells)
-                    {
-                        pntLst.Clear();
-                        break;
-                    }
-                }
-            }
-            return pntLst;
-        }
-
-        private void getRasterRegionCells(IRaster rs, int minCells, out Dictionary<int, IEnvelope> idsG, out int maxValue)
-        {
-            Dictionary<int, IEnvelope> ids = new Dictionary<int,IEnvelope>();
-            IRasterProps rsp = (IRasterProps)rs;
-            int noData = System.Convert.ToInt32(((System.Array)rsp.NoDataValue).GetValue(0));
-            idsG = new Dictionary<int,IEnvelope>();
-            IPnt pnt = new PntClass();
-            pnt.SetCoords(512, 512);
-            maxValue = Int32.MinValue;
-            //create dictionary
-            IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(pnt);
-            bool x = true;
-            while (x)
-            {
-                IPixelBlock pb = rsCur.PixelBlock;
-                IPnt topleft = rsCur.TopLeft;
-                double tX = topleft.X;
-                double tY = topleft.Y;
-                System.Array inArr = (System.Array)pb.get_SafeArray(0);
-                int ht = pb.Height;
-                int wd = pb.Width;
-                for (int c = 0; c < wd; c++)
-                {
-                    for (int r = 0; r < ht; r++)
-                    {
-                        int vl = System.Convert.ToInt32(inArr.GetValue(c, r));
-                        if (vl == noData)
-                        {
-                            continue;
-                        }
-                        if (vl > maxValue) maxValue = vl;
-                        IEnvelope env;
-                        double minx, miny, maxx, maxy, maxz;
-                        if (ids.TryGetValue(vl, out env))
-                        {
-                            double cx = c + tX;
-                            double cy = tY-r;
-                            minx = env.XMin;
-                            miny = env.YMin;
-                            maxx = env.XMax;
-                            maxy = env.YMax;
-                            maxz = env.ZMax;
-                            if(cx<minx)env.XMin=cx;
-                            if(cx>maxx)env.XMax=cx;
-                            if(cy<miny)env.YMin=cy;
-                            if(cy>maxy)env.YMax=cy;
-                            env.ZMax = maxz+1;
-                            ids[vl]=env;
-                        }
-                        else
-                        {
-                            env = new EnvelopeClass();
-                            double cminx = c + tX;
-                            double cminy = r + tY;
-                            env.XMin = cminx;
-                            env.XMax = cminx;
-                            env.YMin = cminy;
-                            env.YMax = cminy;
-                            env.ZMax = 1;
-                            ids.Add(vl, env);
-                        }
-                    }
-                }
-                x = rsCur.Next();
-            }
-            //seperate dicitonary to greaterthan 
-            foreach (KeyValuePair<int, IEnvelope> kvp in ids)
-            {
-                int vl = kvp.Key;
-                IEnvelope env = kvp.Value;
-                double cnt = env.ZMax;
-                if (cnt >= minCells)
-                {
-                    idsG.Add(vl, env);
-                }
-            }
-
-        }
         /// <summary>
         /// performs block summarization
         /// </summary>
@@ -4393,6 +3637,7 @@ namespace esriUtil
             IMosaicDataset mosaicDset = mosaicExt.OpenMosaicDataset(mosaicDatasetName);
             return mosaicDset;
         }
+
         public IRaster mergeRasterFunction(IRaster[] inRasters,rstMosaicOperatorType mergeMethod,string rstNm)
         {
             string dbStr = mosaicDir + "\\rsCatDb.gdb";
@@ -4433,11 +3678,24 @@ namespace esriUtil
             zH.setZoneValues();
             return zH.OutTable;
         }
+        public IGeometry extractDomain(IRaster rs, bool pCenterbased=false)
+        {
+            IRaster rs1 = rs;
+            if (((IRasterBandCollection)rs1).Count > 1)
+            {
+                rs1 = getBand(rs, 0);
+            }
+            IRasterDomainExtractor dEx = new RasterDomainExtractorClass();
+            IPolygon poly = dEx.ExtractDomain(rs1,pCenterbased);
+            return (IGeometry)poly;
+        }
+
         public static void cleanupTempDirectories()
         {
-            string func = System.Environment.GetEnvironmentVariable("temp") + "\\func";
-            string mos = System.Environment.GetEnvironmentVariable("temp") + "\\mosaic";
-            string conv = System.Environment.GetEnvironmentVariable("temp") + "\\conv";
+            string mainPath = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string func = mainPath + "\\RmrsRasterUtilityHelp\\func";
+            string mos = mainPath + "\\RmrsRasterUtilityHelp\\mosaic";
+            string conv = mainPath + "\\RmrsRasterUtilityHelp\\conv";
             string[] dirs = {func,mos,conv};
             foreach (string s in dirs)
             {
@@ -4456,6 +3714,7 @@ namespace esriUtil
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset.Workspace);
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(rDset);
         }
+        
         public static bool isNullData(object inValue, object noDataValue)
         {
             try
@@ -4476,8 +3735,6 @@ namespace esriUtil
                 Console.WriteLine("failed isNullData " + inValue.ToString());
                 return true;
             }
-        }
-
-        
+        }        
     }
 }

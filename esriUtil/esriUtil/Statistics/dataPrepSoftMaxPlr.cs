@@ -230,7 +230,6 @@ namespace esriUtil.Statistics
         int info;
         alglib.mnlreport rep;
         string independentfieldnames;
-
         public alglib.logitmodel SoftMaxNnetModel
         {
             get

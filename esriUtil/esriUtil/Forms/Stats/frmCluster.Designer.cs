@@ -45,6 +45,8 @@
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.nudClasses = new System.Windows.Forms.NumericUpDown();
+            this.cmbClustType = new System.Windows.Forms.ComboBox();
+            this.lbl = new System.Windows.Forms.Label();
             this.gpSelection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudClasses)).BeginInit();
             this.SuspendLayout();
@@ -206,11 +208,30 @@
             0,
             0});
             // 
+            // cmbClustType
+            // 
+            this.cmbClustType.FormattingEnabled = true;
+            this.cmbClustType.Location = new System.Drawing.Point(129, 78);
+            this.cmbClustType.Name = "cmbClustType";
+            this.cmbClustType.Size = new System.Drawing.Size(121, 21);
+            this.cmbClustType.TabIndex = 71;
+            // 
+            // lbl
+            // 
+            this.lbl.AutoSize = true;
+            this.lbl.Location = new System.Drawing.Point(129, 60);
+            this.lbl.Name = "lbl";
+            this.lbl.Size = new System.Drawing.Size(43, 13);
+            this.lbl.TabIndex = 72;
+            this.lbl.Text = "Method";
+            // 
             // frmCluster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(281, 453);
+            this.Controls.Add(this.lbl);
+            this.Controls.Add(this.cmbClustType);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.nudClasses);
             this.Controls.Add(this.label5);
@@ -252,5 +273,7 @@
         private System.Windows.Forms.ComboBox cmbSampleFeatureClass;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.NumericUpDown nudClasses;
+        private System.Windows.Forms.ComboBox cmbClustType;
+        private System.Windows.Forms.Label lbl;
     }
 }

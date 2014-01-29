@@ -32,10 +32,12 @@ namespace esriUtil.FunctionRasters
                 IPnt cSize = rsP.MeanCellSize();
                 cSize.X = cSize.X*cells;
                 cSize.Y = cSize.Y*cells;
-                double w = System.Convert.ToInt32((rsP.Extent.Width / cSize.X) + 1)*cSize.X+rsP.Extent.XMin;
-                double h = System.Convert.ToInt32((rsP.Extent.Height / cSize.Y) + 1)*cSize.Y+rsP.Extent.YMin;
+                double w = ((int)((System.Convert.ToDouble(rsP.Width) / cells)+0.99999999))*cSize.X+rsP.Extent.XMin;
+                double h = rsP.Extent.YMax - (((int)((System.Convert.ToDouble(rsP.Height) / cells) + 0.99999999)) * cSize.Y);
+                //double w = System.Convert.ToInt32((rsP.Extent.Width / cSize.X))*cSize.X+rsP.Extent.XMin;
+                //double h = System.Convert.ToInt32((rsP.Extent.Height / cSize.Y))*cSize.Y+rsP.Extent.YMin;
                 IEnvelope env = new EnvelopeClass();
-                env.PutCoords(rsP.Extent.XMin, rsP.Extent.YMin, w, h);
+                env.PutCoords(rsP.Extent.XMin, h, w, rsP.Extent.YMax);
                 inrs = rsUtil.constantRasterFunction(rs,env,0,cSize);
                 return inrs;
             } 

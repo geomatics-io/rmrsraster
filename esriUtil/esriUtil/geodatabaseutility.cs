@@ -2432,18 +2432,21 @@ namespace esriUtil
                 IFeatureClassDescription fcDescription = new FeatureClassDescriptionClass();
                 IObjectClassDescription ocDescription = (IObjectClassDescription)fcDescription;
                 IFields fields = ocDescription.RequiredFields;
-                IFieldsEdit fieldsEdit = (IFieldsEdit)fields;
-                for (int i = 0; i < atrflds.FieldCount; i++)
+                if (atrflds != null)
                 {
-                    IField fld = atrflds.get_Field(i);
-                    IField nFld = new FieldClass();
-                    IFieldEdit nFldE = (IFieldEdit)nFld;
-                    nFldE.Name_2 = fld.Name;
-                    if (fld.Type != esriFieldType.esriFieldTypeOID)
+                    IFieldsEdit fieldsEdit = (IFieldsEdit)fields;
+                    for (int i = 0; i < atrflds.FieldCount; i++)
                     {
-                        nFldE.Type_2 = fld.Type;
-                        fieldsEdit.AddField(nFld);
-                    }                    
+                        IField fld = atrflds.get_Field(i);
+                        IField nFld = new FieldClass();
+                        IFieldEdit nFldE = (IFieldEdit)nFld;
+                        nFldE.Name_2 = fld.Name;
+                        if (fld.Type != esriFieldType.esriFieldTypeOID)
+                        {
+                            nFldE.Type_2 = fld.Type;
+                            fieldsEdit.AddField(nFld);
+                        }
+                    }
                 }
                 // Find the shape field in the required fields and modify its GeometryDef to// use point geometry and to set the spatial reference.int shapeFieldIndex = fields.FindField(fcDescription.ShapeFieldName);
                 IField field = fields.get_Field(fields.FindField(fcDescription.ShapeFieldName));
@@ -2518,7 +2521,7 @@ namespace esriUtil
                     schemaLock.ChangeSchemaLock(esriSchemaLock.esriSharedSchemaLock);
                 }
             }
-            return nm;
+            return snm;
 
 
         }

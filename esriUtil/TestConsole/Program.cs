@@ -36,39 +36,61 @@ namespace TestConsole
             
             System.DateTime dt2;
             TimeSpan ts;
-            //Console.WriteLine(System.Convert.ToInt32(a));
-            //Console.WriteLine((int)a);
-            geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+            
             rasterUtil rsUtil = new rasterUtil();
-            //featureUtil ftUtil = new featureUtil();
-            string dem10Str = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\COFE\GISData\COFE.gdb\dem";
-            string subFtr = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\COFE\GISData\COFE.gdb\subset";
-            IRaster dem10 = rsUtil.returnRaster(dem10Str);
-            IFeatureClass ftrCls = geoUtil.getFeatureClass(subFtr);
-            IFeatureCursor cur = ftrCls.Search(null, false);
-            IFeature ftr = cur.NextFeature();
-            IGeometry geo = ftr.Shape;
-            IRaster oRs = rsUtil.clipRasterFunction(dem10, geo, esriRasterClippingType.esriRasterClippingOutside);
-            //IRaster asp = rsUtil.calcAspectFunction(dem10);
-            //string mdPath = @"C:\Documents and Settings\jshogland\My Documents\JOHN\presentation\Authoring\fy2013\COFE\GISData\rfBiomass.mdl";
-            //IRaster CoefficentRaster = rsUtil.compositeBandFunction(new IRaster[] { asp, dem10 });
-            //esriUtil.Statistics.ModelHelper mh = new esriUtil.Statistics.ModelHelper(mdPath, CoefficentRaster, rsUtil);
-            //IRaster oRs = mh.getRaster();
-            IPnt pnt = new PntClass();
-            pnt.SetCoords(100,100);
-            IPnt pntLoc = new PntClass();
-            pntLoc.SetCoords(0, 0);
-            IPixelBlock pb = oRs.CreatePixelBlock(pnt);
-            oRs.Read(pntLoc, pb);
-            for (int r = 0; r < 10; r++)
+            geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+            string ls = @"C:\Users\jshogland\Documents\JOHN\projects\TrainingSamples\MrlcLandsat\7016041000109350_REFL.IMG";
+            IRaster rs = rsUtil.returnRaster(ls);
+            esriUtil.Statistics.dataPrepClusterBinary bClus = new esriUtil.Statistics.dataPrepClusterBinary(rs, 10);
+            IRaster bClusRs = rsUtil.calcClustFunctionBinary(rs, bClus);
+            IRasterProps rsProps = (IRasterProps)bClusRs;
+            int wCells= rsProps.Width;
+            int hCells = rsProps.Height;
+            Dictionary<int, List<int>> vlArrayDic = new Dictionary<int, List<int>>();
+            IRasterCursor rsCur = bClusRs.CreateCursor();
+            IPixelBlock pb = null;
+            do
             {
-                for (int c = 0; c < 10; c++)
+                IPnt tlPnt = rsCur.TopLeft;
+                int x = System.Convert.ToInt32(tlPnt.X);
+                int y = System.Convert.ToInt32(tlPnt.Y);
+                pb = rsCur.PixelBlock;
+                for (int r = 0; r < pb.Height; r++)
                 {
-                    object vl = pb.GetVal(0, c, r);
-                    if (vl == null) Console.WriteLine("Null");
-                    else Console.WriteLine(vl.ToString());
+                    int yjump = (y+r)*wCells;
+                    for (int c = 0; c < pb.Width; c++)
+                    {
+                        object objVl = pb.GetVal(0, c, r);
+                        if (objVl != null)
+                        {
+                            int vl = System.Convert.ToInt32(objVl);
+                            int lc = yjump+(x+c);
+                            List<int> oLst = null;
+                            if (vlArrayDic.TryGetValue(vl, out oLst))
+                            {
+                                oLst.Add(lc);
+                            }
+                            else
+                            {
+                                oLst = new List<int>();
+                                oLst.Add(lc);
+                                vlArrayDic.Add(vl, oLst);
+                            }
+                        }
+                    }
+                    
                 }
-            }
+			
+            } while (rsCur.Next() == true);
+            Console.WriteLine(vlArrayDic.Keys.Count.ToString());
+            Console.WriteLine(vlArrayDic[0].Count.ToString());
+            //string ls8 = @"C:\Users\jshogland\Documents\JOHN\presentation\Authoring\fy2014\MAGIP\Data\RMRS_Raster_Utility.gdb\LS8Clip";
+            //IRaster inRs = rsUtil.returnRaster(ls8);
+            //esriUtil.Statistics.dataPrepClusterBinary dpBinary = new esriUtil.Statistics.dataPrepClusterBinary(inRs, 10);
+            //IRaster cluRs = rsUtil.calcClustFunctionBinary(inRs, dpBinary);
+            //IRaster regRs = rsUtil.regionGroup(cluRs);
+            ////esriUtil.segmentation seg = new segmentation(rsUtil, inRs, 406400, 40640, 10);
+            ////seg.createPolygons();           
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Pointer Total Seconds = " + ts.TotalSeconds.ToString());

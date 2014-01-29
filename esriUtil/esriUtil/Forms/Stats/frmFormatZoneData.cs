@@ -101,6 +101,10 @@ namespace esriUtil.Forms.Stats
         {
             string rstNm = cmbdataset.Text;
             string mdPath = txtOutputPath.Text;
+            string pfr = txtPrefix.Text;
+            int t1;
+            double d;
+            if (Int32.TryParse(pfr, out t1)||Double.TryParse(pfr,out d)) pfr = "";
             string linkFldName = cmbField.Text;
             if (rstNm == null || rstNm == "")
             {
@@ -125,7 +129,7 @@ namespace esriUtil.Forms.Stats
             try
             {
                 Statistics.ModelHelper.runProgressBar("Transposing Zonal Data");
-                FunctionRasters.zonalHelper.transformData(tbl,linkFldName, ztbl);
+                FunctionRasters.zonalHelper.transformData(tbl,linkFldName, ztbl, pfr);
                 this.DialogResult = DialogResult.OK;
             }
             catch (Exception ex)

@@ -52,6 +52,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.chbReg = new System.Windows.Forms.CheckBox();
+            this.chbVI = new System.Windows.Forms.CheckBox();
             this.gpSelection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudSplit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudratio)).BeginInit();
@@ -300,18 +301,29 @@
             // chbReg
             // 
             this.chbReg.AutoSize = true;
-            this.chbReg.Location = new System.Drawing.Point(24, 460);
+            this.chbReg.Location = new System.Drawing.Point(24, 450);
             this.chbReg.Name = "chbReg";
             this.chbReg.Size = new System.Drawing.Size(79, 17);
             this.chbReg.TabIndex = 43;
             this.chbReg.Text = "Regression";
             this.chbReg.UseVisualStyleBackColor = true;
             // 
+            // chbVI
+            // 
+            this.chbVI.AutoSize = true;
+            this.chbVI.Location = new System.Drawing.Point(24, 476);
+            this.chbVI.Name = "chbVI";
+            this.chbVI.Size = new System.Drawing.Size(120, 17);
+            this.chbVI.TabIndex = 44;
+            this.chbVI.Text = "Variable Importance";
+            this.chbVI.UseVisualStyleBackColor = true;
+            // 
             // frmRandomForest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(290, 498);
+            this.Controls.Add(this.chbVI);
             this.Controls.Add(this.chbReg);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtOutputPath);
@@ -363,5 +375,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.NumericUpDown nudTrees;
         private System.Windows.Forms.CheckBox chbReg;
+        private System.Windows.Forms.CheckBox chbVI;
     }
 }

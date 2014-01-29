@@ -209,7 +209,7 @@ namespace esriUtil.Forms.OptFuels
                 if (modelrs != null)
                 {
                     string rgNm = rsUtil.getSafeOutputName(landfireworkspace,"RG");
-                    IRaster rgRs = rsUtil.regionGroup(modelrs, landfireworkspace, rgNm);
+                    IRaster rgRs = rsUtil.regionGroup(modelrs);
                     IRasterProps modelrsProps = (IRasterProps)modelrs;
                     IPnt pnt = modelrsProps.MeanCellSize();
                     double meanCellSize = pnt.X*pnt.Y;
@@ -218,15 +218,15 @@ namespace esriUtil.Forms.OptFuels
                     int maxcell = System.Convert.ToInt32((maxarea/meanCellSize)+.5);
                     //Console.WriteLine("number of cells = " + mincell.ToString());
                     Console.WriteLine("Eliminating slivers");
-                    IRaster rsE = rsUtil.eliminateSlivers(rgRs,mincell,maxcell);
+                    //IRaster rsE = rsUtil.eliminateSlivers(rgRs,mincell,maxcell);
                     Console.WriteLine("Splitting Polygons");
-                    IRaster rsS = rsUtil.splitRegions(rsE, mincell, maxcell);
+                    //IRaster rsS = rsUtil.splitRegions(rsE, mincell, maxcell);
                     string outNm = "LandFireStands";
                     outNm = returnSafeName(outNm);
                     //Console.WriteLine("Converting to polygon");
                     IConversionOp convOp = new RasterConversionOpClass();
-                    IGeoDataset geoDset = convOp.RasterDataToPolygonFeatureData((IGeoDataset)rsS, LandFireWorkspace, outNm, false);
-                    LandFireFeatureClass = (IFeatureClass)geoDset;
+                    //IGeoDataset geoDset = convOp.RasterDataToPolygonFeatureData((IGeoDataset)rsS, LandFireWorkspace, outNm, false);
+                    //LandFireFeatureClass = (IFeatureClass)geoDset;
                 }
                 //Console.WriteLine("Finished Converting Polygons");
             }

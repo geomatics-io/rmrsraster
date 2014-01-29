@@ -116,6 +116,8 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="commandNdviRaster.cs" />
+    <Compile Include="commandRegionGroup.cs" />
     <Compile Include="commandAccuracyAssessment.cs" />
     <Compile Include="commandAddFunctionModelToMap.cs" />
     <Compile Include="commandAddTiledImageServer.cs" />
@@ -128,6 +130,7 @@
     <Compile Include="commandCalculateRasterStatistics.cs" />
     <Compile Include="commandClipRaster.cs" />
     <Compile Include="commandCluster.cs" />
+    <Compile Include="commandComparClassifications.cs" />
     <Compile Include="commandCompareSampleSize.cs" />
     <Compile Include="commandCompositeRaster.cs" />
     <Compile Include="commandConditionalRaster.cs" />
@@ -156,6 +159,7 @@
     <Compile Include="commandMathRaster.cs" />
     <Compile Include="commandMergeRasters.cs" />
     <Compile Include="commandMultivariateRegression.cs" />
+    <Compile Include="commandNormalize.cs" />
     <Compile Include="commandNorthing.cs" />
     <Compile Include="commandNullDataToValue.cs" />
     <Compile Include="commandAddData.cs" />
@@ -178,6 +182,7 @@
     <Compile Include="commandSelectSamplesFromFeature.cs" />
     <Compile Include="commandSeperateProcess.cs" />
     <Compile Include="commandSetNull.cs" />
+    <Compile Include="commandSetNullValue.cs" />
     <Compile Include="commandSetupToolbar.cs" />
     <Compile Include="commandShiftRaster.cs" />
     <Compile Include="commandShowReport.cs" />
@@ -186,6 +191,7 @@
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandStratifiedVarCov.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
+    <Compile Include="commandTasseledCapETM7.cs" />
     <Compile Include="commandTTest.cs" />
     <Compile Include="commandVarCov.cs" />
     <Compile Include="commandVersion.cs" />
@@ -607,6 +613,24 @@
     <AddInContent Include="Images\commandGlm.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
+    <AddInContent Include="Images\commandComparClassifications.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandNormalize.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSetNullValue.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandRegionGroup.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandNdviRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandTasseledCapETM7.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
     <Content Include="RMRSBatchProcess.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -630,7 +654,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">

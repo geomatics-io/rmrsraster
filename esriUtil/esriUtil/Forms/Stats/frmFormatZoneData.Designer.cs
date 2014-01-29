@@ -38,11 +38,13 @@
             this.txtOutputPath = new System.Windows.Forms.TextBox();
             this.cmbField = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.txtPrefix = new System.Windows.Forms.TextBox();
+            this.lblPrefix = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(209, 172);
+            this.btnExecute.Location = new System.Drawing.Point(210, 230);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(55, 23);
             this.btnExecute.TabIndex = 52;
@@ -53,7 +55,7 @@
             // btnOpenFeatureClass
             // 
             this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(242, 134);
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(243, 192);
             this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
             this.btnOpenFeatureClass.Size = new System.Drawing.Size(23, 24);
             this.btnOpenFeatureClass.TabIndex = 51;
@@ -63,7 +65,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(13, 119);
+            this.label2.Location = new System.Drawing.Point(14, 177);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(110, 13);
             this.label2.TabIndex = 50;
@@ -99,7 +101,7 @@
             // 
             // txtOutputPath
             // 
-            this.txtOutputPath.Location = new System.Drawing.Point(16, 137);
+            this.txtOutputPath.Location = new System.Drawing.Point(17, 195);
             this.txtOutputPath.Name = "txtOutputPath";
             this.txtOutputPath.Size = new System.Drawing.Size(220, 20);
             this.txtOutputPath.TabIndex = 56;
@@ -121,11 +123,29 @@
             this.label3.TabIndex = 58;
             this.label3.Text = "Link Field";
             // 
+            // txtPrefix
+            // 
+            this.txtPrefix.Location = new System.Drawing.Point(17, 139);
+            this.txtPrefix.Name = "txtPrefix";
+            this.txtPrefix.Size = new System.Drawing.Size(166, 20);
+            this.txtPrefix.TabIndex = 59;
+            // 
+            // lblPrefix
+            // 
+            this.lblPrefix.AutoSize = true;
+            this.lblPrefix.Location = new System.Drawing.Point(16, 120);
+            this.lblPrefix.Name = "lblPrefix";
+            this.lblPrefix.Size = new System.Drawing.Size(104, 13);
+            this.lblPrefix.TabIndex = 60;
+            this.lblPrefix.Text = "Field Prefix (optional)";
+            // 
             // frmFormatZonalData
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(277, 209);
+            this.ClientSize = new System.Drawing.Size(277, 265);
+            this.Controls.Add(this.lblPrefix);
+            this.Controls.Add(this.txtPrefix);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.cmbField);
             this.Controls.Add(this.txtOutputPath);
@@ -156,5 +176,7 @@
         private System.Windows.Forms.TextBox txtOutputPath;
         private System.Windows.Forms.ComboBox cmbField;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtPrefix;
+        private System.Windows.Forms.Label lblPrefix;
     }
 }

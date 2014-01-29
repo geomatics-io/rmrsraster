@@ -149,7 +149,14 @@ namespace esriUtil.Forms.Sampling
                 if(Int32.TryParse(outModelPath,out ns))
                 {
                     //MessageBox.Show(ns.ToString());
-                    ftrUtil.selectEqualFeaturesToSample(ftrCls, mapFld, ns,chbEqual.Checked);
+                    if (mapFld == null || mapFld == "" || ftrCls.FindField(mapFld) == -1)
+                    {
+                        ftrUtil.selectRandomFeaturesToSample(ftrCls, ns);
+                    }
+                    else
+                    {
+                        ftrUtil.selectEqualFeaturesToSample(ftrCls, mapFld, ns, chbEqual.Checked);
+                    }
                 }
                 else
                 {

@@ -981,8 +981,10 @@ namespace esriUtil.FunctionRasters
         }
 
 
-        public static void transformData(ITable zoneTable, string linkFieldName, ITable zonalSummaryTable)
+        public static void transformData(ITable zoneTable, string linkFieldName, ITable zonalSummaryTable, string prefix="")
         {
+            string prf = "";
+            if (prefix != ""&&prefix!=null) prf = prefix + "_";
             IObjectClassInfo2 oi2 = (IObjectClassInfo2)zoneTable;
             if (!oi2.CanBypassEditSession())
             {
@@ -1039,7 +1041,7 @@ namespace esriUtil.FunctionRasters
                         zsFldNames.Add(nm);
                         for (int j = 0; j < unqCnt; j++)
                         {
-                            string nnm = nm + "_" + (j + 1).ToString();
+                            string nnm = prf+nm + "_" + (j + 1).ToString();
                             newFldNames.Add(geoUtil.createField(zoneTable, nnm, esriFieldType.esriFieldTypeDouble,false));
                         }
                     }
@@ -1087,7 +1089,7 @@ namespace esriUtil.FunctionRasters
                         string zsN = zsFldNames[j];  
                         int zsNIndex = zsFldNamesIndex[j];
                         double zsVl = System.Convert.ToDouble(rwZs.get_Value(zsNIndex));
-                        string newZName = zsN + "_" + (i + 1).ToString();
+                        string newZName = prf+zsN + "_" + (i + 1).ToString();
                         int newZNameIndex = newFldNamesIndex[newFldNames.IndexOf(newZName)];
                         rwZ.set_Value(newZNameIndex, zsVl);
                     }

@@ -23,7 +23,7 @@ namespace esriUtil
             if (rp != null) rp = runningDialog;
         }
         featureUtil ftrUtil = new featureUtil();
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS }
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS, RENAMEFIELD, FORMATZONAL }
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -278,6 +278,12 @@ namespace esriUtil
                                     case batchGroups.EXPORTFEATURECLASS:
                                         ftrDic[outName] = exportFeatureClass(paramArr);
                                         break;
+                                    case batchGroups.RENAMEFIELD:
+                                        tblDic[outName] = renameField(paramArr);
+                                        break;
+                                    case batchGroups.FORMATZONAL:
+                                        tblDic[outName] = zonalFormatData(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -307,6 +313,24 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private ITable zonalFormatData(string[] paramArr)
+        {
+            ITable inTable = getTable(paramArr[0]);
+            string linkFldName = paramArr[1];
+            ITable zTbl = getTable(paramArr[2]);
+            string pfr = "";
+            if (paramArr.Length > 3) pfr = paramArr[3];
+            FunctionRasters.zonalHelper.transformData(inTable, linkFldName, zTbl, pfr);
+            return inTable;
+        }
+
+        private ITable renameField(string[] paramArr)
+        {
+            ITable inTable = getTable(paramArr[0]);
+            ftrUtil.renameField(inTable,paramArr[1],paramArr[2]);
+            return inTable;
         }
 
         private IFeatureClass exportFeatureClass(string[] paramArr)
@@ -461,11 +485,24 @@ namespace esriUtil
                 case Statistics.dataPrepBase.modelTypes.GLM:
                     createGLMFunction(paramArr);
                     break;
+                case Statistics.dataPrepBase.modelTypes.CompareClassifications:
+                    createCompareClassificationsFunction(paramArr);
+                    break;
                 default:
                     break;
             }
             return paramArr[paramArr.Length - 1];
 
+        }
+
+        private void createCompareClassificationsFunction(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string reference = paramArr[2];
+            string mapped1 = paramArr[3];
+            string mapped2 = paramArr[4];
+            Statistics.dataPrepCompareClassifications dpCompareClassifications = new Statistics.dataPrepCompareClassifications(table,reference, mapped1,mapped2);
+            dpCompareClassifications.writeModel(paramArr[paramArr.Length - 1]);
         }
 
         private void createGLMFunction(string[] paramArr)
@@ -541,14 +578,15 @@ namespace esriUtil
             Statistics.dataPrepVarCovCorr dpVc = null;
             if (paramArr.Length > 3)
             {
-                IRaster rs = getRaster(paramArr[1]);
-                dpVc = new Statistics.dataPrepVarCovCorr(rs);
-            }
-            else
-            {
                 ITable table = getTable(paramArr[1]);
                 string[] variables = paramArr[2].Split(new char[] { ',' });
                 dpVc = new Statistics.dataPrepVarCovCorr(table, variables);
+                
+            }
+            else
+            {
+                IRaster rs = getRaster(paramArr[1]);
+                dpVc = new Statistics.dataPrepVarCovCorr(rs);
             }
             dpVc.writeModel(paramArr[paramArr.Length - 1]);
         }
@@ -694,19 +732,37 @@ namespace esriUtil
 
         private void createClusterModel(string[] paramArr)
         {
-            Statistics.dataPrepCluster dpC = null;
-            if(paramArr.Length<5)
+
+            Statistics.dataPrepClusterBase dpC = null;
+            esriUtil.Statistics.clusterType cType = Statistics.clusterType.KMEANS;
+            if(paramArr.Length<6)
             {
                 IRaster rs = getRaster(paramArr[1]);
                 int nCls = System.Convert.ToInt32(paramArr[2]);
-                dpC = new Statistics.dataPrepCluster(rs,nCls);
+                cType = (esriUtil.Statistics.clusterType)Enum.Parse(typeof(esriUtil.Statistics.clusterType), paramArr[3]);
+                switch (cType)
+                {
+                    case esriUtil.Statistics.clusterType.KMEANS:
+                        dpC = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterKmean(rs, nCls));
+                        break;
+                    case esriUtil.Statistics.clusterType.BINARY:
+                        dpC = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterBinary(rs, nCls));
+                        break;
+                    case esriUtil.Statistics.clusterType.GAUSSIANMIXTURE:
+                        dpC = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterGaussian(rs, nCls));
+                        break;
+                    default:
+                        break;
+                }
+                
             }
             else
             {
                 ITable tbl = getTable(paramArr[1]);
                 string[] flds = paramArr[2].Split(new char[]{','});
                 int nCls = System.Convert.ToInt32(paramArr[3]);
-                dpC = new Statistics.dataPrepCluster(tbl,flds,nCls);
+                cType = (esriUtil.Statistics.clusterType)Enum.Parse(typeof(esriUtil.Statistics.clusterType), paramArr[4]);
+                dpC = new Statistics.dataPrepClusterKmean(tbl,flds,nCls);
             }
             dpC.writeModel(paramArr[paramArr.Length - 1]);
         }
@@ -824,7 +880,7 @@ namespace esriUtil
         private ITable predictNewValues(string[] paramArr)
         {
             string tblStr = paramArr[0];
-            ITable tbl = geoUtil.getTable(tblStr);
+            ITable tbl = getTable(tblStr);
             string mPath = getModelPath(paramArr[1]);
             Statistics.ModelHelper mH = new Statistics.ModelHelper(mPath);
             mH.predictNewData(tbl);
@@ -1214,16 +1270,22 @@ namespace esriUtil
         private IRaster createSetNullFunction(string[] paramArr)
         {
             IRaster rs = getRaster(paramArr[0]);
-            List<double[]> minMaxLst = new List<double[]>();
+            IStringArray strArray = new StrArrayClass();
             string vlStr = paramArr[1];
             string[] vlArr = vlStr.Split(new char[] { ',' });
             foreach (string s in vlArr)
             {
                 string[] rngArr = s.Split(new char[] { '-' });
-                double[] mm = { System.Convert.ToDouble(rngArr[0]), System.Convert.ToDouble(rngArr[1]) };
-                minMaxLst.Add(mm);
+                int min = System.Convert.ToInt32(rngArr[0]);
+                int max = System.Convert.ToInt32(rngArr[1]);
+                List<string> ndVlsLst = new List<string>(); 
+                for (int i = min; i < max; i++)
+                {
+                    ndVlsLst.Add(i.ToString());
+                }
+                strArray.Add(String.Join(" ", ndVlsLst.ToArray()));
             }
-            return rsUtil.setValueRangeToNodata(rs,minMaxLst);
+            return rsUtil.setValueRangeToNodata(rs,strArray);
         }
 
         private IRaster createMathFunction(string[] paramArr)
@@ -1498,6 +1560,12 @@ namespace esriUtil
                     break;
                 case batchGroups.SURFACE:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;surfaceType)";
+                    break;
+                case batchGroups.RENAMEFIELD:
+                    msg = "outTbl = " + batchFunction.ToString() + "(inTable;oldFieldName;newFieldName)";
+                    break;
+                case batchGroups.FORMATZONAL:
+                    msg = "outTbl = " + batchFunction.ToString() + "(inZoneTable;linkFieldName;inZonalSummaryTable;FieldPrefix)";
                     break;
                 default:
                     break;

@@ -34,7 +34,7 @@ namespace esriUtil
                 System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
                 return;
             }
-            esriUtil.Statistics.dataPrepCluster dpC = new Statistics.dataPrepCluster();
+            esriUtil.Statistics.dataPrepClusterKmean dpC = new Statistics.dataPrepClusterKmean();
             dpC.buildModel(clusterModelPath);
             List<string> labels = dpC.Labels;
             HashSet<string> unqVls = geoUtil.getUniqueValues(inputTable, clusterFieldName);
@@ -127,7 +127,51 @@ namespace esriUtil
             int samplesPerClass = esriUtil.Statistics.dataPrepSampleSize.sampleSizeKappa(AccuracyAssessmentModelPath, proportionOfMean, alpha)/labels.Count + 1;
             selectEqualFeaturesToSample(inputTable, mapField, samplesPerClass, weightsEqual);
         }
-
+        public void selectRandomFeaturesToSample(ITable inputTable, int totalSamples)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            System.Random rd = new Random();
+            double tRec = inputTable.RowCount(null);
+            double gR = totalSamples / System.Convert.ToDouble(tRec);
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            string weightFldName = geoUtil.createField(inputTable, "weight", esriFieldType.esriFieldTypeDouble, false);
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            try
+            {
+                ICursor cur = inputTable.Update(null, false);
+                int sIndex = cur.FindField(sampleFldName);
+                int wIndex = cur.FindField(weightFldName);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    if (rNum <= gR)
+                    {
+                        ss = 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    rw.set_Value(wIndex, 1);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+        }
         public void selectEqualFeaturesToSample(ITable inputTable, string mapField, int SamplesPerClass, bool weightsEqual=false )
         {
             IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
@@ -268,7 +312,7 @@ namespace esriUtil
                     double r = ((double[])sampledBinPropDic[clustStr][0])[b];
 
                     int ss = 0;
-                    if (rNum < r)
+                    if (rNum <= r)
                     {
                         ss = 1;
                     }
@@ -301,7 +345,7 @@ namespace esriUtil
                 int totalCnt = cntArr.Sum();
                 //double[] ratioArr = (double[])kvp.Value[0];
                 int[] cntArr2 = (int[])bigSampleDic[ky][1];
-                double[] ratioArr2 = dpComp.binPropDic1[ky][0];// (double[])bigSampleDic[ky][0];
+                double[] ratioArr2 = dpComp.ClusterProportions[ky];//.binPropDic1[ky][0];// (double[])bigSampleDic[ky][0];
                 double[] nrArr = new double[ratioArr2.Length];
                 for (int i = 0; i < cntArr.Length; i++)
                 {
@@ -350,7 +394,7 @@ namespace esriUtil
                 int b = System.Convert.ToInt32(rw.get_Value(bIndex));
                 double rNum = rd.NextDouble();
                 double r = ratioDic[clustStr][b];
-                if (rNum < r)
+                if (rNum <= r)
                 {
                     IRow srw = sampledTable.CreateRow();
                     for (int i = 0; i < sFldsIndex.Count; i++)
@@ -375,27 +419,31 @@ namespace esriUtil
 
         private Dictionary<string, object[]> calcBinValues(Statistics.dataPrepCompareSamples dpComp, ITable inTable)
         {
+            Statistics.dataPrepClusterKmean clus = dpComp.Cluster;
+
+            int nBins = clus.Classes ;
             Dictionary<string, object[]> outDic = new Dictionary<string, object[]>();//{double[10],int[10],double} ratios, counts, weight
-            Dictionary<string, double> minDic = new Dictionary<string, double>();//the min value of each bin
-            Dictionary<string, double> spanDic = new Dictionary<string, double>();//the span of each bin
+            //Dictionary<string, double> minDic = new Dictionary<string, double>();//the min value of each bin
+            //Dictionary<string, double> spanDic = new Dictionary<string, double>();//the span of each bin
             Dictionary<string, int> cntDic = new Dictionary<string,int>();//counts by class
-            Statistics.dataPrepPrincipleComponents pca = dpComp.PCA;
+            //Statistics.dataPrepPrincipleComponents pca = dpComp.PCA;
             string[] labels = dpComp.Labels;
             for (int i = 0; i < labels.Length; i++)
             {
                 string lbl = labels[i];
-                double[][] minmax1 = dpComp.minMaxDic1[lbl];
-                double[][] minmax2 = dpComp.minMaxDic2[lbl];
-                double min = minmax1[0][0];
-                if (minmax2[0][0] < min) min = minmax2[0][0];
-                double max = minmax1[1][0];
-                if (minmax2[1][0] > max) max = minmax2[1][0];
-                double span = (max - min) / 10;
-                minDic.Add(lbl, min);
-                spanDic.Add(lbl, span);
+                //double[][] minmax1 = dpComp.minMaxDic1[lbl];
+                //double[][] minmax2 = dpComp.minMaxDic2[lbl];
+                //nBins = dpComp.binPropDic1[lbl][0].Length;
+                //double min = minmax1[0][0];
+                //if (minmax2[0][0] < min) min = minmax2[0][0];
+                //double max = minmax1[1][0];
+                //if (minmax2[1][0] > max) max = minmax2[1][0];
+                //double span = (max - min) / nBins;
+                //minDic.Add(lbl, min);
+                //spanDic.Add(lbl, span);
                 cntDic.Add(lbl,0);
-                double[] ratios = new double[10];
-                int[] cnts = new int[10];
+                double[] ratios = new double[nBins];
+                int[] cnts = new int[nBins];
                 object[] outObjectValues = new object[3];
                 outObjectValues[0] = ratios;
                 outObjectValues[1] = cnts;
@@ -432,9 +480,9 @@ namespace esriUtil
 			    }
                 if(check)
                 {
-                    double vl = dpComp.PCA.computNew(varr)[0];
-                    double min;
-                    double span;
+                    int vl = clus.computNew(varr);
+                    //double min;
+                    //double span;
                     string g = labels[0];
                     object w = 1;
                     if(strataFldNameIndex>-1)
@@ -448,27 +496,28 @@ namespace esriUtil
                     object[] oOut = outDic[g];
                     int[] cntArr = (int[])oOut[1];
                     oOut[2] = w;
-                    min = minDic[g];
-                    span = spanDic[g];
+                    //min = minDic[g];
+                    //span = spanDic[g];
                     //weightDic[g] = w;
                     cntDic[g] += 1;
-                    int b = (int)((vl-min)/span);
-                    if (b >= cntArr.Length) b = cntArr.Length - 1;
-                    if (b < 0) b = 0;
+                    //int b = (int)((vl-min)/span);
+                    //if (b >= cntArr.Length) b = cntArr.Length - 1;
+                    //if (b < 0) b = 0;
                     //Console.WriteLine("\nValue = " + vl.ToString() + "\nmin = " + min.ToString() + "\nSpan = " + span.ToString() + "\nbin = " + b.ToString());
-                    cntArr[b] = cntArr[b]+1;
-                    rw.set_Value(binFldNameIndex,b);
+                    cntArr[vl] = cntArr[vl]+1;
+                    rw.set_Value(binFldNameIndex,vl);
                     cur.UpdateRow(rw);
                     totalCnt+=1;
                 }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            Dictionary<string, double[]> clusterProp = dpComp.ClusterProportions;
             foreach(KeyValuePair<string,object[]> kvp in outDic)
             {
                 string ky = kvp.Key;
                 int gCnt = cntDic[ky];
-                double[] prop = dpComp.binPropDic1[ky][0];
+                double[] prop = clusterProp[ky];// dpComp.binPropDic1[ky][0];
                 object[] outObj = kvp.Value;
                 int[] cntArr = (int[])outObj[1];
                 double[] rArr = (double[])outObj[0];
@@ -722,6 +771,45 @@ namespace esriUtil
                 Console.WriteLine("Errors occurred for the following feature: {0}", invalidObjectInfo.InvalidObjectID);
             }
             return (Table)((IName)targetTableName).Open();
+        }
+        public void renameField(ITable inTable, string oldFldName, string newFldName)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            
+            IWorkspace wks = ((IDataset)inTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            try
+            {
+                int inFldIndex = inTable.Fields.FindField(oldFldName);
+                IField inFld = inTable.Fields.get_Field(inFldIndex);
+                esriFieldType fType = inFld.Type;
+                string outFldName = geoUtil.createField(inTable, newFldName, fType, false);
+                IQueryFilter qf = new QueryFilterClass();
+                ICursor cur = inTable.Update(qf, false);
+                int outFldIndex = cur.FindField(outFldName);
+                inFldIndex = cur.FindField(oldFldName);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    rw.set_Value(outFldIndex, rw.get_Value(inFldIndex));
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
         }
     }
 }

@@ -150,16 +150,22 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must have at least on range of values selected", "No Ranges", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<double[]> vlLst = new List<double[]>();
+            IStringArray strArr = new StrArrayClass();
             for (int i = 0; i < dgvRanges.Rows.Count; i++)
             {
-                object obj1 = dgvRanges[0, i].Value;
-                object obj2 = dgvRanges[1, i].Value;
-                if ( Convert.IsDBNull(obj1)) obj1 = 0;
-                if (Convert.IsDBNull(obj2)) obj2 = 0;
-                double min = System.Convert.ToDouble(obj1);
-                double max = System.Convert.ToDouble(obj2);
-                vlLst.Add(new double[] { min, max });
+                object obj1 = dgvRanges[1, i].Value;
+                object obj2 = dgvRanges[2, i].Value;
+                if ( Convert.IsDBNull(obj1)||obj1==null) obj1 = 0;
+                if (Convert.IsDBNull(obj2) || obj1 == null) obj2 = 0;
+                int min = System.Convert.ToInt32(obj1);
+                int max = System.Convert.ToInt32(obj2);
+                List<string> sLst = new List<string>();
+                for (int j = min; j < max; j++)
+                {
+                    sLst.Add(j.ToString());
+                }
+                string ln = String.Join(" ", sLst.ToArray());
+                strArr.Add(ln);
             }
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -169,7 +175,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.setValueRangeToNodata(rstDic[rstIn],vlLst);
+                outraster = rsUtil.setValueRangeToNodata(rstDic[rstIn],strArr);
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
@@ -200,6 +206,17 @@ namespace esriUtil.Forms.RasterAnalysis
                 this.Close();
             }
 
+        }
+
+        private void cmbInRaster1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            IRaster sRs = rstDic[cmbInRaster1.Text];
+            int rCnt = ((IRasterBandCollection)sRs).Count;
+            dgvRanges.RowCount = rCnt;
+            for (int i = 0; i < rCnt; i++)
+            {
+                dgvRanges.Rows[i].Cells[0].Value = i + 1;
+            }
         }
 
     }

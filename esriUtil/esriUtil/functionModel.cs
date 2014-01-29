@@ -310,12 +310,18 @@ namespace esriUtil
             name = prmArr[0].Split(new char[] { '@' })[1];
             string inRaster1 = prmArr[2].Split(new char[] { '@' })[1];
             string ranges = prmArr[1].Split(new char[]{'@'})[1];
-            List<double[]> rngLst = new List<double[]>();
+            IStringArray strArr = new StrArrayClass();
             foreach(string s in ranges.Split(new char[]{','}))
             {
                 string[] vlArr = s.Split(new char[]{'`'});
-                double[] vlArrD = {System.Convert.ToDouble(vlArr[0]),System.Convert.ToDouble(vlArr[1])};
-                rngLst.Add(vlArrD);
+                int min = System.Convert.ToInt32(vlArr[0]);
+                int max = System.Convert.ToInt32(vlArr[1]);
+                List<string> ndVlsLst = new List<string>();
+                for (int i = min; i < max; i++)
+                {
+                    ndVlsLst.Add(i.ToString());
+                }
+                strArr.Add(String.Join(" ",ndVlsLst.ToArray()));
             }
             object rs1 = null;
             if (rstDic.ContainsKey(inRaster1))
@@ -326,7 +332,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.setValueRangeToNodata(rs1, rngLst);
+            raster = rsUtil.setValueRangeToNodata(rs1, strArr);
         }
 
         private void calcLandscapeMetrics(string[] prmArr, out string name, out IRaster raster)

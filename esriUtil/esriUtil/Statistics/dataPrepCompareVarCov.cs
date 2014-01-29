@@ -66,13 +66,13 @@ namespace esriUtil.Statistics
             meanDiff = null;
             varDiff = null;
             labels = null;
-            dataPrepCluster dpc1 = new dataPrepCluster();
+            dataPrepClusterKmean dpc1 = new dataPrepClusterKmean();
             dpc1.buildModel(StratModel1);
-            KMeans km1 = dpc1.Model;
-            dataPrepCluster dpc2 = new dataPrepCluster();
+            KMeans km1 = (KMeans)dpc1.Model;
+            dataPrepClusterKmean dpc2 = new dataPrepClusterKmean();
             dpc2.buildModel(StratModel2);
             List<string> labels2 = dpc2.Labels;
-            KMeans km2 = dpc2.Model;
+            KMeans km2 = (KMeans)dpc2.Model;
             int nPv1 = km1.Clusters.Count;
             int nPv2 = km2.Clusters.Count;
             if (nPv1 != nPv2)

@@ -66,7 +66,7 @@ namespace esriUtil.FunctionRasters
                 System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 float noDataVl = System.Convert.ToSingle(noDataValueArr.GetValue(0));
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;//inrsBandsCoef
+                //noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;//inrsBandsCoef
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
@@ -76,12 +76,12 @@ namespace esriUtil.FunctionRasters
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                System.Array[] pArr = new System.Array[outPb.Planes];
-                for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
-                {
-                    System.Array pixelValues = (System.Array)(outPb.get_PixelData(coefnBand));
-                    pArr[coefnBand] = pixelValues;
-                }
+                //System.Array[] pArr = new System.Array[outPb.Planes];
+                //for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
+                //{
+                //    System.Array pixelValues = (System.Array)(outPb.get_PixelData(coefnBand));
+                //    pArr[coefnBand] = pixelValues;
+                //}
                 for (int nBand = 0; nBand < pPixelBlock.Planes; nBand++)
                 {
                     System.Array outArr = (System.Array)ipPixelBlock.get_PixelData(nBand);
@@ -96,14 +96,18 @@ namespace esriUtil.FunctionRasters
                             {
                                 double slp = System.Convert.ToDouble(IntSlpArr[coefnBand + 1]);
                                 if (slp == 0) continue;
-                                double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
-                                double pixelValue = Convert.ToDouble(pArr[coefnBand].GetValue(k, i));
-                                if (rasterUtil.isNullData(pixelValue, noDataValue))
+                                //double noDataValue = System.Convert.ToDouble(noDataValueArr.GetValue(coefnBand));
+                                object objPvl = outPb.GetVal(coefnBand, k, i);
+                                if (objPvl == null)
                                 {
                                     sumVls = noDataVl;
                                     break;
                                 }
-                                sumVls += pixelValue * slp;
+                                else
+                                {
+                                    double pixelValue = Convert.ToDouble(objPvl);
+                                    sumVls += pixelValue * slp;
+                                }
                             }
                             outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
                         }

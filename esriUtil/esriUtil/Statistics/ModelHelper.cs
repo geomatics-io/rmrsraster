@@ -232,9 +232,42 @@ namespace esriUtil.Statistics
 
         private IRaster getClusterRaster()
         {
-            dataPrepCluster clus = new dataPrepCluster();
-            clus.buildModel(mdlp);
-            return rsUtil.calcClustFunction(coefRst, clus);
+            clusterType cType = (clusterType)System.Enum.Parse(typeof(clusterType), getSecondLine());
+            IRaster outRs = null;
+            switch (cType)
+            {
+                case clusterType.KMEANS:
+                    dataPrepClusterKmean clusKm = new dataPrepClusterKmean();
+                    clusKm.buildModel(mdlp);
+                    outRs = rsUtil.calcClustFunctionKmean(coefRst, clusKm);
+                    break;
+                case clusterType.BINARY:
+                    dataPrepClusterBinary clusBs = new dataPrepClusterBinary();
+                    clusBs.buildModel(mdlp);
+                    outRs = rsUtil.calcClustFunctionBinary(coefRst, clusBs);
+                    break;
+                case clusterType.GAUSSIANMIXTURE:
+                    dataPrepClusterGaussian clusGa = new dataPrepClusterGaussian();
+                    clusGa.buildModel(mdlp);
+                    outRs = rsUtil.calcClustFunctionGaussian(coefRst, clusGa);
+                    break;
+                default:
+                    break;
+            }
+            return outRs;
+            
+        }
+
+        private string getSecondLine()
+        {
+            string ln = "";
+            using (System.IO.StreamReader sr = new System.IO.StreamReader(mdlp))
+            {
+                ln = sr.ReadLine();
+                ln = sr.ReadLine();
+                sr.Close();
+            }
+            return ln;
         }
 
         private IRaster getPcaRaster()
@@ -399,10 +432,22 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.GLM:
                     openGLM(alpha,report);
                     break;
+                case dataPrepBase.modelTypes.CompareClassifications:
+                    openCompareClass(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openCompareClass(double alpha, bool report)
+        {
+            dataPrepCompareClassifications compClass = new dataPrepCompareClassifications();
+            compClass.getModel(mdlp);
+            depvar = compClass.DependentFieldNames;
+            indvar = compClass.IndependentFieldNames;
+            if (report) compClass.getReport();
         }
 
         private void openGLM(double alpha, bool report)
@@ -410,7 +455,7 @@ namespace esriUtil.Statistics
             dataPrepGlm glm = new dataPrepGlm();
             glm.getGlmModel(mdlp);
             depvar = glm.DependentFieldNames;
-            depvar = glm.IndependentFieldNames;
+            indvar = glm.IndependentFieldNames;
             if (report) glm.getReport(alpha);
         }
 
@@ -442,7 +487,7 @@ namespace esriUtil.Statistics
 
         private void openCluster(double alpha, bool report)
         {
-            dataPrepCluster clus = new dataPrepCluster();
+            dataPrepClusterKmean clus = new dataPrepClusterKmean();
             clus.buildModel(mdlp);
             depvar = clus.VariableFieldNames;
             indvar = clus.VariableFieldNames;
@@ -611,7 +656,8 @@ namespace esriUtil.Statistics
                     predictPca(inputTable, fldIndexArr);
                     break;
                 case dataPrepBase.modelTypes.Cluster:
-                    predictCluster(inputTable, fldIndexArr);
+                    clusterType cType = (clusterType)Enum.Parse(typeof(clusterType), getSecondLine());
+                    predictCluster(inputTable, fldIndexArr,cType);
                     break;
                 case dataPrepBase.modelTypes.TTEST:
                     predictTTest(inputTable, fldIndexArr);
@@ -797,9 +843,91 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictCluster(ITable inputTable, int[] fldIndexArr)
+        private void predictCluster(ITable inputTable, int[] fldIndexArr,clusterType cType = clusterType.KMEANS)
         {
-            dataPrepCluster clus = new dataPrepCluster();
+            switch (cType)
+            {
+                case clusterType.KMEANS:
+                    predKmeans(inputTable, fldIndexArr);
+                    break;
+                case clusterType.BINARY:
+                    predBinary(inputTable, fldIndexArr);
+                    break;
+                case clusterType.GAUSSIANMIXTURE:
+                    predGaussian(inputTable, fldIndexArr);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void predGaussian(ITable inputTable, int[] fldIndexArr)
+        {
+            dataPrepClusterGaussian clus = new dataPrepClusterGaussian();
+            clus.buildModel(mdlp);
+            List<string> lbl = clus.Labels;
+            string newFldName = "Cluster";
+            newFldName = geoUtil.createField(inputTable, newFldName, esriFieldType.esriFieldTypeString, false);
+            int newFldNameIndex = inputTable.Fields.FindField(newFldName);
+            double[] input = new double[IndependentVariables.Length];
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(null, false);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                for (int i = 0; i < fldIndexArr.Length; i++)
+                {
+                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
+                    input[i] = vl;
+                }
+                int nVl = clus.computNew(input);
+                rw.set_Value(newFldNameIndex, lbl[nVl]);
+                cur.UpdateRow(rw);
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private void predBinary(ITable inputTable, int[] fldIndexArr)
+        {
+            dataPrepClusterBinary clus = new dataPrepClusterBinary();
+            clus.buildModel(mdlp);
+            List<string> lbl = clus.Labels;
+            string newFldName = "Cluster";
+            newFldName = geoUtil.createField(inputTable, newFldName, esriFieldType.esriFieldTypeString, false);
+            int newFldNameIndex = inputTable.Fields.FindField(newFldName);
+            double[] input = new double[IndependentVariables.Length];
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(null, false);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                for (int i = 0; i < fldIndexArr.Length; i++)
+                {
+                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
+                    input[i] = vl;
+                }
+                int nVl = clus.computNew(input);
+                rw.set_Value(newFldNameIndex, lbl[nVl]);
+                cur.UpdateRow(rw);
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private void predKmeans(ITable inputTable, int[] fldIndexArr)
+        {
+            dataPrepClusterKmean clus = new dataPrepClusterKmean();
             clus.buildModel(mdlp);
             List<string> lbl = clus.Labels;
             string newFldName = "Cluster";
@@ -1333,6 +1461,48 @@ namespace esriUtil.Statistics
                 outFrm1.Controls.Add(cmbPrimary);
                 outFrm1.Controls.Add(tbLbl);
                 outFrm1.Controls.Add(tb);
+                outFrm1.Width = 540;
+                outFrm = outFrm1;
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+            return outFrm;
+        }
+
+        public static object generateVariableImportanceGraphic(string[] IndependentFieldNames,string[] errorTypes)
+        {
+            object outFrm = null;
+            try
+            {
+                Forms.Stats.frmChart outFrm1 = new Forms.Stats.frmChart();
+                System.Windows.Forms.ComboBox cmbPrimary = new System.Windows.Forms.ComboBox();
+                System.Windows.Forms.Label cmbPrimaryLbl = new System.Windows.Forms.Label();
+                cmbPrimaryLbl.Text = "Error Type";
+                cmbPrimary.Name = "cmbPrimary";
+                cmbPrimaryLbl.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+                System.Drawing.Point cmbPt = new System.Drawing.Point(225, 236);
+                System.Drawing.Point lblPt = new System.Drawing.Point(150, 236);
+                cmbPrimary.Location = cmbPt;
+                cmbPrimaryLbl.Location = lblPt;
+                cmbPrimaryLbl.Size = new System.Drawing.Size(75, 23);
+                cmbPrimary.Size = new System.Drawing.Size(120, 23);
+                cmbPrimary.Items.AddRange(errorTypes);
+                outFrm1.Text = "Variable Importance Graphs";
+                System.Windows.Forms.DataVisualization.Charting.ChartArea yArea = outFrm1.chrHistogram.ChartAreas.Add("Y");
+                System.Windows.Forms.DataVisualization.Charting.Title chTitle = outFrm1.chrHistogram.Titles.Add("T");
+                yArea.AxisX.Title = "Variable";
+                yArea.AxisY.Title = "Error Value";
+                yArea.AxisX.MinorGrid.Enabled = false;
+                yArea.AxisX.MajorGrid.Enabled = false;
+                yArea.AxisY.MinorGrid.Enabled = false;
+                yArea.AxisY.MajorGrid.Enabled = false;
+                System.Windows.Forms.DataVisualization.Charting.Legend popLeg = outFrm1.chrHistogram.Legends.Add("Legend");
+                chTitle.Alignment = System.Drawing.ContentAlignment.TopCenter;
+                chTitle.Text = "Model Error Without Variable";
+                outFrm1.Controls.Add(cmbPrimaryLbl);
+                outFrm1.Controls.Add(cmbPrimary);
                 outFrm1.Width = 540;
                 outFrm = outFrm1;
             }

@@ -34,8 +34,8 @@ namespace esriUtil.FunctionRasters
                 inrs = rsUtil.returnRaster(temp, rstPixelType.PT_FLOAT);
             } 
         }
-        private Statistics.dataPrepCluster cluster = null;
-        public Statistics.dataPrepCluster ClusterModel
+        private object cluster = null;
+        public object ClusterModel
         {
             get
             {

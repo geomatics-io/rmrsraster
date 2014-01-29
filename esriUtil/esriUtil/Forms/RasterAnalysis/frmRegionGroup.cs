@@ -44,29 +44,9 @@ namespace esriUtil.Forms.RasterAnalysis
         private viewUtility vUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
-        IWorkspace outWks = null;
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
         public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
-        private void getWksPath()
-        {
-            string outPath = null;
-            string outName = "";
-            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
-            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterFileGeodatabasesClass();
-            gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a file geodatabase";
-            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
-            if (gxDialog.DoModalOpen(0, out eGxObj))
-            {
-                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                outWks = geoUtil.OpenRasterWorkspace(outPath);
-                txtWorkspace.Text = outName;
-            }
-            return;
-        }
+        
         private void getFeaturePath()
         {
             string outPath = null;
@@ -159,11 +139,6 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must specify an output raster name", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if(outWks==null)
-            {
-                MessageBox.Show("You must specify an output workspace", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
@@ -173,7 +148,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rst = rstDic[rstNm];
-                outraster = rsUtil.regionGroup(rst,outWks,outNm);
+                outraster = rsUtil.regionGroup(rst);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
@@ -206,10 +181,7 @@ namespace esriUtil.Forms.RasterAnalysis
 
         }
 
-        private void btnWorkspace_Click(object sender, EventArgs e)
-        {
-            getWksPath();
-        }
+       
 
     }
 }

@@ -11,7 +11,6 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
     {   
         public static float getBlockSum(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
-            
             float outVl = 0;
             int stC = startColumn * numCellsInBlock;
             int stR = startRows * numCellsInBlock;

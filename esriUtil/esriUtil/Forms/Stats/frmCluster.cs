@@ -67,6 +67,8 @@ namespace esriUtil.Forms.Stats
                     lyr = rstLyrs.Next();
                 }
             }
+            cmbClustType.Items.AddRange(Enum.GetNames(typeof(esriUtil.Statistics.clusterType)));
+            cmbClustType.SelectedItem = "KMEANS";
         }
         private rasterUtil rsUtil = new rasterUtil();
         private void getFeaturePath()
@@ -221,6 +223,7 @@ namespace esriUtil.Forms.Stats
             string smpFtrNm = cmbSampleFeatureClass.Text;
             string outP = txtOutputPath.Text;
             int k = System.Convert.ToInt32(nudClasses.Value);
+            esriUtil.Statistics.clusterType cType = (esriUtil.Statistics.clusterType)Enum.Parse(typeof(esriUtil.Statistics.clusterType), cmbClustType.Text);
             if (smpFtrNm == null || smpFtrNm == "")
             {
                 MessageBox.Show("You must select a feature Class","Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -240,7 +243,7 @@ namespace esriUtil.Forms.Stats
                     string s = lstIndependent.Items[i].ToString();
                     lstInd.Add(s);
                 }
-                Statistics.dataPrepCluster clus = null;
+                Statistics.dataPrepClusterBase clus = null;
                 if (ftrDic.ContainsKey(smpFtrNm))
                 {
                     ITable ftrCls = ftrDic[smpFtrNm];
@@ -250,13 +253,39 @@ namespace esriUtil.Forms.Stats
                         return;
                     }
                     this.Visible = false;
-                    clus = new Statistics.dataPrepCluster(ftrCls, lstInd.ToArray(), k);
+                    switch (cType)
+                    {
+                        case esriUtil.Statistics.clusterType.KMEANS:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterKmean(ftrCls, lstInd.ToArray(), k));
+                            break;
+                        case esriUtil.Statistics.clusterType.BINARY:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterBinary(ftrCls, lstInd.ToArray(), k));
+                            break;
+                        case esriUtil.Statistics.clusterType.GAUSSIANMIXTURE:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterGaussian(ftrCls, lstInd.ToArray(), k));
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 else
                 {
                     IRaster rs = rstDic[smpFtrNm];
                     this.Visible = false;
-                    clus = new Statistics.dataPrepCluster(rs, k);
+                    switch (cType)
+                    {
+                        case esriUtil.Statistics.clusterType.KMEANS:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterKmean(rs, k));
+                            break;
+                        case esriUtil.Statistics.clusterType.BINARY:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterBinary(rs, k));
+                            break;
+                        case esriUtil.Statistics.clusterType.GAUSSIANMIXTURE:
+                            clus = (Statistics.dataPrepClusterBase)(new Statistics.dataPrepClusterGaussian(rs, k));
+                            break;
+                        default:
+                            break;
+                    }
                 }
                 clus.writeModel(outP);
                 clus.getReport();

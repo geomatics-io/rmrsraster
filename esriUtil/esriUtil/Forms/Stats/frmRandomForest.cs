@@ -223,11 +223,11 @@ namespace esriUtil.Forms.Stats
                 Statistics.dataPrepRandomForest rf = null;
                 if (split > 0)
                 {
-                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split);
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split,chbVI.Checked);
                 }
                 else
                 {
-                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio);
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio,chbVI.Checked);
                 }
                 rf.writeModel(outP);
                 rf.getReport();

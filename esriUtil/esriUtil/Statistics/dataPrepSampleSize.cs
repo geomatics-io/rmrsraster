@@ -33,23 +33,29 @@ namespace esriUtil.Statistics
         public static int sampleSizeMean(double mean, double standardDeviation, double proportionOfMean,double alpha=0.05)
         {
             double z = zScore(alpha);
-            double width = mean * proportionOfMean;
-            return System.Convert.ToInt32(Math.Pow((z*standardDeviation)/width,2));
+            double cv = standardDeviation / mean;
+            //double width = mean * proportionOfMean;
+            return System.Convert.ToInt32(Math.Pow((z*cv/proportionOfMean),2));
         }
 
         
-        public static int sampleSizeMaxMean(double[,] varCov, double[] means, double proportionOfMean=0.1, double alpha=0.05)
+        public static int[] sampleSizeMaxMean(double[,] varCov, double[] means, double proportionOfMean=0.1, double alpha=0.05)
         {
             int n = means.Length;
             int maxSample = 0;
+            int varIndex = 0;
             for (int i = 0; i < n; i++)
             {
                 double mean = means[i];
                 double std = Math.Sqrt(varCov[i, i]);
                 int ms = sampleSizeMean(mean, std, proportionOfMean, alpha);
-                if (ms > maxSample) maxSample = ms;
+                if (ms > maxSample)
+                {
+                    maxSample = ms;
+                    varIndex = i;
+                }
             }
-            return maxSample;
+            return new []{maxSample,varIndex};
         }
         public static int sampleSizeMaxMean(double[] means, double[] stds, double proportionOfMean=0.1, double alpha = 0.05)
         {
@@ -66,27 +72,27 @@ namespace esriUtil.Statistics
         }
         public static int[] sampleSizeMaxCluster(string clusterModelPath, double proportionOfMean = 0.1, double alpha = 0.05)
         {
-            dataPrepCluster cls = new dataPrepCluster();
+            dataPrepClusterKmean cls = new dataPrepClusterKmean();
             cls.buildModel(clusterModelPath);
-            int nClusters = cls.Model.Clusters.Count;
+            int nClusters = ((Accord.MachineLearning.KMeans)cls.Model).Clusters.Count;
             int[] maxN = new int[nClusters];
             for (int i = 0; i < nClusters; i++)
             {
-                Accord.MachineLearning.KMeansCluster k = cls.Model.Clusters[i];
-                int mx = sampleSizeMaxMean(k.Covariance, k.Mean, proportionOfMean, alpha);
+                Accord.MachineLearning.KMeansCluster k = ((Accord.MachineLearning.KMeans)cls.Model).Clusters[i];
+                int mx = sampleSizeMaxMean(k.Covariance, k.Mean, proportionOfMean, alpha)[0];
                 maxN[i] = mx;
             }
             return maxN;
         }
         public static double[] clusterProportions(string clusterModelPath)
         {
-            dataPrepCluster cls = new dataPrepCluster();
+            dataPrepClusterKmean cls = new dataPrepClusterKmean();
             cls.buildModel(clusterModelPath);
-            int nClusters = cls.Model.Clusters.Count;
+            int nClusters = ((Accord.MachineLearning.KMeans)cls.Model).Clusters.Count;
             double[] prop = new double[nClusters];
             for (int i = 0; i < nClusters; i++)
             {
-                Accord.MachineLearning.KMeansCluster k = cls.Model.Clusters[i];
+                Accord.MachineLearning.KMeansCluster k = ((Accord.MachineLearning.KMeans)cls.Model).Clusters[i];
                 prop[i] = k.Proportion;
             }
             return prop;
@@ -148,7 +154,7 @@ namespace esriUtil.Statistics
 
         private static void fillCluserReport(string modelPath, Forms.RunningProcess.frmRunningProcessDialog rp, double proportion = 0.1, double alpha = 0.05)
         {
-            dataPrepCluster clus = new dataPrepCluster();
+            dataPrepClusterKmean clus = new dataPrepClusterKmean();
             clus.buildModel(modelPath);
             List<string> lbl = clus.Labels;
             rp.addMessage("Samples by class (Cluster; number of samples)");
@@ -179,7 +185,12 @@ namespace esriUtil.Statistics
             covCorr.buildModel(modelPath);
             double[,] covCorrArr = covCorr.CovarianceMatrix;
             double[] means = covCorr.MeanVector;
-            rp.addMessage("\nTotal Number of Samples = " + sampleSizeMaxMean(covCorrArr,means, proportion, alpha).ToString());
+            string[] varFieldNames = covCorr.VariableFieldNames;
+            int[] nAndIndex = sampleSizeMaxMean(covCorrArr,means, proportion, alpha);
+            string vName = varFieldNames[nAndIndex[1]];
+            double mean = means[nAndIndex[1]];
+            double std = covCorr.StdVector[nAndIndex[1]];
+            rp.addMessage("\nTotal Number of Samples = " + nAndIndex[0].ToString() + "\n\nMax sample from variable " + vName + "\n\tMean = " + mean.ToString() + "\n\tSTD = " +std.ToString());
         }
 
         private static void fillPlrReport(string modelPath,Forms.RunningProcess.frmRunningProcessDialog rp,double proportion=0.1, double alpha=0.05)

@@ -35,14 +35,11 @@
             this.cmbInRaster1 = new System.Windows.Forms.ComboBox();
             this.btnOpenRaster = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
-            this.btnWorkspace = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtWorkspace = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(224, 115);
+            this.btnExecute.Location = new System.Drawing.Point(224, 77);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(54, 24);
             this.btnExecute.TabIndex = 47;
@@ -52,7 +49,7 @@
             // 
             // txtOutName
             // 
-            this.txtOutName.Location = new System.Drawing.Point(10, 118);
+            this.txtOutName.Location = new System.Drawing.Point(10, 80);
             this.txtOutName.Name = "txtOutName";
             this.txtOutName.Size = new System.Drawing.Size(205, 20);
             this.txtOutName.TabIndex = 45;
@@ -87,47 +84,17 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(7, 98);
+            this.label4.Location = new System.Drawing.Point(7, 60);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(55, 13);
             this.label4.TabIndex = 46;
             this.label4.Text = "Out Name";
             // 
-            // btnWorkspace
-            // 
-            this.btnWorkspace.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnWorkspace.Location = new System.Drawing.Point(251, 68);
-            this.btnWorkspace.Name = "btnWorkspace";
-            this.btnWorkspace.Size = new System.Drawing.Size(27, 27);
-            this.btnWorkspace.TabIndex = 50;
-            this.btnWorkspace.UseVisualStyleBackColor = true;
-            this.btnWorkspace.Click += new System.EventHandler(this.btnWorkspace_Click);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 54);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(82, 13);
-            this.label1.TabIndex = 49;
-            this.label1.Text = "Out Workspace";
-            // 
-            // txtWorkspace
-            // 
-            this.txtWorkspace.Enabled = false;
-            this.txtWorkspace.Location = new System.Drawing.Point(10, 72);
-            this.txtWorkspace.Name = "txtWorkspace";
-            this.txtWorkspace.Size = new System.Drawing.Size(233, 20);
-            this.txtWorkspace.TabIndex = 48;
-            // 
             // frmRegionGroup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 154);
-            this.Controls.Add(this.btnWorkspace);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.txtWorkspace);
+            this.ClientSize = new System.Drawing.Size(284, 116);
             this.Controls.Add(this.btnExecute);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.txtOutName);
@@ -152,8 +119,5 @@
         private System.Windows.Forms.ComboBox cmbInRaster1;
         private System.Windows.Forms.Button btnOpenRaster;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Button btnWorkspace;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txtWorkspace;
     }
 }
