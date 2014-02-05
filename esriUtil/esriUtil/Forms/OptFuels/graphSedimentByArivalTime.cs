@@ -796,12 +796,6 @@ namespace esriUtil.Forms.OptFuels
         private string getSummaryValue(string iteration,int fire,int Period, IRaster final10, IRaster final50, IRaster arivZones)
         {
             IRasterProps rsProp = (IRasterProps)arivZones;
-            System.Array noDataAr = (System.Array)rsProp.NoDataValue;
-            System.Array noDataf50 = (System.Array)((IRasterProps)final50).NoDataValue;
-            System.Array noDataf10 = (System.Array)((IRasterProps)final10).NoDataValue;
-            double noDataVlAr = System.Convert.ToDouble(noDataAr.GetValue(0));
-            double noDataVlf50 = System.Convert.ToDouble(noDataf50.GetValue(0));
-            double noDataVlf10 = System.Convert.ToDouble(noDataf10.GetValue(0));
             Dictionary<int, double[]> vlDic = new Dictionary<int, double[]>();
             IRasterCursor rsCur = ((IRaster2)arivZones).CreateCursorEx(null);
             IPnt pnt = new PntClass();
@@ -809,41 +803,47 @@ namespace esriUtil.Forms.OptFuels
             pnt.Y = rsCur.PixelBlock.Height;
             IRasterCursor rsCur2 = ((IRaster2)final10).CreateCursorEx(pnt);
             IRasterCursor rsCur3 = ((IRaster2)final50).CreateCursorEx(pnt);
+            IPixelBlock3 pb = null;
+            IPixelBlock3 pb2 = null;
+            IPixelBlock3 pb3 = null;
             while (rsCur.Next() && rsCur2.Next() && rsCur3.Next())
             {
-                IPixelBlock3 pb = (IPixelBlock3)rsCur.PixelBlock;
-                IPixelBlock3 pb2 = (IPixelBlock3)rsCur2.PixelBlock;
-                IPixelBlock3 pb3 = (IPixelBlock3)rsCur3.PixelBlock;
+                pb = (IPixelBlock3)rsCur.PixelBlock;
+                pb2 = (IPixelBlock3)rsCur2.PixelBlock;
+                pb3 = (IPixelBlock3)rsCur3.PixelBlock;
                 int ht = pb.Height;
                 int wd = pb.Width;
-                System.Array arvTArr = (System.Array)pb.get_PixelData(0);
-                System.Array f10Arr = (System.Array)pb2.get_PixelData(0);
-                System.Array f50Arr = (System.Array)pb3.get_PixelData(0);
-                for (int w = 0; w < wd; w++)
+                for (int h = 0; h < ht; h++)
                 {
-                    for (int h = 0; h < ht; h++)
+                    for (int w = 0; w < wd; w++)
                     {
-                        int at = System.Convert.ToInt32(arvTArr.GetValue(w,h));
-                        double f10 = System.Convert.ToDouble(f10Arr.GetValue(w, h));
-                        double f50 = System.Convert.ToDouble(f50Arr.GetValue(w, h));
-                        if (Double.IsNaN(f10) || Double.IsNaN(f50)||Double.IsInfinity(f10)||Double.IsInfinity(f50)||at==-9999||at==noDataVlAr||f50==noDataVlf50||f10==noDataVlf50)
+                        object atobj = pb.GetVal(0, w, h);
+                        object f10obj = pb2.GetVal(0, w, h);
+                        object f50obj = pb3.GetVal(0, w, h);
+                        if (atobj == null || f10obj == null || f50obj == null)
                         {
-                            //Console.WriteLine(f10.ToString());
                             continue;
-                        }
-                        double[] fArr = {0,0,0};
-                        if (vlDic.TryGetValue(at, out fArr))
-                        {
-                            fArr[0] = fArr[0] + f10;
-                            fArr[1] = fArr[1] + f50;
-                            fArr[2] = fArr[2] + 1;
-                            vlDic[at] = fArr;
                         }
                         else
                         {
-                            fArr = new double[] { f10, f50, 1 };
-                            vlDic.Add(at, fArr);
+                            int at = System.Convert.ToInt32(atobj);
+                            double f10 = System.Convert.ToDouble(f10obj);
+                            double f50 = System.Convert.ToDouble(f50obj);
+                            double[] fArr = { 0, 0, 0 };
+                            if (vlDic.TryGetValue(at, out fArr))
+                            {
+                                fArr[0] = fArr[0] + f10;
+                                fArr[1] = fArr[1] + f50;
+                                fArr[2] = fArr[2] + 1;
+                                vlDic[at] = fArr;
+                            }
+                            else
+                            {
+                                fArr = new double[] { f10, f50, 1 };
+                                vlDic.Add(at, fArr);
+                            }
                         }
+  
                     }
                 }
             }
