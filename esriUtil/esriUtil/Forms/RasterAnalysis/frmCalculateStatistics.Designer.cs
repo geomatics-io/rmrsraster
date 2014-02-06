@@ -46,7 +46,7 @@
             this.btnExecute.TabIndex = 55;
             this.btnExecute.Text = "Execute";
             this.btnExecute.UseVisualStyleBackColor = true;
-            this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
+            this.btnExecute.Click += new System.EventHandler(this.btnClip_Click);
             // 
             // label1
             // 
@@ -82,7 +82,7 @@
             this.btnOpenRaster.Size = new System.Drawing.Size(27, 27);
             this.btnOpenRaster.TabIndex = 49;
             this.btnOpenRaster.UseVisualStyleBackColor = true;
-            this.btnOpenRaster.Click += new System.EventHandler(this.btnOpenFunctionModelDataset_Click);
+            this.btnOpenRaster.Click += new System.EventHandler(this.btnOpenRaster_Click);
             // 
             // nudSkip
             // 
@@ -121,6 +121,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmCalculateStatistics";
             this.Text = "Calculate Statistics";
+            this.TopMost = true;
             ((System.ComponentModel.ISupportInitialize)(this.nudSkip)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

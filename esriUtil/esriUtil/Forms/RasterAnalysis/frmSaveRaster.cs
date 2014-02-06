@@ -48,19 +48,24 @@ namespace esriUtil.Forms.RasterAnalysis
                 outName = gxObj.BaseName;
                 if (cmb.Name.ToLower() == "cmbraster")
                 {
+                    IRaster oRs = null;
                     if (!rstDic.ContainsKey(outName))
                     {
-                        rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                        oRs = rsUtil.returnRaster(outPath);
+                        rstDic.Add(outName, oRs );
                         cmbRaster.Items.Add(outName);
                     }
                     else
                     {
-                        rstDic[outName] = rsUtil.returnRaster(outPath);
+                        oRs = rsUtil.returnRaster(outPath);
+                        rstDic[outName] = oRs;
                     }
+                    object ndv = ((IRasterProps)((IRasterBandCollection)oRs).Item(0)).NoDataValue;
+                    //txtNoData.Text = (ndv.ToString());
                 }
                 else
                 {
-                    outWks = geoUtil.OpenWorkSpace(outPath);
+                    outWks = geoUtil.OpenRasterWorkspace(outPath);
                 }
                 cmb.Text = outName;
 
@@ -108,13 +113,18 @@ namespace esriUtil.Forms.RasterAnalysis
                         cmbType.Items.Add(s);
                     }
                 }
-                cmbType.SelectedItem = rasterUtil.rasterType.GRID.ToString();
+                cmbType.SelectedItem = rasterUtil.rasterType.IMAGINE.ToString();
+                //lblNoData.Visible = true;
+                //txtNoData.Visible = true;
             }
             else
             {
                 cmbType.Items.Add(rasterUtil.rasterType.GDB.ToString());
                 cmbType.SelectedItem = rasterUtil.rasterType.GDB.ToString();
+                //lblNoData.Visible = false;
+                //txtNoData.Visible = false;
             }
+            
             
         }
 
@@ -134,6 +144,8 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("Raster, Workspace, or Output Name are not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            object noDataVl = null;
+            //if (rsUtil.isNumeric(txtNoData.Text)) noDataVl = System.Convert.ToDouble(txtNoData.Text);
             rasterUtil.rasterType rType = (rasterUtil.rasterType)Enum.Parse(typeof(rasterUtil.rasterType), outType);
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -147,23 +159,17 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rs = rstDic[rstNm];
-                IRasterDataset rsDset = rsUtil.saveRasterToDataset(rs, outNm, outWks, rType);
+                IRasterDataset rsDset = rsUtil.saveRasterToDataset(rs, outNm, outWks);// rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl);
                 DateTime dt2 = DateTime.Now;
-                if (MessageBox.Show("Do you want to add raster to current map?", "Add Raster", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    IRasterLayer rsLyr = new RasterLayerClass();
-                    rsLyr.CreateFromDataset(rsDset);
-                    rsLyr.Name = rstNm;
-                    rsLyr.Visible = false;
-                    mp.AddLayer((ILayer)rsLyr);
-                }
-
+                IRasterLayer rsLyr = new RasterLayerClass();
+                rsLyr.CreateFromDataset(rsDset);
+                rsLyr.Name = outNm;
+                rsLyr.Visible = false;
+                mp.AddLayer((ILayer)rsLyr);
                 TimeSpan ts = dt2.Subtract(dt1);
                 string prcTime = "Time to complete process:\n" + ts.Days.ToString() + " Days " + ts.Hours.ToString() + " Hours " + ts.Minutes.ToString() + " Minutes " + ts.Seconds.ToString() + " Seconds ";
                 rp.addMessage(prcTime);
                 this.DialogResult = DialogResult.OK;
-
-
             }
             catch (Exception ex)
             {

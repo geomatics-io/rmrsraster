@@ -8,9 +8,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperVar : aggregationFunctionDataset
     {
-        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells, object noDataVl)
         {
-            return blockHelperStats.getBlockVariance(bigArr, band, startClms, startRws, cells);
+            return blockHelperStats.getBlockVariance(bigArr, band, startClms, startRws, cells,noDataVl);
         }
 
     }

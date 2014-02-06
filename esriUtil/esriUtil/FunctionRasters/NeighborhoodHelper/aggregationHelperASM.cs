@@ -9,9 +9,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperASM : aggregationFunctionDataset
     {
-        public override object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms, int startRws, int cells)
+        public override object getTransformedValue(IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells, object noDataVl)
         {
-            return blockHelperStats.getBlockAsm(bigArr, band, startClms, startRws, cells);
+            return blockHelperStats.getBlockAsm(bigArr, band, startClms, startRws, cells,noDataVl);
         }
 
     }

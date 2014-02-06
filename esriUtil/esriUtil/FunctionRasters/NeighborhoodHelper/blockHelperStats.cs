@@ -9,352 +9,444 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     public static class blockHelperStats
     {   
-        public static float getBlockSum(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockSum(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
-            float outVl = 0;
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR+numCellsInBlock;
-            int width = stC+numCellsInBlock;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                float outVlF = 0;
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlobj = inArr.GetVal(band,c, r);
-                    float vl = 0;
-                    if (vlobj == null)
+                    for (int c = stC; c < width; c++)
                     {
-                        vl = 0;
+                        object vlobj = inArr.GetVal(band, c, r);
+                        float vl = 0;
+                        if (vlobj == null)
+                        {
+                            vl = 0;
+                        }
+                        else
+                        {
+                            vl = System.Convert.ToSingle(vlobj);
+                        }
+                        outVlF = outVlF + vl;
                     }
-                    else
-                    {
-                        vl = System.Convert.ToSingle(vlobj);
-                    }
-                    outVl = outVl + vl;
                 }
+                outVl = outVlF;
+            }
+            else
+            {
+                outVl = noDataVl;
             }
             return outVl;
         }
-        public static float getBlockMean(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockMean(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
-
-            float outVl = 0;
-            float n = 0;
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                float outVlF = 0;
+                float n = 0;
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    
-                    if (vlObj==null)
+                    for (int c = stC; c < width; c++)
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        n += 1;
-                        float vl = System.Convert.ToSingle(vlObj);
-                        outVl += vl;
+                        object vlObj = inArr.GetVal(band, c, r);
+
+                        if (vlObj == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            n += 1;
+                            float vl = System.Convert.ToSingle(vlObj);
+                            outVlF += vl;
+                        }
                     }
                 }
+                outVl = outVlF / n;
             }
-            return outVl/n;
-        }
-        public static float getBlockVariance(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
-        {
-
-            float s = 0;
-            float s2 = 0;
-            float n = 0;
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            for (int r = stR; r < height; r++)
+            else
             {
-                for (int c = stC; c < width; c++)
-                {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj==null)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        n += 1;
-                        s += vl;
-                        s2 += vl * vl;
-                    }
-                }
-            }
-            return (s2 - ((s * s) / n)) / n;
-        }
-        public static float getBlockStd(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
-        {
-            return System.Convert.ToSingle(Math.Sqrt(getBlockVariance(inArr, band, startColumn, startRows, numCellsInBlock)));
-        }
-        public static float getBlockMax(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
-        {
-
-            float outVl = Single.MinValue;
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            for (int r = stR; r < height; r++)
-            {
-                for (int c = stC; c < width; c++)
-                {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    
-                    if (vlObj==null)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        if (vl > outVl) outVl = vl;
-                    }
-                }
+                outVl = noDataVl;
             }
             return outVl;
         }
-        public static float getBlockMin(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockVariance(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
-
-            float outVl = Single.MaxValue;
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                float s = 0;
+                float s2 = 0;
+                float n = 0;
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
+                    for (int c = stC; c < width; c++)
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        if (vl < outVl) outVl = vl;
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            float vl = System.Convert.ToSingle(vlObj);
+                            n += 1;
+                            s += vl;
+                            s2 += vl * vl;
+                        }
                     }
                 }
+                outVl = (s2 - ((s * s) / n)) / n;
+            }
+            else
+            {
+                outVl = noDataVl;
             }
             return outVl;
         }
-        public static int getBlockUnique(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockStd(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        {
+            object objVl = getBlockVariance(inArr, band, startColumn, startRows, numCellsInBlock, noDataVl);
+            if(objVl!=noDataVl)
+            {
+                objVl= System.Convert.ToSingle(Math.Sqrt(System.Convert.ToDouble(objVl)));
+            }
+            return objVl;
+        }
+        public static Object getBlockMax(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        {
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
+            {
+                float outVlF = Single.MinValue;
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
+                {
+                    for (int c = stC; c < width; c++)
+                    {
+                        object vlObj = inArr.GetVal(band, c, r);
+
+                        if (vlObj == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            float vl = System.Convert.ToSingle(vlObj);
+                            if (vl > outVlF) outVlF = vl;
+                        }
+                    }
+                }
+                outVl = outVlF;
+            }
+            else
+            {
+                outVl = noDataVl;
+            }
+            return outVl;
+        }
+        public static object getBlockMin(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
 
-            HashSet<float> unq = new HashSet<float>();
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                float outVlF = Single.MaxValue;
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
                 {
+                    for (int c = stC; c < width; c++)
+                    {
+                        object vlObj = inArr.GetVal(band, c, r);
 
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        unq.Add(vl);
-                    }
-                }
-            }
-            return unq.Count;
-        }
-        public static float getBlockEntropy(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
-        {
-            Dictionary<float,int> unq = new Dictionary<float,int>();
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            float n = 0;
-            for (int r = stR; r < height; r++)
-            {
-                for (int c = stC; c < width; c++)
-                {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        n+=1;
-                        int cnt = 0;
-                        if (unq.TryGetValue(vl, out cnt))
+                        if (vlObj == null)
                         {
-                            unq[vl] = cnt += 1;
+                            continue;
                         }
                         else
                         {
-                            unq.Add(vl,1);
+                            float vl = System.Convert.ToSingle(vlObj);
+                            if (vl > outVlF) outVlF = vl;
                         }
                     }
                 }
+                outVl = outVlF;
             }
-            float outvl = 0;
-            foreach (int i in unq.Values)
+            else
             {
-                float prob = System.Convert.ToSingle(i)/n;
-                outvl += prob * System.Convert.ToSingle(Math.Log(prob));
+                outVl = noDataVl;
             }
-            return -1*outvl;
+            return outVl;
         }
-        public static float getBlockAsm(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockUnique(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
-            Dictionary<float, int> unq = new Dictionary<float, int>();
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            float n = 0;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                HashSet<float> unq = new HashSet<float>();
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
+                    for (int c = stC; c < width; c++)
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        n += 1;
-                        int cnt = 0;
-                        if (unq.TryGetValue(vl, out cnt))
+
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
                         {
-                            unq[vl] = cnt += 1;
+                            continue;
                         }
                         else
                         {
-                            unq.Add(vl, 1);
+                            float vl = System.Convert.ToSingle(vlObj);
+                            unq.Add(vl);
                         }
                     }
                 }
+                outVl = unq.Count;
             }
-            float outvl = 0;
-            foreach (int i in unq.Values)
+            else
             {
-                float prob = System.Convert.ToSingle(i) / n;
-                outvl += prob * prob;
+                outVl = noDataVl;
             }
-            return outvl;
+            return outVl;
         }
-        public static float getBlockMedian(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
+        public static object getBlockEntropy(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
         {
-            Dictionary<float, int> unq = new Dictionary<float, int>();
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            float n = 0;
-            for (int r = stR; r < height; r++)
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
             {
-                for (int c = stC; c < width; c++)
+                Dictionary<float, int> unq = new Dictionary<float, int>();
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                float n = 0;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
+                    for (int c = stC; c < width; c++)
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        n += 1;
-                        int cnt = 0;
-                        if (unq.TryGetValue(vl, out cnt))
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
                         {
-                            unq[vl] = cnt += 1;
+                            continue;
                         }
                         else
                         {
-                            unq.Add(vl, 1);
+                            float vl = System.Convert.ToSingle(vlObj);
+                            n += 1;
+                            int cnt = 0;
+                            if (unq.TryGetValue(vl, out cnt))
+                            {
+                                unq[vl] = cnt += 1;
+                            }
+                            else
+                            {
+                                unq.Add(vl, 1);
+                            }
                         }
                     }
                 }
-            }
-            float halfCnt = n / 2;
-            float outvl = 0;
-            List<float> sKeys = unq.Keys.ToList();
-            sKeys.Sort();
-            int nCnt = 0;
-            foreach (int i in sKeys)
-            {
-                nCnt += unq[i];
-                if (nCnt >= halfCnt)
+                float outvl = 0;
+                foreach (int i in unq.Values)
                 {
-                    outvl = i;
-                    break;
+                    float prob = System.Convert.ToSingle(i) / n;
+                    outvl += prob * System.Convert.ToSingle(Math.Log(prob));
                 }
+                outVl= -1 * outvl;
             }
-            return outvl;
-        }
-        public static float getBlockMode(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
-        {
-            Dictionary<float, int> unq = new Dictionary<float, int>();
-            int stC = startColumn * numCellsInBlock;
-            int stR = startRows * numCellsInBlock;
-            int height = stR + numCellsInBlock;
-            int width = stC + numCellsInBlock;
-            float n = 0;
-            for (int r = stR; r < height; r++)
+            else
             {
-                for (int c = stC; c < width; c++)
+                outVl = noDataVl;
+            }
+            return outVl;
+        }
+        public static object getBlockAsm(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        {
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
+            {
+                Dictionary<float, int> unq = new Dictionary<float, int>();
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                float n = 0;
+                for (int r = stR; r < height; r++)
                 {
-                    object vlObj = inArr.GetVal(band, c, r);
-                    if (vlObj == null)
+                    for (int c = stC; c < width; c++)
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        float vl = System.Convert.ToSingle(vlObj);
-                        n += 1;
-                        int cnt = 0;
-                        if (unq.TryGetValue(vl, out cnt))
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
                         {
-                            unq[vl] = cnt += 1;
+                            continue;
                         }
                         else
                         {
-                            unq.Add(vl, 1);
+                            float vl = System.Convert.ToSingle(vlObj);
+                            n += 1;
+                            int cnt = 0;
+                            if (unq.TryGetValue(vl, out cnt))
+                            {
+                                unq[vl] = cnt += 1;
+                            }
+                            else
+                            {
+                                unq.Add(vl, 1);
+                            }
                         }
                     }
                 }
-            }
-            int maxCnt = unq.Values.Max();
-            float outvl = 0;
-            foreach (KeyValuePair<float,int> kVp in unq)
-            {
-                float k = kVp.Key;
-                int v = kVp.Value;
-                if(maxCnt==v)
+                float outvl = 0;
+                foreach (int i in unq.Values)
                 {
-                    outvl = k;
-                    break;
+                    float prob = System.Convert.ToSingle(i) / n;
+                    outvl += prob * prob;
                 }
+                outVl = outvl;
             }
-            return outvl;
+            else
+            {
+                outVl = noDataVl;
+            }
+            return outVl;
+        }
+        public static object getBlockMedian(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        {
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
+            {
+                Dictionary<float, int> unq = new Dictionary<float, int>();
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                float n = 0;
+                for (int r = stR; r < height; r++)
+                {
+                    for (int c = stC; c < width; c++)
+                    {
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            float vl = System.Convert.ToSingle(vlObj);
+                            n += 1;
+                            int cnt = 0;
+                            if (unq.TryGetValue(vl, out cnt))
+                            {
+                                unq[vl] = cnt += 1;
+                            }
+                            else
+                            {
+                                unq.Add(vl, 1);
+                            }
+                        }
+                    }
+                }
+                float halfCnt = n / 2;
+                float outvl = 0;
+                List<float> sKeys = unq.Keys.ToList();
+                sKeys.Sort();
+                int nCnt = 0;
+                foreach (int i in sKeys)
+                {
+                    nCnt += unq[i];
+                    if (nCnt >= halfCnt)
+                    {
+                        outvl = i;
+                        break;
+                    }
+                }
+                outVl = outvl;
+            }
+            else
+            {
+                outVl = noDataVl;
+            }
+            return outVl;
+        }
+        public static object getBlockMode(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        {
+            object outVl = 0;
+            if (((IPixelBlock4)inArr).HasData())
+            {
+                Dictionary<float, int> unq = new Dictionary<float, int>();
+                int stC = startColumn * numCellsInBlock;
+                int stR = startRows * numCellsInBlock;
+                int height = stR + numCellsInBlock;
+                int width = stC + numCellsInBlock;
+                float n = 0;
+                for (int r = stR; r < height; r++)
+                {
+                    for (int c = stC; c < width; c++)
+                    {
+                        object vlObj = inArr.GetVal(band, c, r);
+                        if (vlObj == null)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            float vl = System.Convert.ToSingle(vlObj);
+                            n += 1;
+                            int cnt = 0;
+                            if (unq.TryGetValue(vl, out cnt))
+                            {
+                                unq[vl] = cnt += 1;
+                            }
+                            else
+                            {
+                                unq.Add(vl, 1);
+                            }
+                        }
+                    }
+                }
+                int maxCnt = unq.Values.Max();
+                float outvl = 0;
+                foreach (KeyValuePair<float, int> kVp in unq)
+                {
+                    float k = kVp.Key;
+                    int v = kVp.Value;
+                    if (maxCnt == v)
+                    {
+                        outvl = k;
+                        break;
+                    }
+                }
+                outVl = outvl;
+            }
+            else
+            {
+                outVl = noDataVl;
+            }
+            return outVl;
         }
     }
 }

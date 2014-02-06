@@ -489,7 +489,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
         private void createOutRaster()
         {
             OutRasterName = rsUtil.getSafeOutputName(wks, OutRasterName);
-            outraster = rsUtil.createNewRaster(inRs, wks, OutRasterName, 1, rstPixelType.PT_LONG);
+            outraster = rsUtil.returnRaster(rsUtil.createNewRaster(inRs, wks, OutRasterName,rasterUtil.rasterType.IMAGINE));
             rsProps2 = (IRasterProps)OutRaster;
             System.Array noDataValues2 = (System.Array)rsProps2.NoDataValue;
             noDataVl2 = System.Convert.ToInt32(noDataValues2.GetValue(0));

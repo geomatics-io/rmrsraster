@@ -44,7 +44,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(199, 156);
+            this.btnSave.Location = new System.Drawing.Point(199, 164);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(63, 22);
             this.btnSave.TabIndex = 10;
@@ -97,7 +97,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 65);
+            this.label1.Location = new System.Drawing.Point(11, 66);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 13;
@@ -107,7 +107,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(17, 111);
+            this.label3.Location = new System.Drawing.Point(11, 112);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(55, 13);
             this.label3.TabIndex = 14;
@@ -144,7 +144,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(273, 187);
+            this.ClientSize = new System.Drawing.Size(273, 196);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbType);
             this.Controls.Add(this.btnWorkspace);

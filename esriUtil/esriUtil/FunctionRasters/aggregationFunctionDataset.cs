@@ -27,7 +27,7 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public float noDataValue = Single.MinValue;
+        public System.Array noDataValueArr = null;
         public void Bind(object pArgument)
         {
             if (pArgument is aggregationFunctionArguments)
@@ -36,6 +36,7 @@ namespace esriUtil.FunctionRasters
                 inrs = args.InRaster;
                 orig = args.OriginalRaster;
                 cells = args.Cells;
+                noDataValueArr = (System.Array)((IRasterProps)inrs).NoDataValue;
                 myFunctionHelper.Bind(inrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
@@ -74,14 +75,14 @@ namespace esriUtil.FunctionRasters
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
                     //Console.WriteLine(ipPixelBlock.get_PixelType(nBand).ToString());
-                    //noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    object noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            float outVl = System.Convert.ToSingle(getTransformedValue(pbBig,nBand,c,r,cells));
+                            object outVl = getTransformedValue(pbBig,nBand,c,r,cells,noDataValue);
                             //Console.WriteLine("summed value = " + outVl.ToString());
                             pixelValues.SetValue(outVl, c, r);
                         }
@@ -108,6 +109,6 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms,int startRws,int cells);
+        public abstract object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms,int startRws,int cells,object noDataValue);
     }
 }

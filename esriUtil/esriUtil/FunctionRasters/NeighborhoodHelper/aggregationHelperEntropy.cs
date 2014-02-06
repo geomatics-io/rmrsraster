@@ -9,9 +9,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperEntropy : aggregationFunctionDataset
     {
-        public override object getTransformedValue(IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells)
+        public override object getTransformedValue(IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells, object noDataVl)
         {
-            return blockHelperStats.getBlockEntropy(bigArr,band, startClms, startRws, cells);
+            return blockHelperStats.getBlockEntropy(bigArr,band, startClms, startRws, cells,noDataVl);
         }
 
     }

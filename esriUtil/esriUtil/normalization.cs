@@ -206,8 +206,8 @@ namespace esriUtil
                                 sumXArray[p] = sumXArray[p] + xBlock;
                                 sumXYArray[p] = sumXYArray[p] + (yBlock * xBlock);
                                 sumX2Array[p] = sumX2Array[p] + (xBlock * xBlock);
-                                sumY2Array[p] += sumY2Array[p] + (yBlock * yBlock);
-                                blockCellCount[p]= blockCellCount[p]+1;
+                                sumY2Array[p] = sumY2Array[p] + (yBlock * yBlock);
+                                blockCellCount[p] = blockCellCount[p]+1;
                             }
                         }
                         
@@ -220,7 +220,7 @@ namespace esriUtil
             } while (cRsCur.Next() == true);
             for (int i = 0; i < bndCnt; i++)
             {
-                int n = blockCellCount[i];
+                double n = System.Convert.ToDouble(blockCellCount[i]);
                 double meanX = sumXArray[i]/n;
                 double meanY = sumYArray[i]/n;
                 //double meanX2 = sumX2Array[i]/n;

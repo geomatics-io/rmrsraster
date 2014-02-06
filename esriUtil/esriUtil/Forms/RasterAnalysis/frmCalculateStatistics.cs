@@ -28,7 +28,7 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             populateComboBox();
         }
-        public frmCalculateStatistics(IMap map,ref rasterUtil rasterUtility, bool AddToMap)
+        public frmCalculateStatistics(IMap map, ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
             rsUtil = rasterUtility;
@@ -46,6 +46,58 @@ namespace esriUtil.Forms.RasterAnalysis
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
+        private void getFeaturePath()
+        {
+            string outPath = null;
+            string outName = "";
+            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
+            gxDialog.AllowMultiSelect = false;
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
+            flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+            gxDialog.ObjectFilter = flt;
+            gxDialog.Title = "Select a Raster";
+            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
+            if (gxDialog.DoModalOpen(0, out eGxObj))
+            {
+                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
+                outPath = gxObj.FullName;
+                outName = gxObj.BaseName;
+                if (!rstDic.ContainsKey(outName))
+                {
+                    rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                    cmbInRaster1.Items.Add(outName);
+                }
+                else
+                {
+                    rstDic[outName] = rsUtil.returnRaster(outPath);
+                }
+                cmbInRaster1.Text = outName;
+                
+
+            }
+            return;
+        }
+        private IRaster outraster = null;
+        public IRaster OutRaster { get { return outraster; } }
+        private string outrastername = "";
+        public string OutRasterName { get { return outrastername; } }
+        public void addRasterToComboBox(string rstName, IRaster rst)
+        {
+            if (!cmbInRaster1.Items.Contains(rstName))
+            {
+                cmbInRaster1.Items.Add(rstName);
+                rstDic[rstName] = rst;
+            }
+        }
+        public void removeRasterFromComboBox(string rstName)
+        {
+            if (cmbInRaster1.Items.Contains(rstName))
+            {
+                cmbInRaster1.Items.Remove(rstName);
+                rstDic.Remove(rstName);
+            }
+        }
         private void populateComboBox()
         {
             if (mp != null)
@@ -68,81 +120,56 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
             }
         }
-        private void btnOpenFunctionModelDataset_Click(object sender, EventArgs e)
+        private void btnOpenRaster_Click(object sender, EventArgs e)
         {
-            functionModel fModel = new functionModel(rsUtil);
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Multiselect = false;
-            ofd.Title = "Add Function Model to map";
-            ofd.Filter = "Function Dataset|*.fds";
-            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                fModel.FunctionDatasetPath = ofd.FileName;
-                string outNm = "";
-                IRaster outRS = null;
-                string desc = "";
-                fModel.createFunctionRaster(out outNm, out outRS, out desc);
-                rstDic[outNm] = outRS;
-                if (!cmbInRaster1.Items.Contains(outNm))
-                {
-                    cmbInRaster1.Items.Add(outNm);
-                }
-                cmbInRaster1.SelectedItem = outNm;
-            }
+            getFeaturePath();
         }
 
-        private void btnExecute_Click(object sender, EventArgs e)
+        private void btnClip_Click(object sender, EventArgs e)
         {
             string rstNm = cmbInRaster1.Text;
-            int pixelNm = System.Convert.ToInt32(nudSkip.Value);
+            int sk = System.Convert.ToInt32(nudSkip.Value);
+           
             if (rstNm == "" || rstNm == null)
             {
-                MessageBox.Show("You must select an input raster!", "No Input Raster", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("You must have a raster layer selected and a pixel type selected", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             this.Visible = false;
-            DateTime dt = DateTime.Now;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
+            DateTime dt = DateTime.Now;
             rp.addMessage("Calculating Statistics. This may take a while...");
+            rp.Show();
             rp.stepPGBar(10);
             rp.TopMost = true;
-            rp.Show();
-            rp.Refresh();
             try
             {
                 IRaster rst = rstDic[rstNm];
-                //Console.WriteLine(functionModel.FunctionDatasetPathDic.ContainsKey(rstNm));
-                rst = rsUtil.calcStatsAndHist(rst, pixelNm);
-                if (functionModel.FunctionDatasetPathDic.ContainsKey(rstNm))
+                outraster = rsUtil.calcStatsAndHist(rst,sk);
+                if (mp != null&&addToMap)
                 {
-                    rp.addMessage("Updating Statistics for a function dataset");
                     rp.Refresh();
-                    functionModel.buildStats(rst, functionModel.FunctionDatasetPathDic[rstNm]);
-                    
-                }
-                if (mp != null)
-                {
-                    IRasterLayer rsLyr = new RasterLayerClass();
-                    rsLyr.CreateFromRaster(rst);
-                    rsLyr.Name = rstNm;
-                    rsLyr.Visible = false;
                     for (int i = 0; i < mp.LayerCount; i++)
                     {
-                        ILayer lyr = mp.get_Layer(i);
-                        if (lyr.Name == rstNm)
+                        ILayer ly = mp.get_Layer(i);
+                        if (ly.Name == rstNm)
                         {
-                            mp.DeleteLayer(lyr);
-                            break;
+                            mp.DeleteLayer(ly);
                         }
+                        
                     }
-                    mp.AddLayer(rsLyr);
-                    
+                    IRasterLayer rstLyr = new RasterLayerClass();
+                    rstLyr.CreateFromRaster(outraster);
+                    rstLyr.Name = rstNm;
+                    rstLyr.Visible = false;
+                    mp.AddLayer(rstLyr);
                 }
+                outrastername = rstNm;
                 this.DialogResult = DialogResult.OK;
             }
             catch (Exception ex)
             {
-                rp.addMessage("Error: could not calculate statistics. here is the error message:\n" + ex.ToString());
+                rp.addMessage(ex.ToString());
             }
             finally
             {
@@ -150,11 +177,10 @@ namespace esriUtil.Forms.RasterAnalysis
                 TimeSpan ts = dt2.Subtract(dt);
                 string t = " in " + ts.Days.ToString() + " days " + ts.Hours.ToString() + " hours " + ts.Minutes.ToString() + " minutes and " + ts.Seconds.ToString() + " seconds .";
                 rp.stepPGBar(100);
-                rp.addMessage("Finished building Statistics" + t);
+                rp.addMessage("Finished Calculating Statistics" + t);
                 rp.enableClose();
                 this.Close();
             }
-
 
         }
     }
