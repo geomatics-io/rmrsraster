@@ -49,7 +49,7 @@ namespace esriUtil.Statistics
             int depCnt = DependentFieldNames.Length;
             int rws = InTable.RowCount(null);
             n = rws;
-            ICursor cur = InTable.Search(null, false);
+            ICursor cur = InTable.Search(null, true);
             int clms = indCnt;
             int[] allFieldIndexArray = new int[clms];
             allFieldNames = new string[clms];
@@ -121,6 +121,7 @@ namespace esriUtil.Statistics
                 rw = cur.NextRow();
                 rwCnt += 1;
             }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
             
         }
         private void updateMinMaxSum(object vl, int i)

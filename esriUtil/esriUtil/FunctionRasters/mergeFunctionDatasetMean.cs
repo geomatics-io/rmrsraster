@@ -23,7 +23,7 @@ namespace esriUtil.FunctionRasters
                     cnt += 1;
                 }
             }
-            if (cnt == 0) return noDataVl;
+            if (cnt == 0) return 0;
             else
             {
                 meanVl = meanVl / cnt;

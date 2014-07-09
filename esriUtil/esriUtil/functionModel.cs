@@ -86,56 +86,70 @@ namespace esriUtil
 
         public void addFunctionRasterToMap(IMap map)
         {
-            ofd.Title = "Add Function Model to map";
-            ofd.Filter = "Function Dataset|*.fds|Batch Datasets|*.bch";
-            ofd.Multiselect = false;
-            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            try
             {
-                FunctionDatasetPath = ofd.FileName;
-                int fIndex = ofd.FilterIndex;
-                string outName = "";
-                object outobj = null;
-                string outDesc = "";
-                if (fIndex == 1)
+                ofd.Title = "Add Function Model to map";
+                ofd.Filter = "Function Dataset|*.fds|Batch Datasets|*.bch";
+                ofd.Multiselect = false;
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    IRaster outRs;
-                    createFunctionRaster(out outName, out outRs, out outDesc);
-                    outobj = outRs;
-                }
-                else
-                {
-                    createBatchRaster(out outName, out outobj, out outDesc);
-                }
-                if (outobj is Raster)
-                {
-                    IRasterLayer rsLyr = new RasterLayerClass();
-                    rsLyr.CreateFromRaster((IRaster)outobj);
-                    rsLyr.Name = outName;
-                    rsLyr.Visible = false;
-                    map.AddLayer((ILayer)rsLyr);
-                }
-                else if (outobj is FeatureClass)
-                {
-                    IFeatureLayer ftrLyr = new FeatureLayerClass();
-                    ftrLyr.Name = outName;
-                    ftrLyr.Visible = false;
-                    ftrLyr.FeatureClass = (IFeatureClass)outobj;
-                    map.AddLayer((ILayer)ftrLyr);
-                }
-                else if (outobj is Table)
-                {
-                    IStandaloneTableCollection stCol = (IStandaloneTableCollection)map;
-                    IStandaloneTable stTbl = new StandaloneTableClass();
-                    stTbl.Table = (ITable)outobj;
-                    stTbl.Name = outName;
-                    stCol.AddStandaloneTable(stTbl);
-                }
-                else
-                {
-                    System.Windows.Forms.MessageBox.Show("There was a problem parsing the model. Please check your model file");
-                }
+                    FunctionDatasetPath = ofd.FileName;
+                    int fIndex = ofd.FilterIndex;
+                    string outName = "";
+                    object outobj = null;
+                    string outDesc = "";
+                    if (fIndex == 1)
+                    {
+                        IRaster outRs;
+                        createFunctionRaster(out outName, out outRs, out outDesc);
+                        outobj = outRs;
+                    }
+                    else
+                    {
+                        createBatchRaster(out outName, out outobj, out outDesc);
+                    }
+                    if (outobj is IFunctionRasterDataset)
+                    {
+                        IRasterLayer rsLyr = new RasterLayerClass();
+                        rsLyr.CreateFromDataset((IRasterDataset)outobj);
+                        rsLyr.Name = outName;
+                        rsLyr.Visible = false;
+                        map.AddLayer((ILayer)rsLyr);
+                    }
+                    else if (outobj is IRaster)
+                    {
+                        IRasterLayer rsLyr = new RasterLayerClass();
+                        rsLyr.CreateFromRaster((IRaster)outobj);
+                        rsLyr.Name = outName;
+                        rsLyr.Visible = false;
+                        map.AddLayer((ILayer)rsLyr);
+                    }
+                    else if (outobj is FeatureClass)
+                    {
+                        IFeatureLayer ftrLyr = new FeatureLayerClass();
+                        ftrLyr.Name = outName;
+                        ftrLyr.Visible = false;
+                        ftrLyr.FeatureClass = (IFeatureClass)outobj;
+                        map.AddLayer((ILayer)ftrLyr);
+                    }
+                    else if (outobj is Table)
+                    {
+                        IStandaloneTableCollection stCol = (IStandaloneTableCollection)map;
+                        IStandaloneTable stTbl = new StandaloneTableClass();
+                        stTbl.Table = (ITable)outobj;
+                        stTbl.Name = outName;
+                        stCol.AddStandaloneTable(stTbl);
+                    }
+                    else
+                    {
+                        System.Windows.Forms.MessageBox.Show("There was a problem parsing the model. Please check your model file");
+                    }
 
-                
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show("Could not add output to the map:" + e.ToString(), "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
             
 
@@ -277,7 +291,7 @@ namespace esriUtil
             }
             rasterUtil.focalType fcType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), fTyp);
             
-            raster = rsUtil.calcAggregationFunction(rs1,clm,fcType);
+            raster = rsUtil.createRaster(rsUtil.calcAggregationFunction(rs1,clm,fcType));
         }
 
         private void calcFocalSample(string[] prmArr, out string name, out IRaster raster)
@@ -302,7 +316,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.calcFocalSampleFunction(rs1,rngLst,statType);
+            raster = rsUtil.createRaster(rsUtil.calcFocalSampleFunction(rs1,rngLst,statType));
         }
 
         private void calcSetNull(string[] prmArr, out string name, out IRaster raster)
@@ -332,7 +346,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.setValueRangeToNodata(rs1, strArr);
+            raster = rsUtil.returnRaster(rsUtil.setValueRangeToNodata(rs1, strArr));
         }
 
         private void calcLandscapeMetrics(string[] prmArr, out string name, out IRaster raster)
@@ -363,11 +377,11 @@ namespace esriUtil
             rasterUtil.landscapeType lsType = (rasterUtil.landscapeType)Enum.Parse(typeof(rasterUtil.landscapeType), lTyp);
             if (wdType == rasterUtil.windowType.CIRCLE)
             {
-                raster = rsUtil.calcLandscapeFunction(rs1, clm, fcType,lsType);
+                raster = rsUtil.createRaster(rsUtil.calcLandscapeFunction(rs1, clm, fcType,lsType));
             }
             else
             {
-                raster = rsUtil.calcLandscapeFunction(rs1, clm, rws, fcType,lsType);
+                raster = rsUtil.createRaster(rsUtil.calcLandscapeFunction(rs1, clm, rws, fcType,lsType));
             }
         }
 
@@ -386,7 +400,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.calcMathRasterFunction(rs1,tType);
+            raster = rsUtil.returnRaster(rsUtil.calcMathRasterFunction(rs1,tType));
         }
 
         private string getFeaturePath(string ftNm, bool featureClass)
@@ -434,11 +448,11 @@ namespace esriUtil
             }
             if (wTyp == rasterUtil.windowType.CIRCLE.ToString())
             {
-                raster = rsUtil.calcGLCMFunction(rs, clm, horz, rm);
+                raster = rsUtil.createRaster(rsUtil.fastGLCMFunction(rs, clm, horz, rm));
             }
             else
             {
-                raster = rsUtil.calcGLCMFunction(rs, clm, rws, horz, rm);
+                raster = rsUtil.createRaster(rsUtil.fastGLCMFunction(rs, clm, rws, horz, rm));
             }
         }
 
@@ -448,15 +462,16 @@ namespace esriUtil
             string inRaster1 = prmArr[2].Split(new char[] { '@' })[1];
             string bands = prmArr[0].Split(new char[] { '@' })[1];
             IRaster rs = null;
+            ILongArray lArr = new LongArrayClass();
             IRasterBandCollection rsBc = new RasterClass();
             if (rstDic.ContainsKey(inRaster1)) rs = rstDic[inRaster1];
             else rs = rsUtil.returnRaster(inRaster1);
             foreach (string s in bands.Split(new char[] { ',' }))
             {
                 int bndIndex = System.Convert.ToInt32(s.Split(new char[] { '_' })[1]) - 1;
-                rsBc.AppendBands((IRasterBandCollection)rsUtil.getBand(rs, bndIndex));
+                lArr.Add(bndIndex);
             }
-            raster = (IRaster)rsBc;
+            raster = rsUtil.createRaster(rsUtil.getBands(rs, lArr));
         }
 
         private void calcComposite(string[] prmArr, out string name, out IRaster raster)
@@ -478,7 +493,7 @@ namespace esriUtil
                 rsLst.Add(rs);
                 
             }
-            raster = rsUtil.compositeBandFunction(rsLst.ToArray());
+            raster = rsUtil.createRaster(rsUtil.compositeBandFunction(rsLst.ToArray()));
         }
 
         private void calcRemap(string[] prmArr, out string name, out IRaster raster)
@@ -508,7 +523,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.calcRemapFunction(rs1, flt);
+            raster = rsUtil.createRaster(rsUtil.calcRemapFunction(rs1, flt));
         }
 
         private void calcRescale(string[] prmArr, out string name, out IRaster raster)
@@ -530,7 +545,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.reScaleRasterFunction(rs1, rP);
+            raster = rsUtil.createRaster(rsUtil.reScaleRasterFunction(rs1, rP));
         }
 
         private void calcLinearTransform(string[] prmArr, out string name, out IRaster raster)
@@ -560,7 +575,7 @@ namespace esriUtil
             }
             List<float[]> fLst = new List<float[]>();
             fLst.Add(slpLst.ToArray());
-            raster = rsUtil.calcRegressFunction((IRaster)rsBc, fLst);
+            raster = rsUtil.createRaster(rsUtil.calcRegressFunction((IRaster)rsBc, fLst));
         }
 
         private void calcSummarize(string[] prmArr, out string name, out IRaster raster)
@@ -583,7 +598,7 @@ namespace esriUtil
                 }
                 rsBc.AppendBands((IRasterBandCollection)rs);
             }
-            raster = rsUtil.localStatisticsfunction((IRaster)rsBc,op);
+            raster = rsUtil.createRaster(rsUtil.localStatisticsfunction((IRaster)rsBc,op));
         }
 
         private void calcFocal(string[] prmArr, out string name, out IRaster raster)
@@ -612,11 +627,11 @@ namespace esriUtil
             rasterUtil.windowType wdType = (rasterUtil.windowType)Enum.Parse(typeof(rasterUtil.windowType),wTyp);
             if(wdType== rasterUtil.windowType.CIRCLE)
             {
-                raster = rsUtil.calcFocalStatisticsFunction(rs1,clm,fcType);
+                raster = rsUtil.createRaster(rsUtil.calcFocalStatisticsFunction(rs1,clm,fcType));
             }
             else
             {
-                raster = rsUtil.calcFocalStatisticsFunction(rs1,clm,rws,fcType);
+                raster = rsUtil.createRaster(rsUtil.calcFocalStatisticsFunction(rs1,clm,rws,fcType));
             }
         }
 
@@ -647,7 +662,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster=rsUtil.convolutionRasterFunction(rs1, wd, ht, kn);
+            raster=rsUtil.createRaster(rsUtil.convolutionRasterFunction(rs1, wd, ht, kn));
         }
 
         private void calcConditional(string[] prmArr, out string name, out IRaster raster)
@@ -695,7 +710,7 @@ namespace esriUtil
             {
                 rs3 = inRaster3;
             }
-            raster = rsUtil.conditionalRasterFunction(rs1, rs2, rs3);
+            raster = rsUtil.createRaster(rsUtil.conditionalRasterFunction(rs1, rs2, rs3));
         }
 
         private void calcClip(string[] prmArr, out string name, out IRaster raster)
@@ -723,7 +738,7 @@ namespace esriUtil
             {
                 rs1 = inRaster1;
             }
-            raster = rsUtil.clipRasterFunction(rs1, geo, cTy);
+            raster = rsUtil.createRaster(rsUtil.clipRasterFunction(rs1, geo, cTy));
         }
 
         private void calcLogical(string[] prmArr, out string name, out IRaster raster)
@@ -777,25 +792,25 @@ namespace esriUtil
             switch (op)
             {
                 case ">":
-                    raster = rsUtil.calcGreaterFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcGreaterFunction(rs1, rs2));
                     break;
                 case "<":
-                    raster = rsUtil.calcLessFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcLessFunction(rs1, rs2));
                     break;
                 case "<=":
-                    raster = rsUtil.calcLessEqualFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcLessEqualFunction(rs1, rs2));
                     break;
                 case "=":
-                    raster = rsUtil.calcEqualFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcEqualFunction(rs1, rs2));
                     break;
                 case "and":
-                    raster = rsUtil.calcAndFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcAndFunction(rs1, rs2));
                     break;
                 case "or":
-                    raster = rsUtil.calcOrFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcOrFunction(rs1, rs2));
                     break;
                 default:
-                    raster = rsUtil.calcGreaterEqualFunction(rs1, rs2);
+                    raster = rsUtil.returnRaster(rsUtil.calcGreaterEqualFunction(rs1, rs2));
                     break;
             }
 
@@ -871,7 +886,7 @@ namespace esriUtil
                     rsOp = esriRasterArithmeticOperation.esriRasterPlus;
                     break;
 	        }
-            raster = rsUtil.calcArithmaticFunction(rs1, rs2, rsOp);
+            raster = rsUtil.returnRaster(rsUtil.calcArithmaticFunction(rs1, rs2, rsOp));
         }
 
 

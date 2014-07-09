@@ -134,6 +134,20 @@ namespace esriUtil.Forms.RasterAnalysis
             cmbValueRaster.SelectedItem = outName;
             return;
         }
+        private void getTablePath()
+        {
+            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
+            gxDialog.AllowMultiSelect = false;
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
+            flt = new ESRI.ArcGIS.Catalog.GxFilterTablesClass();//.GxFilterRasterDatasetsClass();
+            gxDialog.ObjectFilter = flt;
+            gxDialog.Title = "Save Output Table";
+            if (gxDialog.DoModalSave(0))
+            {
+                txtTableName.Text = gxDialog.FinalLocation.FullName + "\\" + gxDialog.Name;
+            }
+            return;
+        }
         private IRaster outraster = null;
         public IRaster OutRaster { get { return outraster; } }
         private string outrastername = "";
@@ -164,7 +178,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     
                     if (!rstDic.ContainsKey(lyrNm))
                     {
@@ -386,6 +400,11 @@ namespace esriUtil.Forms.RasterAnalysis
                 cmbZoneField.Visible = true;
                 lblZone.Visible = true;
             }
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            getTablePath();
         }
 
 

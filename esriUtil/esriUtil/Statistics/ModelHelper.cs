@@ -202,6 +202,12 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.GLM:
                     outRs = getGLMRaster();
                     break;
+                case dataPrepBase.modelTypes.KDA:
+                    outRs = getKDARaster();
+                    break;
+                case dataPrepBase.modelTypes.LDA:
+                    outRs = getLDARaster();
+                    break;
                 default:
                     Console.WriteLine("Can't make a raster out of model");
                     break;
@@ -209,25 +215,39 @@ namespace esriUtil.Statistics
             return outRs;
         }
 
+        private IRaster getLDARaster()
+        {
+            dataPrepDiscriminantAnalysisLda lda = new dataPrepDiscriminantAnalysisLda();
+            lda.getDaModel(mdlp, true);
+            return rsUtil.createRaster(rsUtil.calcLdaFunction(coefRst, lda));
+        }
+
+        private IRaster getKDARaster()
+        {
+            dataPrepDiscriminantAnalysis kda = new dataPrepDiscriminantAnalysis();
+            kda.getDaModel(mdlp, true);
+            return rsUtil.createRaster(rsUtil.calcKdaFunction(coefRst,kda));
+        }
+
         private IRaster getGLMRaster()
         {
             dataPrepGlm glm = new dataPrepGlm();
             glm.getGlmModel(mdlp, true);
-            return rsUtil.calcGlmFunction(coefRst, glm);
+            return rsUtil.createRaster(rsUtil.calcGlmFunction(coefRst, glm));
         }
 
         private IRaster getPairedTTestRaster()
         {
             dataPrepPairedTTest pttest = new dataPrepPairedTTest();
             pttest.buildModel(mdlp);
-            return rsUtil.calcPairedTTestFunction(coefRst, pttest);
+            return rsUtil.createRaster(rsUtil.calcPairedTTestFunction(coefRst, pttest));
         }
 
         private IRaster getTTestRaster()
         {
             dataPrepTTest ttest = new dataPrepTTest();
             ttest.buildModel(mdlp);
-            return rsUtil.calcTTestFunction(coefRst, ttest);
+            return rsUtil.createRaster(rsUtil.calcTTestFunction(coefRst, ttest));
         }
 
         private IRaster getClusterRaster()
@@ -239,17 +259,17 @@ namespace esriUtil.Statistics
                 case clusterType.KMEANS:
                     dataPrepClusterKmean clusKm = new dataPrepClusterKmean();
                     clusKm.buildModel(mdlp);
-                    outRs = rsUtil.calcClustFunctionKmean(coefRst, clusKm);
+                    outRs = rsUtil.createRaster(rsUtil.calcClustFunctionKmean(coefRst, clusKm));
                     break;
                 case clusterType.BINARY:
                     dataPrepClusterBinary clusBs = new dataPrepClusterBinary();
                     clusBs.buildModel(mdlp);
-                    outRs = rsUtil.calcClustFunctionBinary(coefRst, clusBs);
+                    outRs = rsUtil.createRaster(rsUtil.calcClustFunctionBinary(coefRst, clusBs));
                     break;
                 case clusterType.GAUSSIANMIXTURE:
                     dataPrepClusterGaussian clusGa = new dataPrepClusterGaussian();
                     clusGa.buildModel(mdlp);
-                    outRs = rsUtil.calcClustFunctionGaussian(coefRst, clusGa);
+                    outRs = rsUtil.createRaster(rsUtil.calcClustFunctionGaussian(coefRst, clusGa));
                     break;
                 default:
                     break;
@@ -274,7 +294,7 @@ namespace esriUtil.Statistics
         {
             dataPrepPrincipleComponents pca = new dataPrepPrincipleComponents();
             pca.buildModel(mdlp);
-            return rsUtil.calcPrincipleComponentsFunction(coefRst, pca);
+            return rsUtil.createRaster(rsUtil.calcPrincipleComponentsFunction(coefRst, pca));
         }
 
         private IRaster getLogisticRegression()
@@ -285,7 +305,7 @@ namespace esriUtil.Statistics
             depvar = lr.DependentFieldNames;
             double[][] coef = new double[1][];
             coef[0] = lr.Coefficients;
-            return rsUtil.calcPolytomousLogisticRegressFunction(coefRst, coef);
+            return rsUtil.createRaster(rsUtil.calcPolytomousLogisticRegressFunction(coefRst, coef));
         }
 
         private IRaster getL3Raster()
@@ -302,7 +322,7 @@ namespace esriUtil.Statistics
         {
             dataPrepSoftMaxPlr sm = new dataPrepSoftMaxPlr();
             sm.getMnlModel(mdlp);
-            return rsUtil.calcSoftMaxNnetFunction(coefRst, sm);
+            return rsUtil.createRaster(rsUtil.calcSoftMaxNnetFunction(coefRst, sm));
         }
 
         private IRaster getRandomForestRaster()
@@ -311,7 +331,7 @@ namespace esriUtil.Statistics
             rf.getDfModel(mdlp);
             indvar = rf.IndependentFieldNames;
             depvar = rf.DependentFieldNames;
-            return rsUtil.calcRandomForestFunction(coefRst, rf);
+            return rsUtil.createRaster(rsUtil.calcRandomForestFunction(coefRst, rf));
         }
 
         private IRaster getPlrRaster()
@@ -321,7 +341,7 @@ namespace esriUtil.Statistics
             indvar = plr.IndependentFieldNames;
             depvar = plr.DependentFieldNames;
             double[][] coef = plr.Coefficients;
-            return rsUtil.calcPolytomousLogisticRegressFunction(coefRst, coef);
+            return rsUtil.createRaster(rsUtil.calcPolytomousLogisticRegressFunction(coefRst, coef));
         }
 
         private IRaster getMultivariateRegressionRaster()
@@ -337,7 +357,7 @@ namespace esriUtil.Statistics
                 float[] fCoef = (from double d in coef select System.Convert.ToSingle(d)).ToArray();
                 coefLst.Add(fCoef);
             }
-            return rsUtil.calcRegressFunction(coefRst, coefLst);
+            return rsUtil.createRaster(rsUtil.calcRegressFunction(coefRst, coefLst));
         }
 
         private IRaster getLinearRegressionRaster()
@@ -350,7 +370,7 @@ namespace esriUtil.Statistics
             float[] fCoef = (from double d in coef select System.Convert.ToSingle(d)).ToArray();
             List<float[]> coefLst = new List<float[]>();
             coefLst.Add(fCoef);
-            return rsUtil.calcRegressFunction(coefRst, coefLst);
+            return rsUtil.createRaster(rsUtil.calcRegressFunction(coefRst, coefLst));
         }
 
         private string getFirstLineOfModel()
@@ -435,10 +455,34 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.CompareClassifications:
                     openCompareClass(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.LDA:
+                    openLDA(alpha, report);
+                    break;
+                case dataPrepBase.modelTypes.KDA:
+                    openKDA(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openKDA(double alpha, bool report)
+        {
+            dataPrepDiscriminantAnalysis kda = new dataPrepDiscriminantAnalysis();
+            kda.getDaModel(mdlp);
+            depvar = kda.DependentFieldNames;
+            indvar = kda.IndependentFieldNames;
+            if (report) kda.getReport();
+        }
+
+        private void openLDA(double alpha, bool report)
+        {
+            dataPrepDiscriminantAnalysisLda lda = new dataPrepDiscriminantAnalysisLda();
+            lda.getDaModel(mdlp);
+            depvar = lda.DependentFieldNames;
+            indvar = lda.IndependentFieldNames;
+            if (report) lda.getReport();
         }
 
         private void openCompareClass(double alpha, bool report)
@@ -603,7 +647,7 @@ namespace esriUtil.Statistics
                 return indvar;
             }
         }
-        public void predictNewData(ITable inputTable)
+        public void predictNewData(ITable inputTable,IQueryFilter qf)
         {
             IObjectClassInfo2 ocI2 = (IObjectClassInfo2)inputTable;
             if (!ocI2.CanBypassEditSession())
@@ -629,51 +673,145 @@ namespace esriUtil.Statistics
             switch (mType)
             {
                 case dataPrepBase.modelTypes.LinearRegression:
-                    predictLrData(inputTable,fldIndexArr);
+                    predictLrData(inputTable,fldIndexArr,qf);
                     break;
                 case dataPrepBase.modelTypes.MvlRegression:
-                    predictMlrData(inputTable, fldIndexArr);
+                    predictMlrData(inputTable, fldIndexArr,qf);
                     break;
                 case dataPrepBase.modelTypes.PLR:
-                    predictPlrData(inputTable, fldIndexArr);
+                    predictPlrData(inputTable, fldIndexArr,qf);
                     break;
                 case dataPrepBase.modelTypes.RandomForest:
-                    predictRfData(inputTable, fldIndexArr);
+                    predictRfData(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.SoftMax:
-                    predictSmData(inputTable, fldIndexArr);
+                    predictSmData(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.Cart:
-                    predictCartData(inputTable, fldIndexArr);
+                    predictCartData(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.L3:
-                    predictL3Data(inputTable, fldIndexArr);
+                    predictL3Data(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.LogisticRegression:
-                    predictLogisticReg(inputTable, fldIndexArr);
+                    predictLogisticReg(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.PCA:
-                    predictPca(inputTable, fldIndexArr);
+                    predictPca(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.Cluster:
                     clusterType cType = (clusterType)Enum.Parse(typeof(clusterType), getSecondLine());
-                    predictCluster(inputTable, fldIndexArr,cType);
+                    predictCluster(inputTable, fldIndexArr, cType, qf);
                     break;
                 case dataPrepBase.modelTypes.TTEST:
-                    predictTTest(inputTable, fldIndexArr);
+                    predictTTest(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.PAIREDTTEST:
-                    predictPairedTTest(inputTable, fldIndexArr);
+                    predictPairedTTest(inputTable, fldIndexArr, qf);
                     break;
                 case dataPrepBase.modelTypes.GLM:
-                    predictGLM(inputTable,fldIndexArr);
+                    predictGLM(inputTable, fldIndexArr, qf);
+                    break;
+                case dataPrepBase.modelTypes.KDA:
+                    predictKda(inputTable, fldIndexArr, qf);
+                    break;
+                case dataPrepBase.modelTypes.LDA:
+                    predictLda(inputTable, fldIndexArr, qf);
                     break;
                 default:
                     break;
             }
         }
 
-        private void predictGLM(ITable inputTable, int[] fldIndexArr)
+        private void predictKda(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
+        {
+            string outFldName = DependentVariables[0] + "_P";
+            outFldName = geoUtil.createField(inputTable, outFldName, esriFieldType.esriFieldTypeDouble, false);
+            int outFldIndex = inputTable.FindField(outFldName);
+            dataPrepDiscriminantAnalysis kda = new dataPrepDiscriminantAnalysis();
+            kda.getDaModel(mdlp,true);
+            double[] input = new double[IndependentVariables.Length];
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(qf, true);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                bool updateCheck = true;
+                for (int i = 0; i < fldIndexArr.Length; i++)
+                {
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
+                }
+                if (updateCheck)
+                {
+                    int nVl = kda.computeNew(input);
+                    rw.set_Value(outFldIndex, kda.Categories[nVl]);
+                    cur.UpdateRow(rw);
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private void predictLda(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
+        {
+            string outFldName = DependentVariables[0] + "_P";
+            outFldName = geoUtil.createField(inputTable, outFldName, esriFieldType.esriFieldTypeDouble, false);
+            int outFldIndex = inputTable.FindField(outFldName);
+            dataPrepDiscriminantAnalysisLda kda = new dataPrepDiscriminantAnalysisLda();
+            kda.getDaModel(mdlp,true);
+            double[] input = new double[IndependentVariables.Length];
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            ICursor cur = inputTable.Update(qf, true);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                bool updateCheck = true;
+                for (int i = 0; i < fldIndexArr.Length; i++)
+                {
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
+                }
+                if (updateCheck)
+                {
+                    int nVl = kda.computeNew(input);
+                    rw.set_Value(outFldIndex, kda.Categories[nVl]);
+                    cur.UpdateRow(rw);
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private void predictGLM(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             string outFldName = DependentVariables[0] + "_P";
             outFldName = geoUtil.createField(inputTable, outFldName, esriFieldType.esriFieldTypeDouble, false);
@@ -687,23 +825,26 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
-                bool checkVl = true;
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    object vlObj = rw.get_Value(fldIndexArr[i]);
-                    if(vlObj==null)
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(objVl))
                     {
-                        checkVl= false;
+                        updateCheck = false;
                         break;
                     }
-                    double vl = System.Convert.ToDouble(vlObj);
-                    input[i] = vl;
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                if(checkVl)
+                if (updateCheck)
                 {
                     double nVl = glm.computeNew(input);
                     rw.set_Value(outFldIndex, nVl);
@@ -714,7 +855,7 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictPairedTTest(ITable inputTable, int[] fldIndexArr)
+        private void predictPairedTTest(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepPairedTTest pttest = new dataPrepPairedTTest();
             pttest.buildModel(mdlp);
@@ -749,7 +890,7 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             for (int i = 0; i < newNameArray.Length; i++)
             {
                 newIndexArray[i] = cur.FindField(newNameArray[i]);
@@ -778,7 +919,7 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictTTest(ITable inputTable, int[] fldIndexArr)
+        private void predictTTest(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             
             dataPrepTTest ttest = new dataPrepTTest();
@@ -814,7 +955,7 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             for (int i = 0; i < newNameArray.Length; i++)
             {
                 newIndexArray[i] = cur.FindField(newNameArray[i]);
@@ -843,25 +984,25 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictCluster(ITable inputTable, int[] fldIndexArr,clusterType cType = clusterType.KMEANS)
+        private void predictCluster(ITable inputTable, int[] fldIndexArr, clusterType cType = clusterType.KMEANS, IQueryFilter qf=null)
         {
             switch (cType)
             {
                 case clusterType.KMEANS:
-                    predKmeans(inputTable, fldIndexArr);
+                    predKmeans(inputTable, fldIndexArr,qf);
                     break;
                 case clusterType.BINARY:
-                    predBinary(inputTable, fldIndexArr);
+                    predBinary(inputTable, fldIndexArr,qf);
                     break;
                 case clusterType.GAUSSIANMIXTURE:
-                    predGaussian(inputTable, fldIndexArr);
+                    predGaussian(inputTable, fldIndexArr,qf);
                     break;
                 default:
                     break;
             }
         }
 
-        private void predGaussian(ITable inputTable, int[] fldIndexArr)
+        private void predGaussian(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepClusterGaussian clus = new dataPrepClusterGaussian();
             clus.buildModel(mdlp);
@@ -876,7 +1017,7 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
@@ -893,7 +1034,7 @@ namespace esriUtil.Statistics
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predBinary(ITable inputTable, int[] fldIndexArr)
+        private void predBinary(ITable inputTable, int[] fldIndexArr,IQueryFilter qf)
         {
             dataPrepClusterBinary clus = new dataPrepClusterBinary();
             clus.buildModel(mdlp);
@@ -908,24 +1049,37 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if(Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                int nVl = clus.computNew(input);
-                rw.set_Value(newFldNameIndex, lbl[nVl]);
-                cur.UpdateRow(rw);
+                if (updateCheck)
+                {
+                    int nVl = clus.computNew(input);
+                    rw.set_Value(newFldNameIndex, lbl[nVl]);
+                    cur.UpdateRow(rw);
+                }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predKmeans(ITable inputTable, int[] fldIndexArr)
+        private void predKmeans(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepClusterKmean clus = new dataPrepClusterKmean();
             clus.buildModel(mdlp);
@@ -940,24 +1094,37 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if(Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                int nVl = clus.computNew(input);
-                rw.set_Value(newFldNameIndex, lbl[nVl]);
-                cur.UpdateRow(rw);
+                if (updateCheck)
+                {
+                    int nVl = clus.computNew(input);
+                    rw.set_Value(newFldNameIndex, lbl[nVl]);
+                    cur.UpdateRow(rw);
+                }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictPca(ITable inputTable, int[] fldIndexArr)
+        private void predictPca(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepPrincipleComponents pca = new dataPrepPrincipleComponents();
             pca.buildModel(mdlp);
@@ -980,28 +1147,41 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if(Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                double[] nVl = pca.computNew(input);
-                for (int i = 0; i < outFldNameIndex.Length; i++)
+                if (updateCheck)
                 {
-                    double vl = nVl[i];
-                    rw.set_Value(outFldNameIndex[i], vl);
+                    double[] nVl = pca.computNew(input);
+                    for (int i = 0; i < outFldNameIndex.Length; i++)
+                    {
+                        double vl = nVl[i];
+                        rw.set_Value(outFldNameIndex[i], vl);
+                    }
+                    cur.UpdateRow(rw);
                 }
-                cur.UpdateRow(rw);
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictLogisticReg(ITable inputTable, int[] fldIndexArr)
+        private void predictLogisticReg(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepLogisticRegression Lr = new dataPrepLogisticRegression();
             Lr.getLrModel(mdlp);
@@ -1024,43 +1204,56 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if(Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                double nVl1 = Lr.computNew(input);
-                double nVl0 = 1 - nVl1;
-                int maxP = 0;
-                if (nVl1 > nVl0) maxP = 1;
-                double[] nVl = { nVl0, nVl1 };
-                for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                if (updateCheck)
                 {
-                    double vl = nVl[i];
-                    rw.set_Value(outFldNameIndex[i], vl);
+                    double nVl1 = Lr.computNew(input);
+                    double nVl0 = 1 - nVl1;
+                    int maxP = 0;
+                    if (nVl1 > nVl0) maxP = 1;
+                    double[] nVl = { nVl0, nVl1 };
+                    for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                    {
+                        double vl = nVl[i];
+                        rw.set_Value(outFldNameIndex[i], vl);
+                    }
+                    rw.set_Value(outFldNameIndex[Lr.NumberOfCategories], Lr.Categories[maxP]);
+                    cur.UpdateRow(rw);
                 }
-                rw.set_Value(outFldNameIndex[Lr.NumberOfCategories], Lr.Categories[maxP]);
-                cur.UpdateRow(rw);
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictL3Data(ITable inputTable,int [] fldIndexArr)
+        private void predictL3Data(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             throw new NotImplementedException();
         }
 
-        private void predictCartData(ITable inputTable,int[] fldIndexArr)
+        private void predictCartData(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             throw new NotImplementedException();
         }
 
-        private void predictSmData(ITable inputTable,int[] fldIndexArr)
+        private void predictSmData(ITable inputTable,int[] fldIndexArr,IQueryFilter qf)
         {
             dataPrepSoftMaxPlr sm = new dataPrepSoftMaxPlr();
             sm.getMnlModel(mdlp);
@@ -1083,36 +1276,49 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
-                }
-                double[] nVl = sm.computNew(input);
-                double maxVl = 0;
-                int maxP = 0;
-                for (int i = 0; i < outFldNameIndex.Length - 1; i++)
-                {
-                    double vl = nVl[i];
-                    if (vl > maxVl)
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if(Convert.IsDBNull(objVl))
                     {
-                        maxVl = vl;
-                        maxP = i;
+                        updateCheck = false;
+                        break;
                     }
-                    rw.set_Value(outFldNameIndex[i], vl);
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                rw.set_Value(outFldNameIndex[sm.NumberOfClasses], sm.Categories[maxP]);
-                cur.UpdateRow(rw);
+                if (updateCheck)
+                {
+                    double[] nVl = sm.computNew(input);
+                    double maxVl = 0;
+                    int maxP = 0;
+                    for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                    {
+                        double vl = nVl[i];
+                        if (vl > maxVl)
+                        {
+                            maxVl = vl;
+                            maxP = i;
+                        }
+                        rw.set_Value(outFldNameIndex[i], vl);
+                    }
+                    rw.set_Value(outFldNameIndex[sm.NumberOfClasses], sm.Categories[maxP]);
+                    cur.UpdateRow(rw);
+                }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictRfData(ITable inputTable,int[] fldIndexArr)
+        private void predictRfData(ITable inputTable, int[] fldIndexArr, IQueryFilter qf)
         {
             //need to simplify for regression analysis (don't need the mlc class)
             dataPrepRandomForest rf = new dataPrepRandomForest();
@@ -1159,20 +1365,33 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             if (reg)
             {
                 while (rw != null)
                 {
+                    bool updateCheck = true;
                     for (int i = 0; i < fldIndexArr.Length; i++)
                     {
-                        double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                        input[i] = vl;
+                        object objVl = rw.get_Value(fldIndexArr[i]);
+                        if(Convert.IsDBNull(objVl))
+                        {
+                            updateCheck = false;
+                            break;
+                        }
+                        else
+                        {
+                            double vl = System.Convert.ToDouble(objVl);
+                            input[i] = vl;
+                        }
                     }
-                    double[] nVl = rf.computNew(input);
-                    rw.set_Value(outFldNameIndex[0], nVl[0]);
-                    cur.UpdateRow(rw);
+                    if (updateCheck)
+                    {
+                        double[] nVl = rf.computNew(input);
+                        rw.set_Value(outFldNameIndex[0], nVl[0]);
+                        cur.UpdateRow(rw);
+                    }
                     rw = cur.NextRow();
                 }
             }
@@ -1180,33 +1399,46 @@ namespace esriUtil.Statistics
             {
                 while (rw != null)
                 {
+                    bool updateCheck = true;
                     for (int i = 0; i < fldIndexArr.Length; i++)
                     {
-                        double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                        input[i] = vl;
-                    }
-                    double[] nVl = rf.computNew(input);
-                    double maxVl = 0;
-                    int maxP = 0;
-                    for (int i = 0; i < outFldNameIndex.Length - 1; i++)
-                    {
-                        double vl = nVl[i];
-                        if (vl > maxVl)
+                        object objVl = rw.get_Value(fldIndexArr[i]);
+                        if(Convert.IsDBNull(objVl))
                         {
-                            maxVl = vl;
-                            maxP = i;
+                            updateCheck = false;
+                            break;
                         }
-                        rw.set_Value(outFldNameIndex[i], vl);
+                        else
+                        {
+                            double vl = System.Convert.ToDouble(objVl);
+                            input[i] = vl;
+                        }
                     }
-                    rw.set_Value(outFldNameIndex[rf.NumberOfClasses], rf.Categories[maxP]);
-                    cur.UpdateRow(rw);
+                    if (updateCheck)
+                    {
+                        double[] nVl = rf.computNew(input);
+                        double maxVl = 0;
+                        int maxP = 0;
+                        for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                        {
+                            double vl = nVl[i];
+                            if (vl > maxVl)
+                            {
+                                maxVl = vl;
+                                maxP = i;
+                            }
+                            rw.set_Value(outFldNameIndex[i], vl);
+                        }
+                        rw.set_Value(outFldNameIndex[rf.NumberOfClasses], rf.Categories[maxP]);
+                        cur.UpdateRow(rw);
+                    }
                     rw = cur.NextRow();
                 }
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictPlrData(ITable inputTable,int[] fldIndexArr)
+        private void predictPlrData(ITable inputTable,int[] fldIndexArr,IQueryFilter qf)
         {
             dataPrepMultinomialLogisticRegression plr = new dataPrepMultinomialLogisticRegression();
             plr.getPlrModel(mdlp);
@@ -1229,36 +1461,49 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
-                }
-                double[] nVl = plr.computNew(input);
-                double maxVl = 0;
-                int maxP = 0;
-                for (int i = 0; i < outFldNameIndex.Length - 1; i++)
-                {
-                    double vl = nVl[i];
-                    if (vl > maxVl)
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(objVl))
                     {
-                        maxVl = vl;
-                        maxP = i;
+                        updateCheck = false;
+                        break;
                     }
-                    rw.set_Value(outFldNameIndex[i], vl);
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                rw.set_Value(outFldNameIndex[plr.NumberOfCategories], plr.Categories[maxP]);
-                cur.UpdateRow(rw);
+                if (updateCheck)
+                {
+                    double[] nVl = plr.computNew(input);
+                    double maxVl = 0;
+                    int maxP = 0;
+                    for (int i = 0; i < outFldNameIndex.Length - 1; i++)
+                    {
+                        double vl = nVl[i];
+                        if (vl > maxVl)
+                        {
+                            maxVl = vl;
+                            maxP = i;
+                        }
+                        rw.set_Value(outFldNameIndex[i], vl);
+                    }
+                    rw.set_Value(outFldNameIndex[plr.NumberOfCategories], plr.Categories[maxP]);
+                    cur.UpdateRow(rw);
+                }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictMlrData(ITable inputTable,int[] fldIndexArr)
+        private void predictMlrData(ITable inputTable,int[] fldIndexArr, IQueryFilter qf)
         {
             dataPrepMultivariateLinearRegression mvlr = new dataPrepMultivariateLinearRegression();
             mvlr.getMlrModel(mdlp);
@@ -1270,6 +1515,7 @@ namespace esriUtil.Statistics
                 outFldNameArr[i] = geoUtil.createField(inputTable, outFldNameArr[i], esriFieldType.esriFieldTypeDouble,false);
                 outFldNameIndex[i] = inputTable.Fields.FindField(outFldNameArr[i]);
             }
+
             double[] input = new double[IndependentVariables.Length];
             IWorkspace wks = ((IDataset)inputTable).Workspace;
             IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
@@ -1277,27 +1523,40 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCheck = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
-                    input[i] = vl;
+                    object objVl = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(objVl))
+                    {
+                        updateCheck = false;
+                        break;
+                    }
+                    else
+                    {
+                        double vl = System.Convert.ToDouble(objVl);
+                        input[i] = vl;
+                    }
                 }
-                for (int i = 0; i < mvlr.multivariateRegression.Length; i++)
+                if (updateCheck)
                 {
-                    double nVl = mvlr.multivariateRegression[i].computeNew(input);
-                    rw.set_Value(outFldNameIndex[i], nVl);
+                    for (int i = 0; i < mvlr.multivariateRegression.Length; i++)
+                    {
+                        double nVl = mvlr.multivariateRegression[i].computeNew(input);
+                        rw.set_Value(outFldNameIndex[i], nVl);
+                    }
+                    cur.UpdateRow(rw);
                 }
-                cur.UpdateRow(rw);
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
 
-        private void predictLrData(ITable inputTable,int[] fldIndexArr)
+        private void predictLrData(ITable inputTable,int[] fldIndexArr, IQueryFilter qf=null)
         {
             string outFldName = DependentVariables[0]+"_P";
             outFldName = geoUtil.createField(inputTable, outFldName, esriFieldType.esriFieldTypeDouble,false);
@@ -1311,18 +1570,29 @@ namespace esriUtil.Statistics
             {
                 wksE.StopEditing(true);
             }
-            ICursor cur = inputTable.Update(null, false);
+            ICursor cur = inputTable.Update(qf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
             {
+                bool updateCh = true;
                 for (int i = 0; i < fldIndexArr.Length; i++)
                 {
-                    double vl = System.Convert.ToDouble(rw.get_Value(fldIndexArr[i]));
+
+                    object vlObj = rw.get_Value(fldIndexArr[i]);
+                    if (Convert.IsDBNull(vlObj))
+                    {
+                        updateCh = false;
+                        break;
+                    }
+                    double vl = System.Convert.ToDouble(vlObj);
                     input[i] = vl;
                 }
-                double nVl = lr.computeNew(input);
-                rw.set_Value(outFldIndex, nVl);
-                cur.UpdateRow(rw);
+                if (updateCh)
+                {
+                    double nVl = lr.computeNew(input);
+                    rw.set_Value(outFldIndex, nVl);
+                    cur.UpdateRow(rw);
+                }
                 rw = cur.NextRow();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);

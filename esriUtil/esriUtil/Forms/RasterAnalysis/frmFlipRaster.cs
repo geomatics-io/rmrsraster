@@ -116,7 +116,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -158,19 +158,19 @@ namespace esriUtil.Forms.RasterAnalysis
                 switch (sType)
                 {
                     case rasterUtil.surfaceType.SLOPE:
-                        outraster = rsUtil.calcSlopeFunction(rst);
+                        outraster = rsUtil.returnRaster(rsUtil.calcSlopeFunction(rst));
                         break;
                     case rasterUtil.surfaceType.ASPECT:
-                        outraster = rsUtil.calcAspectFunction(rst);
+                        outraster = rsUtil.createRaster(rsUtil.calcAspectFunction(rst));
                         break;
                     case rasterUtil.surfaceType.EASTING:
-                        outraster = rsUtil.calcEastWestFunction(rst);
+                        outraster = rsUtil.createRaster(rsUtil.calcEastWestFunction(rst));
                         break;
                     case rasterUtil.surfaceType.NORTHING:
-                        outraster = rsUtil.calcNorthSouthFunction(rst);
+                        outraster = rsUtil.createRaster(rsUtil.calcNorthSouthFunction(rst));
                         break;
                     default:
-                        outraster = rsUtil.flipRasterFunction(rst);
+                        outraster = rsUtil.createRaster(rsUtil.flipRasterFunction(rst));
                         break;
                 }
                 

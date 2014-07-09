@@ -20,9 +20,9 @@ namespace esriUtil.FunctionRasters
         {
             rsUtil = rasterUtility;
         }
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster InRasterCoefficients 
+        public IFunctionRasterDataset InRasterCoefficients 
         { 
             get 
             { 
@@ -30,7 +30,7 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                inrs = rsUtil.returnRaster(value, rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         private List<float[]> slopes = new List<float[]>();//float array = intercept followed by betas
@@ -92,21 +92,18 @@ namespace esriUtil.FunctionRasters
         }
         private double censoredValue = 0;
         public double CensoredValue { get { return censoredValue; } set { censoredValue = value; } }
-        public IRaster OutRaster
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
-                
-                    IRaster rs = rsUtil.getBand(inrs, 0);
-                    IRaster rsC = rsUtil.constantRasterFunction(rs, 0);
-                    IRasterBandCollection rsBc = new RasterClass();
-                    for (int i = 0; i < slopes.Count; i++)
-                    {
-                        rsBc.AppendBands((IRasterBandCollection)rsC);
-                    }
-                
-                return (IRaster)rsBc;
 
+                IFunctionRasterDataset rs = rsUtil.getBand(inrs, 0);    
+                IRasterBandCollection rsBc = new RasterClass();
+                for (int i = 0; i < slopes.Count; i++)
+                {
+                    rsBc.AppendBands((IRasterBandCollection)rs);
+                }
+                return rsUtil.compositeBandFunction(rsBc);
             }
         }
      }

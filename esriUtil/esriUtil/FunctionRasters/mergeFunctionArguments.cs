@@ -151,7 +151,7 @@ namespace esriUtil.FunctionRasters
             
         }
         private IEnvelope env = null;
-        public IRaster OutRaster
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
@@ -160,7 +160,7 @@ namespace esriUtil.FunctionRasters
                 IPnt cellSize = rsP.MeanCellSize();
                 ISpatialReference sr = rsP.SpatialReference;
                 int bndCnt = ((IRasterBandCollection)rsT).Count;
-                IRaster rs = rsUtil.constantRasterFunction(rsT,env,0,cellSize);
+                IFunctionRasterDataset rs = rsUtil.constantRasterFunction(rsT,env,0,cellSize);
                 return rs;
             }
         }

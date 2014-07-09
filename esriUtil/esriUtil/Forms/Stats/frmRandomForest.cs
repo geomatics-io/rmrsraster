@@ -223,11 +223,11 @@ namespace esriUtil.Forms.Stats
                 Statistics.dataPrepRandomForest rf = null;
                 if (split > 0)
                 {
-                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split,chbVI.Checked);
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio, split,chbVI.Checked,qf);
                 }
                 else
                 {
-                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio,chbVI.Checked);
+                    rf = new Statistics.dataPrepRandomForest(ftrCls, new string[] { depFld }, lstInd.ToArray(), lstCategoricalFlds.ToArray(), trees, ratio,chbVI.Checked,qf);
                 }
                 rf.writeModel(outP);
                 rf.getReport();
@@ -267,6 +267,22 @@ namespace esriUtil.Forms.Stats
             else
             {
                 chbReg.Checked=true;
+            }
+        }
+        IQueryFilter qf = new QueryFilterClass();
+        private void btnQry_Click(object sender, EventArgs e)
+        {
+            
+            string ftClsStr = cmbSampleFeatureClass.Text;
+            if(ftClsStr==null||ftClsStr=="")
+            {
+                MessageBox.Show("You must select a table or feature class before specifying an attribute query","Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+            }
+            else
+            {
+                ITable sTbl = ftrDic[ftClsStr];
+                qf = geoUtil.createQuery(sTbl);
+                //MessageBox.Show(qf.WhereClause);
             }
         }
 

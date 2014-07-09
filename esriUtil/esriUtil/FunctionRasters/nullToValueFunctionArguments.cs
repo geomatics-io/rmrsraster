@@ -11,32 +11,39 @@ using esriUtil.FunctionRasters.NeighborhoodHelper;
 
 namespace esriUtil.FunctionRasters
 {
-    class nullToValueFunctionArguments
+    class nullToValueFunctionArguments: IRasterInfoFunctionArguments
     {
         public nullToValueFunctionArguments()
         {
+            
             rsUtil = new rasterUtil();
         }
         public nullToValueFunctionArguments(rasterUtil rasterUtility)
         {
+            
             rsUtil = rasterUtility;
         }
         private rasterUtil rsUtil = null;
-        private ESRI.ArcGIS.Geodatabase.IRaster inrs = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster InRaster 
-        { 
-            get 
-            {
-                return inrs;
-            } 
-            set 
-            {
-                inrs = rsUtil.returnRaster(value);
-            } 
+        
+        public object Raster
+        {
+            get;
+            set;
+        }
+        public IRasterInfo RasterInfo
+        {
+            get;
+            set;
+        }
+        public bool Caching
+        {
+            get;
+            set;
         }
         private double newvalue = 0d;
         public double NewValue { get { return newvalue; } set { newvalue = value;} }
-        public System.Array NoDataArray { get { return (System.Array)((IRasterProps)inrs).NoDataValue; } }
+        public System.Array NoDataArray { get { return (System.Array)(RasterInfo.NoData); } }
+
     }
 }
 

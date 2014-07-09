@@ -20,9 +20,9 @@ namespace esriUtil.FunctionRasters
         {
             rsUtil = rasterUtility;
         }
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
-        public IRaster InRaster
+        public IFunctionRasterDataset InRaster
         {
             get
             {
@@ -30,7 +30,7 @@ namespace esriUtil.FunctionRasters
             }
             set
             {
-                inrs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
             }
         }
     }

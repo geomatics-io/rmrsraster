@@ -17,14 +17,15 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "focal Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using focal analysis"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster orig = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset orig = null;
         private int clms, rws, radius;
-        public List<int[]> iter = null;
+        public List<coordPair[]> iter = null;
         public bool horizontal = true;
         private rasterUtil.windowType inWindow = rasterUtil.windowType.RECTANGLE;
         public rasterUtil.glcmMetric glcmMetrics = rasterUtil.glcmMetric.CONTRAST; 
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperOrig = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -32,6 +33,7 @@ namespace esriUtil.FunctionRasters
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
         public float noDataValue = Single.MinValue;
+        private Dictionary<string, int> countDic = new Dictionary<string, int>();
         public void Bind(object pArgument)
         {
             if (pArgument is glcmFunctionArguments)
@@ -46,8 +48,8 @@ namespace esriUtil.FunctionRasters
                 radius = args.Radius;
                 glcmMetrics = args.GLCMMETRICS;
                 horizontal = args.Horizontal;
-                IRasterProps rsProp = (IRasterProps)inrs;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperOrig.Bind(orig);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -69,7 +71,7 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
+                //System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
@@ -83,27 +85,25 @@ namespace esriUtil.FunctionRasters
                 t = rws / 2;
                 pbBigSize.SetCoords(pbBigWd, pbBigHt);
                 pbBigLoc.SetCoords((pTlc.X - l), (pTlc.Y - t));
-                IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
-                orig.Read(pbBigLoc, (IPixelBlock)pbBig);
-                noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(0));                
+                IPixelBlock3 pbBig = (IPixelBlock3)myFunctionHelperOrig.Raster.CreatePixelBlock(pbBigSize);
+                myFunctionHelperOrig.Read(pbBigLoc,null,myFunctionHelperOrig.Raster, (IPixelBlock)pbBig);
+                noDataValue = float.MinValue;//System.Convert.ToSingle(noDataValueArr.GetValue(0));                
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
-                    System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            float inVl = System.Convert.ToSingle(pixelValues.GetValue(c, r));
-                            if (rasterUtil.isNullData(inVl, noDataValue))
+                            object inVlobj = ipPixelBlock.GetVal(nBand, c, r);
+                            if (inVlobj==null)
                             {
                                 continue;
                             }
                             else
                             {
-                                Dictionary<string,int> glcmDic = getGLCMDic(pixelValuesBig, c, r);
-                                float outVl = System.Convert.ToSingle(getTransformedValue(glcmDic));
-                                //Console.WriteLine("GLCM Value = " + outVl.ToString());
+                                updateGLCMDic(pbBig, c, r, nBand);
+                                float outVl = System.Convert.ToSingle(getTransformedValue(countDic));
                                 pixelValues.SetValue(outVl,c,r);
                             }
                         }
@@ -118,50 +118,110 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        private Dictionary<string, int> getGLCMDic(System.Array bigArr, int startClm, int startRw)
+        private void updateGLCMDic(IPixelBlock3 pbBig, int startClm, int startRw, int nBand)
         {
-            Dictionary<string, int> countDic = new Dictionary<string, int>();
-            foreach (int[] xy in iter)
+            foreach (coordPair[] xy in iter)
             {
-                int bWc = xy[0] + startClm;
-                int bRc = xy[1] + startRw;
-                int bWc2 = bWc;
-                int bRc2 = bRc;
-                bool getNeighbor = (xy[2] == 1);
-                if (getNeighbor)
+                coordPair sub = xy[0];
+                coordPair add = xy[1];
+                #region subtract from dictionary
+                try
                 {
-                    float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
-                    int cnt = 0;
-                    if (horizontal)
+                    
+                    int c = sub.X + startClm;
+                    int r = sub.Y + startRw;
+                    int sc = sub.NX + startClm;
+                    int sr = sub.NY + startRw;
+                    object objVl1 = pbBig.GetVal(nBand, c, r);
+
+                    object objVl2 = pbBig.GetVal(nBand, sc, sr);
+                    if (objVl1 == null || objVl2 == null)
                     {
-                        bWc2 = bWc + 1;
+                        continue;
                     }
                     else
                     {
-                        bRc2 = bRc - 1;
-                    }
-                    float vl2 = System.Convert.ToSingle(bigArr.GetValue(bWc2, bRc2));
-                    string pair = vl.ToString() + ":" + vl2.ToString();
-                    if (countDic.TryGetValue(pair, out cnt))
-                    {
-                        countDic[pair] = cnt + 1;
-                    }
-                    else
-                    {
-                        countDic.Add(pair, 1);
-                    }
-                    string pair2 = vl2.ToString() + ":" + vl.ToString();
-                    if (countDic.TryGetValue(pair2, out cnt))
-                    {
-                        countDic[pair2] = cnt + 1;
-                    }
-                    else
-                    {
-                        countDic.Add(pair2, 1);
+                        int cnt = 0;
+                        string pair1 = objVl1.ToString() + ":" + objVl2.ToString();
+                        string pair2 = objVl2.ToString() + ":" + objVl1.ToString();
+                        if (countDic.TryGetValue(pair1, out cnt))
+                        {
+                            cnt = cnt - 1;
+                            if (cnt == 0)
+                            {
+                                countDic.Remove(pair1);
+                            }
+                            else
+                            {
+                                countDic[pair1] = cnt;
+                            }
+                        }
+                        else
+                        {
+                        }
+                        if (countDic.TryGetValue(pair2, out cnt))
+                        {
+                            cnt = cnt - 1;
+                            if (cnt == 0)
+                            {
+                                countDic.Remove(pair2);
+                            }
+                            else
+                            {
+                                countDic[pair2] = cnt;
+                            }
+                        }
+                        else
+                        {
+                        }
                     }
                 }
+                catch(Exception e)
+                {
+                }
+                #endregion
+                #region add values to dicitonary
+                try
+                {
+                    int c = add.X + startClm;
+                    int r = add.Y + startRw;
+                    int sc = add.NX + startClm;
+                    int sr = add.NY + startRw;
+                    object objVl1 = pbBig.GetVal(nBand, c, r);
+                    object objVl2 = pbBig.GetVal(nBand, sc, sr);
+                    if (objVl1 == null || objVl2 == null)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        int cnt = 0;
+                        string pair1 = objVl1.ToString() + ":" + objVl2.ToString();
+                        string pair2 = objVl2.ToString() + ":" + objVl1.ToString();
+                        if (countDic.TryGetValue(pair1, out cnt))
+                        {
+                            countDic[pair1] = cnt + 1;
+                        }
+                        else
+                        {
+                            countDic.Add(pair1, 1);
+                        }
+                        if (countDic.TryGetValue(pair2, out cnt))
+                        {
+                            countDic[pair2] = cnt + 1;
+                        }
+                        else
+                        {
+                            countDic.Add(pair2, 1);
+                        }
+                    }
+                }
+                catch(Exception e)
+                {
+                }
+                #endregion    
+
             }
-            return countDic;
         }
         public void Update()
         {

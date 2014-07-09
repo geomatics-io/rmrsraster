@@ -108,7 +108,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -141,21 +141,23 @@ namespace esriUtil.Forms.RasterAnalysis
                 return;
             }
             this.Visible = false;
-            double vlX = System.Convert.ToDouble(newXValue);
-            double vlY = System.Convert.ToDouble(newYValue);
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
             rp.addMessage("Transforming Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 IRaster rst = rstDic[rstNm];
-                outraster = rsUtil.shiftRasterFunction(rst,vlX,vlY);
+                IFunctionRasterDataset fRst = rsUtil.createIdentityRaster(rst);
+                double vlX = System.Convert.ToDouble(newXValue)*fRst.RasterInfo.CellSize.X;
+                double vlY = System.Convert.ToDouble(newYValue)*fRst.RasterInfo.CellSize.Y;
+                outraster = rsUtil.createRaster(rsUtil.shiftRasterFunction(rst,vlX,vlY));
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
+                    
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);

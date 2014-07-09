@@ -21,9 +21,9 @@ namespace esriUtil.FunctionRasters
         {
             rsUtil = rasterUtility;
         }
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
-        public IRaster InRasterCoefficients 
+        public IFunctionRasterDataset InRasterCoefficients 
         { 
             get 
             { 
@@ -31,8 +31,7 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                IRaster temp = value;
-                inrs = rsUtil.returnRaster(temp, rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         private Statistics.dataPrepSoftMaxPlr lm = null;
@@ -47,18 +46,17 @@ namespace esriUtil.FunctionRasters
                 lm = value;
             }
         }
-        public IRaster OutRaster
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
-                IRaster rs = rsUtil.getBand(inrs, 0);
-                rs = rsUtil.constantRasterFunction(rs, 0);
+                IFunctionRasterDataset rs = rsUtil.getBand(inrs, 0);
                 IRasterBandCollection rsBc = new RasterClass();
                 for (int i = 0; i < lm.NumberOfClasses; i++)
                 {
                     rsBc.AppendBands((IRasterBandCollection)rs);
                 }
-                return (IRaster)rsBc;
+                return rsUtil.compositeBandFunction(rsBc);
 
             }
         }

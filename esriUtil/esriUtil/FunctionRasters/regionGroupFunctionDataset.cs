@@ -16,10 +16,11 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Region Group Function"; // Name of the log Function.
         private string myDescription = "defines regions"; // Description of the log Function.
-        private IRaster outrs = null;
-        private IRaster inrs = null;
+        private IFunctionRasterDataset outrs = null;
+        private IFunctionRasterDataset inrs = null;
         private IRasterProps rsProp = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperInput = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -41,6 +42,7 @@ namespace esriUtil.FunctionRasters
                 width = rsProp.Width;
                 height = rsProp.Height;
                 myFunctionHelper.Bind(outrs);
+                myFunctionHelperInput.Bind(inrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -68,8 +70,8 @@ namespace esriUtil.FunctionRasters
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 inputPb = (IPixelBlock3)inrs.CreatePixelBlock(pbSize);//independent variables  
-                inrs.Read(pTlc, (IPixelBlock)inputPb);
+                IPixelBlock3 inputPb = (IPixelBlock3)myFunctionHelperInput.Raster.CreatePixelBlock(pbSize);//independent variables  
+                myFunctionHelperInput.Read(pTlc, null, myFunctionHelperInput.Raster, (IPixelBlock)inputPb);
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                 System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(0);
                 createRegions(inputPb, pixelValues);

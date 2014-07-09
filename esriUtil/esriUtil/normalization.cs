@@ -13,12 +13,11 @@ namespace esriUtil
 {
     public class normalization
     {
-        public normalization(IRaster ReferenceRaster, IRaster TransformRaster, int PercentChange=20,rasterUtil rasterUtility=null)
+        public normalization(IFunctionRasterDataset ReferenceRaster, IFunctionRasterDataset TransformRaster, int PercentChange = 20, rasterUtil rasterUtility = null)
         {
             referenceRaster = ReferenceRaster;
             IRasterBandCollection rsBc = (IRasterBandCollection)referenceRaster;
-            IRasterProps rsProps = (IRasterProps)referenceRaster;
-            rsType = rsProps.PixelType;
+            rsType = referenceRaster.RasterInfo.PixelType;
             cellCount = new int[rsBc.Count];
             minArray = new double[rsBc.Count];
             maxArray = new double[rsBc.Count];
@@ -40,9 +39,9 @@ namespace esriUtil
         }
         private rstPixelType rsType = rstPixelType.PT_UCHAR;
         private rasterUtil rsUtil = null;
-        private IRaster referenceRaster = null;
-        private IRaster transformRaster = null;
-        private IRaster clipRs = null;
+        private IFunctionRasterDataset referenceRaster = null;
+        private IFunctionRasterDataset transformRaster = null;
+        private IFunctionRasterDataset clipRs = null;
         private double pChange;
         public double[][] Coefficients
         {
@@ -51,7 +50,7 @@ namespace esriUtil
                 return coef;
             }
         }
-        public IRaster ReferenceRaster
+        public IFunctionRasterDataset ReferenceRaster
         {
             get
             {
@@ -62,7 +61,7 @@ namespace esriUtil
                 referenceRaster = value;
             }
         }
-        public IRaster TransformRaster
+        public IFunctionRasterDataset TransformRaster
         {
             get
             {
@@ -84,8 +83,8 @@ namespace esriUtil
                 pChange = value;
             }
         }
-        private IRaster outraster = null;
-        public IRaster OutRaster
+        private IFunctionRasterDataset outraster = null;
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
@@ -98,41 +97,41 @@ namespace esriUtil
             }
         }
       
-        private IRaster normalize()
+        private IFunctionRasterDataset normalize()
         {
             getUnChangeCells();
             getRegVals();
             return transform();
         }
 
-        private IRaster transform()
+        private IFunctionRasterDataset transform()
         {
-            OutRaster = new RasterClass();
-            IRasterBandCollection rsBc = (IRasterBandCollection)OutRaster;
+            IRasterBandCollection rsBc = new RasterClass();
             for (int i = 0; i < coef.Length; i++)
             {
                 double[] c = coef[i];
                 double intercept = c[0];
                 double slope = c[1];
-                IRaster tRs = rsUtil.getBand(transformRaster, i);
-                IRaster pRs = rsUtil.calcArithmaticFunction(tRs, slope, esriRasterArithmeticOperation.esriRasterMultiply);
-                IRaster fRs = rsUtil.calcArithmaticFunction(pRs, intercept, esriRasterArithmeticOperation.esriRasterPlus);
-                IRaster bRs = rsUtil.convertToDifFormatFunction(fRs, rsType);
+                IFunctionRasterDataset tRs = rsUtil.getBand(transformRaster, i);
+                IFunctionRasterDataset pRs = rsUtil.calcArithmaticFunction(tRs, slope, esriRasterArithmeticOperation.esriRasterMultiply);
+                IFunctionRasterDataset fRs = rsUtil.calcArithmaticFunction(pRs, intercept, esriRasterArithmeticOperation.esriRasterPlus);
+                IFunctionRasterDataset bRs = rsUtil.convertToDifFormatFunction(fRs, rsType);
                 rsBc.AppendBand(((IRasterBandCollection)bRs).Item(0));
             }
+            OutRaster = rsUtil.compositeBandFunction(rsBc);
             return OutRaster;
         }
         private int[] blockCellCount = null;
         private double[][] coef = null; // slope coefficients for each band second double array = {intercept,slope,R2}
         private void getRegVals()
         {
-            IRaster2 mRs = (IRaster2)rsUtil.clipRasterFunction(referenceRaster, clipGeo, esriRasterClippingType.esriRasterClippingOutside);
-            IRaster2 sRs = (IRaster2)rsUtil.clipRasterFunction(transformRaster, clipGeo, esriRasterClippingType.esriRasterClippingOutside);
+            IRaster2 mRs = (IRaster2)rsUtil.createRaster(rsUtil.clipRasterFunction(referenceRaster, clipGeo, esriRasterClippingType.esriRasterClippingOutside));
+            IRaster2 sRs = (IRaster2)rsUtil.createRaster(rsUtil.clipRasterFunction(transformRaster, clipGeo, esriRasterClippingType.esriRasterClippingOutside));
             IPnt pntSize = new PntClass();
             pntSize.SetCoords(250, 250);
             IRasterCursor mRsCur = mRs.CreateCursorEx(pntSize);
             IRasterCursor sRsCur = sRs.CreateCursorEx(pntSize);
-            IRasterCursor cRsCur = ((IRaster2)clipRs).CreateCursorEx(pntSize);
+            IRasterCursor cRsCur = ((IRaster2)rsUtil.createRaster(clipRs)).CreateCursorEx(pntSize);
             IPixelBlock mPb, sPb, cPb;
             int bndCnt = minArray.Length;
             //int curCnt = 1;
@@ -218,6 +217,9 @@ namespace esriUtil
                 //Console.WriteLine(curCnt.ToString());
                 //curCnt++;
             } while (cRsCur.Next() == true);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cRsCur);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(mRsCur);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(sRsCur);
             for (int i = 0; i < bndCnt; i++)
             {
                 double n = System.Convert.ToDouble(blockCellCount[i]);
@@ -246,19 +248,15 @@ namespace esriUtil
         private IGeometry clipGeo = null;
         private void getUnChangeCells()
         {
-            
-            IRasterProps rsProp = (IRasterProps)transformRaster;
-            IPnt cPnt = rsProp.MeanCellSize();
-            IEnvelope env1 = ((IGeoDataset)referenceRaster).Extent;
-            IEnvelope env2 = ((IGeoDataset)transformRaster).Extent;
+            IEnvelope env1 = referenceRaster.RasterInfo.Extent;
+            IEnvelope env2 = transformRaster.RasterInfo.Extent;
             env1.Intersect(env2);
             clipGeo = (IGeometry)env1;
-            IRaster minRs = rsUtil.calcArithmaticFunction(referenceRaster, transformRaster, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset minRs = rsUtil.calcArithmaticFunction(referenceRaster, transformRaster, esriRasterArithmeticOperation.esriRasterMinus);
             clipRs = rsUtil.clipRasterFunction(minRs,clipGeo,esriRasterClippingType.esriRasterClippingOutside);
             IPnt pntSize = new PntClass();
             pntSize.SetCoords(512, 512);
-            IRasterProps clipRsProps = (IRasterProps)clipRs;
-            IRasterCursor rsCur = ((IRaster2)clipRs).CreateCursorEx(pntSize);
+            IRasterCursor rsCur = ((IRaster2)rsUtil.createRaster(clipRs)).CreateCursorEx(pntSize);
             int pCnt = rsCur.PixelBlock.Planes;
             do
             {

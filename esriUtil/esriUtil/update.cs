@@ -16,19 +16,43 @@ namespace esriUtil
         {
             toolbarVersion = ToolBarVersion;
         }
+        private string baseVersion = "10.0";
         private string HelpFileName = "RmrsRasterUtilityToolbarHelp.chm";
         private string HelpFileVersion = "helpVersion.txt";
         private string toolbarVersion = "";
-        private string appFileName = "servicesToolBar.esriAddIn";
-        private string appFileVersion = "toolbarVersion.txt";
-        public void updateApp(string curDir)
+        private string appFileName = "servicesToolBar.esriAddIn";//servicesToolBarx.esriAddIn for anything later than 10.0
+        private string appFileVersion = "toolbarVersion.txt";//toolbarVersionx.txt for anything later than 10.0
+        public void updateApp(string curDir, string curVer)
         {
-            if (!checkToolbarVersion())
+            bool cTb = true;
+            if (baseVersion.ToLower() != curVer.ToLower())
+            {
+                string ust = "x";
+                appFileName = "servicesToolBar" + ust + ".esriAddIn";
+                if (!System.IO.File.Exists(curDir + "\\" + appFileName))
+                {
+                    if (System.Windows.Forms.MessageBox.Show("Found a new version of RMRS Raster Utility on the server. Do you want to download?", "Download", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        copyFileFromServer(appFileName);
+                        cTb = false;
+                    }
+                }
+                else
+                {
+                    cTb = checkToolbarVersion();
+                }
+            }
+            else
+            {
+                cTb = checkToolbarVersion();
+            }
+            if (!cTb)
             {
                 try
                 {
-                    removeRMRSRasterUtility(curDir);
+                    removeRMRSRasterUtility(curDir,curVer);
                     System.Diagnostics.Process pc = new System.Diagnostics.Process();
+                    
                     string lcInstall = rmrsDir + "\\" + appFileName;
                     pc.StartInfo.FileName = lcInstall;
                     pc.Start();
@@ -177,6 +201,12 @@ namespace esriUtil
             }
             else
             {
+                string cvStr = ESRI.ArcGIS.RuntimeManager.ActiveRuntime.Version;
+                if(cvStr!=baseVersion)
+                {
+                    string upStr = "x";
+                    appFileVersion = "toolbarVersion" + upStr + ".txt";
+                }
                 localcopyofHelpFile = copyFileFromServer(appFileVersion);
             }
             string ln = null;
@@ -225,9 +255,42 @@ namespace esriUtil
             }
         }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        public void removeRMRSRasterUtility(string curDir)
+        public void removeRMRSRasterUtility(string curDir,string curVer)
         {
             if (System.IO.Directory.Exists(curDir)) System.IO.Directory.Delete(curDir, true);
+            
+
+
+        }
+        public void removeOldVersion(string folderId,string curVer)
+        {
+            try
+            {
+                string addinDirStr = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns";//\\Desktop"
+                foreach (string s in System.IO.Directory.GetDirectories(addinDirStr))
+                {
+                    string lsPart = System.IO.Path.GetFileName(s);
+                    if (lsPart.ToLower().Contains(curVer.ToLower()))
+                    {
+                    }
+                    else
+                    {
+                        foreach (string s2 in System.IO.Directory.GetDirectories(s))
+                        {
+                            string lsPart2 = System.IO.Path.GetFileName(s2);
+                            if (lsPart2.ToLower() == folderId.ToLower())
+                            {
+                                System.IO.Directory.Delete(s2, true);
+                            }
+                            
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }

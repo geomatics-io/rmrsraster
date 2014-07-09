@@ -22,8 +22,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -58,6 +59,7 @@
     <ErrorReport>prompt</ErrorReport>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <DebugSymbols>true</DebugSymbols>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -181,6 +183,10 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ESRI.ArcGIS.GeoprocessingUI, Version=10.1.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.Geoprocessor, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
@@ -209,21 +215,28 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ESRI.ArcGIS.Version, Version=10.1.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Forms.DataVisualization, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="System.Windows.Forms.DataVisualization, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
+    <Compile Include="Forms\frmAttributeQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmAttributeQuery.Designer.cs">
+      <DependentUpon>frmAttributeQuery.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmNDVIRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -235,6 +248,12 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmNormalize.Designer.cs">
       <DependentUpon>frmNormalize.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmResampleRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmResampleRaster.Designer.cs">
+      <DependentUpon>frmResampleRaster.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSetNullValue.cs">
       <SubType>Form</SubType>
@@ -274,6 +293,10 @@
     <Compile Include="FunctionRasters\combineFunctionDataset.cs" />
     <Compile Include="FunctionRasters\glmFunctionArguments.cs" />
     <Compile Include="FunctionRasters\glmFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\kdaFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\kdaFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\ldaFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\ldaFunctionDataset.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionDataset.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionArguments.cs" />
@@ -285,6 +308,8 @@
     <Compile Include="Statistics\dataPrepClusterGaussian.cs" />
     <Compile Include="Statistics\dataPrepCompareClassifications.cs" />
     <Compile Include="Statistics\dataPrepCompareSamples.cs" />
+    <Compile Include="Statistics\dataPrepDiscriminantAnalysis.cs" />
+    <Compile Include="Statistics\dataPrepDiscriminantAnalysisLda.cs" />
     <Compile Include="Statistics\dataPrepGlm.cs" />
     <Compile Include="Statistics\dataPrepPairedTTest.cs" />
     <Compile Include="featureUtil.cs" />
@@ -868,6 +893,8 @@
     <Compile Include="Statistics\dataPrepPrincipleComponents.cs" />
     <Compile Include="Statistics\dataPrepSampleSize.cs" />
     <Compile Include="Statistics\dataPrepStrata.cs" />
+    <Compile Include="Statistics\dataPrepSvm.cs" />
+    <Compile Include="Statistics\dataPrepSvmReg.cs" />
     <Compile Include="Statistics\dataPrepTTest.cs" />
     <Compile Include="Statistics\dataPrepVarCovCorr.cs" />
     <Compile Include="Statistics\ModelHelper.cs" />
@@ -884,6 +911,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\FIA\frmFiaBiomass.resx">
       <DependentUpon>frmFiaBiomass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmAttributeQuery.resx">
+      <DependentUpon>frmAttributeQuery.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\MapServices\frmAddProjectLayers.resx">
       <DependentUpon>frmAddProjectLayers.cs</DependentUpon>
@@ -974,6 +1004,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRemapRaster.resx">
       <DependentUpon>frmRemapRaster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmResampleRaster.resx">
+      <DependentUpon>frmResampleRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRescaleRaster.resx">
       <DependentUpon>frmRescaleRaster.cs</DependentUpon>
@@ -1315,6 +1348,10 @@
       <UserProperties ESRIImportCache="ESRI.ArcGIS.esriSystem" />
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

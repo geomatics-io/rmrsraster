@@ -53,7 +53,7 @@ namespace esriUtil.Forms.OptFuels
         
         private double cellSize = 5;
         public double CellSize { get { return cellSize; } set { cellSize = value; } }
-        private IRaster snapRaster = null;
+        private IFunctionRasterDataset snapRaster = null;
         private IMap mp = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
@@ -107,8 +107,8 @@ namespace esriUtil.Forms.OptFuels
                 wks = geoUtil.OpenRasterWorkspace(graphDir);
                 setRasterType();
                 scenerioDir = System.IO.Path.GetDirectoryName(resultsDir);
-                treatGrid = rsUtil.returnRaster(scenerioDir + "\\treatgrid.txt");
-                treatCellSize = ((IRasterProps)treatGrid).MeanCellSize();
+                treatGrid = rsUtil.createIdentityRaster(scenerioDir + "\\treatgrid.txt");
+                treatCellSize = treatGrid.RasterInfo.CellSize;
                 //treatGrid = reSampleRasterGrid(treatGrid);
                 inputDir = System.IO.Path.GetDirectoryName(scenerioDir);
                 sedDir = inputDir + "\\sed";
@@ -130,7 +130,7 @@ namespace esriUtil.Forms.OptFuels
         private int numPer = 0;
         private int numFir = 0;
         private int numIter = 0;
-        private List<IRaster> periodRasterLst = new List<IRaster>();
+        private List<IFunctionRasterDataset> periodRasterLst = new List<IFunctionRasterDataset>();
         private RunningProcess.frmRunningProcessDialog rpForm = null;
         public RunningProcess.frmRunningProcessDialog RunningProcessForm { get { return rpForm; } set { rpForm = value; } }
         private void createPeriodRasters(int iterationNumber)
@@ -162,23 +162,20 @@ namespace esriUtil.Forms.OptFuels
                 }
                 sr.Close();
             }
-            IRaster2 rs2 = (IRaster2)treatGrid;
-            ITable rsVat = rs2.AttributeTable;
-            ICursor cur = null;
-            try
+            Dictionary<int, int> vlDic = rsUtil.buildVat(treatGrid);
+            //IRasterInfo2 rsInfo2 = (IRasterInfo2)treatGrid.RasterInfo;
+            //ITable rsVat = rsInfo2.AttributeTable;
+            //if (rsVat == null)
+            //{
+                
+            //}
+            //ICursor cur = null;
+            //cur = rsVat.Search(null, false);
+            //int valueIndex = cur.FindField("Value");
+            //IRow rw = cur.NextRow();
+            //while (rw != null)
+            foreach (int vl in vlDic.Keys)
             {
-                cur = rsVat.Search(null, false);
-            }
-            catch
-            {
-                rsVat = rsUtil.buildVat(treatGrid);
-                cur = rsVat.Search(null, false);
-            }
-            int valueIndex = cur.FindField("Value");
-            IRow rw = cur.NextRow();
-            while (rw != null)
-            {
-                int vl = System.Convert.ToInt32(rw.get_Value(valueIndex));
                 for (int i = 1; i <= numPer; i++)
                 {
                     IRemapFilter fl = remapFiltLst[i-1];
@@ -192,22 +189,21 @@ namespace esriUtil.Forms.OptFuels
                     
                     fl.AddClass(vl, vl + 0.000001, nVl);
                 }
-                rw = cur.NextRow();
             }
             periodRasterLst.Clear();
             for (int i = 1; i <= numPer; i++)
             {
                 IRemapFilter flt = remapFiltLst[i-1];
                 
-                IRaster oRs = rsUtil.calcRemapFunction(treatGrid, flt);// reSampleRasterGrid(rsUtil.calcRemapFunction(treatGrid, flt));
+                IFunctionRasterDataset oRs = rsUtil.calcRemapFunction(treatGrid, flt);// reSampleRasterGrid(rsUtil.calcRemapFunction(treatGrid, flt));
                 if (createinter)
                 {
-                    rsUtil.saveRasterToDataset(oRs, "Treat_" + iterationNumber.ToString() + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
+                    rsUtil.saveRasterToDataset(rsUtil.createRaster(oRs), "Treat_" + iterationNumber.ToString() + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
                 }
                 periodRasterLst.Add(oRs);
             }    
         }
-        private IRaster treatGrid = null;
+        private IFunctionRasterDataset treatGrid = null;
         private void setRasterType()
         {
             string wksPath = wks.PathName;
@@ -236,7 +232,7 @@ namespace esriUtil.Forms.OptFuels
                 iterLst.Add(0);
             }
             iterLst.Add(numIter);
-            snapRaster = rsUtil.returnRaster(lastRS);
+            snapRaster = rsUtil.createIdentityRaster(lastRS);
         }
         private string scenerioDir = null;
         private string f10fld = "NA10";
@@ -286,8 +282,8 @@ namespace esriUtil.Forms.OptFuels
                                     geoUtil.check_dir(sedDir);
                                     //string tName = rsUtil.getSafeOutputName(tWks, "xxx");
                                     streamName = rsUtil.getSafeOutputName(tWks, streamName);
-                                    IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
-                                    sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                                    IEnvelope ext = snapRaster.RasterInfo.Extent;
+                                    sedRaster = rsUtil.createIdentityRaster(rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, (IRasterDataset)snapRaster, ext));
                                     //IRaster xxx2 = rsUtil.setnullToValue(xxx, 0);
                                     //IRaster sRs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(xxx2, streamName, tWks));
                                     //System.Windows.Forms.MessageBox.Show("After creating raster " + ((IRasterProps)sedRaster).PixelType.ToString());
@@ -297,40 +293,40 @@ namespace esriUtil.Forms.OptFuels
                                 {
                                     Console.WriteLine(e.ToString());
                                     rpForm.addMessage("Lock on existing sediment Raster. Using existing sediment rasters! If you want to replace you must restart ArcMap!");
-                                    rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
-                                    rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
-                                    rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
-                                    rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
-                                    rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
-                                    rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
+                                    rsfine10 = rsUtil.createIdentityRaster(sedDir + "\\n10.img");
+                                    rsfine50 = rsUtil.createIdentityRaster(sedDir + "\\n50.img");
+                                    rst1Fine10 = rsUtil.createIdentityRaster(sedDir + "\\t10.img");
+                                    rst1Fine50 = rsUtil.createIdentityRaster(sedDir + "\\t50.img");
+                                    rshsf10 = rsUtil.createIdentityRaster(sedDir + "\\h10.img");
+                                    rshsf50 = rsUtil.createIdentityRaster(sedDir + "\\h50.img");
                                     if (createinter)
                                     {
-                                        rsUtil.saveRasterToDataset(rsfine10, "n10", wks, rasterUtil.rasterType.IMAGINE);
-                                        rsUtil.saveRasterToDataset(rsfine50, "n50", wks, rasterUtil.rasterType.IMAGINE);
-                                        rsUtil.saveRasterToDataset(rst1Fine10, "t10", wks, rasterUtil.rasterType.IMAGINE);
-                                        rsUtil.saveRasterToDataset(rst1Fine50, "t50", wks, rasterUtil.rasterType.IMAGINE);
-                                        rsUtil.saveRasterToDataset(rshsf10, "h10", wks, rasterUtil.rasterType.IMAGINE);
-                                        rsUtil.saveRasterToDataset(rshsf50, "h50", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rsfine10), "n10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rsfine50), "n50", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rst1Fine10), "t10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rst1Fine50), "t50", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rshsf10), "h10", wks, rasterUtil.rasterType.IMAGINE);
+                                        rsUtil.saveRasterToDataset(rsUtil.createRaster(rshsf50), "h50", wks, rasterUtil.rasterType.IMAGINE);
                                     }
                                 }
                                                              
                             }
                             else
                             {
-                                rsfine10 = rsUtil.returnRaster(sedDir + "\\n10.img");
-                                rsfine50 = rsUtil.returnRaster(sedDir + "\\n50.img");
-                                rst1Fine10 = rsUtil.returnRaster(sedDir + "\\t10.img");
-                                rst1Fine50 = rsUtil.returnRaster(sedDir + "\\t50.img");
-                                rshsf10 = rsUtil.returnRaster(sedDir + "\\h10.img");
-                                rshsf50 = rsUtil.returnRaster(sedDir + "\\h50.img");
+                                rsfine10 = rsUtil.createIdentityRaster(sedDir + "\\n10.img");
+                                rsfine50 = rsUtil.createIdentityRaster(sedDir + "\\n50.img");
+                                rst1Fine10 = rsUtil.createIdentityRaster(sedDir + "\\t10.img");
+                                rst1Fine50 = rsUtil.createIdentityRaster(sedDir + "\\t50.img");
+                                rshsf10 = rsUtil.createIdentityRaster(sedDir + "\\h10.img");
+                                rshsf50 = rsUtil.createIdentityRaster(sedDir + "\\h50.img");
                                 if (createinter)
                                 {
-                                    rsUtil.saveRasterToDataset(rsfine10, "n10", wks,rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(rsfine50, "n50", wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(rst1Fine10, "t10", wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(rst1Fine50, "t50", wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(rshsf10, "h10", wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(rshsf50, "h50", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rsfine10), "n10", wks,rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rsfine50), "n50", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rst1Fine10), "t10", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rst1Fine50), "t50", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rshsf10), "h10", wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rshsf50), "h50", wks, rasterUtil.rasterType.IMAGINE);
                                 }
                             }
                         }
@@ -339,8 +335,8 @@ namespace esriUtil.Forms.OptFuels
                             Console.WriteLine("Can't find n10.img");
                             //string tName = rsUtil.getSafeOutputName(tWks, "xxx");
                             streamName = rsUtil.getSafeOutputName(tWks, streamName);
-                            IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
-                            sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                            IEnvelope ext = snapRaster.RasterInfo.Extent;
+                            sedRaster = rsUtil.createIdentityRaster(rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, streamName, 5, (IRasterDataset)snapRaster, ext));
                             
                             //IRaster sRs = rsUtil.setnullToValue(xxx, 0);
                             //sedRaster = rsUtil.returnRaster(rsUtil.saveRasterToDataset(sRs, streamName, tWks, rasterUtil.rasterType.IMAGINE));
@@ -357,8 +353,8 @@ namespace esriUtil.Forms.OptFuels
                 {
                     string tName = rsUtil.getSafeOutputName(tWks, "xxx");
                     streamName = rsUtil.getSafeOutputName(tWks, streamName);
-                    IEnvelope ext = ((IGeoDataset)snapRaster).Extent;
-                    sedRaster = rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, tName, 5, ((IRaster2)snapRaster).RasterDataset, ext);
+                    IEnvelope ext = snapRaster.RasterInfo.Extent;
+                    sedRaster = rsUtil.createIdentityRaster(rsUtil.convertFeatureClassToRaster(ftrCls, rsType, tWks, tName, 5, (IRasterDataset)snapRaster, ext));
                     //IRaster sRs = rsUtil.setnullToValue(xxx, 0);
                     
                     //sedRaster = rsUtil.returnRaster(rsUtil.saveRasterToDataset(sRs, streamName, tWks, rasterUtil.rasterType.IMAGINE));
@@ -379,11 +375,10 @@ namespace esriUtil.Forms.OptFuels
 
         private void removelocks()
         {
-            IRaster[] rsArr = { rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50 };
-            foreach (IRaster rs in rsArr)
+            IFunctionRasterDataset[] rsArr = { rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50 };
+            foreach (IFunctionRasterDataset rs in rsArr)
             {
-                IRasterDataset rsDset = ((IRaster2)rs).RasterDataset;
-                IDataset dSet = (IDataset)rsDset;
+                IDataset dSet = (IDataset)rs;
                 try
                 {
                     rsUtil.removeLock(dSet);
@@ -394,7 +389,7 @@ namespace esriUtil.Forms.OptFuels
                 }
             }
         }
-        private IRaster sedRaster = null;
+        private IFunctionRasterDataset sedRaster = null;
         private bool createinter = false;
         private bool createcore = false;
         public bool CreateCoreRasters { get { return createcore; } set { createcore = value; } }
@@ -402,7 +397,7 @@ namespace esriUtil.Forms.OptFuels
         private void createSedimentSurfaces()
         {
             IWorkspace sedWks = geoUtil.OpenRasterWorkspace(sedDir);
-            sedRaster = rsUtil.convertToDifFormatFunction(sedRaster, rstPixelType.PT_FLOAT);
+            sedRaster = rsUtil.createIdentityRaster(sedRaster, rstPixelType.PT_FLOAT);
             IFeatureCursor ftrCur = ftrCls.Search(null, false);
             IFeature ftr = ftrCur.NextFeature();
             IRemapFilter fine10 = new RemapFilterClass();
@@ -437,12 +432,12 @@ namespace esriUtil.Forms.OptFuels
                 ftr = ftrCur.NextFeature();
             }
             cnt = 1;
-            IRaster[] rsArr = { rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50 };
+            IFunctionRasterDataset[] rsArr = { rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50 };
             foreach (IRemapFilter remap in remapArr)
             {
                 string rsNm = "";
-                IRaster rs = null;
-                IRaster rr = rsUtil.calcRemapFunction(sedRaster, remap);
+                IFunctionRasterDataset rs = null;
+                IFunctionRasterDataset rr = rsUtil.calcRemapFunction(sedRaster, remap);
                 //IRaster xx = rsUtil.setnullToValueFunction(rr, 0);
                 //IRaster rRs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(xx, "xxx"+cnt.ToString(), tWks, rasterUtil.rasterType.IMAGINE));
                 //IRaster rs = calcAgFunction(rr, numCells, rasterUtil.focalType.SUM);
@@ -484,31 +479,31 @@ namespace esriUtil.Forms.OptFuels
                 cnt++;
                 if (createinter && rsNm != "" && rs != null)
                 {
-                    rsUtil.saveRasterToDataset(rs, rsNm, wks,rasterUtil.rasterType.IMAGINE);
+                    rsUtil.saveRasterToDataset(rsUtil.createRaster(rs), rsNm, wks,rasterUtil.rasterType.IMAGINE);
                 }
 
             }
         }
 
-        private IRaster calcAgFunction(IRaster rr, string outName, int numCells)
+        private IFunctionRasterDataset calcAgFunction(IFunctionRasterDataset rr, string outName, int numCells)
         {
-            IRaster sumRs = rsUtil.calcAggregationFunction(rr, numCells, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset sumRs = rsUtil.calcAggregationFunction(rr, numCells, rasterUtil.focalType.SUM);
             IWorkspace sWks = geoUtil.OpenRasterWorkspace(sedDir);
-            IRasterDataset rsD = rsUtil.saveRasterToDataset(sumRs, outName, sWks, rasterUtil.rasterType.IMAGINE);
-            return rsUtil.returnRaster(rsD);
+            IRasterDataset rsD = rsUtil.saveRasterToDataset(rsUtil.createRaster(sumRs), outName, sWks, rasterUtil.rasterType.IMAGINE);
+            return rsUtil.createIdentityRaster(rsD);
         }
 
-        private IRaster rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50;
+        private IFunctionRasterDataset rsfine10, rsfine50, rst1Fine10, rst1Fine50, rshsf10, rshsf50;
         private double flmlng = 3;
         public double FlameLength { get { return flmlng; } set { flmlng = value; } }
-        private IRaster createBooleanFlame(IRaster flameRaster)
+        private IFunctionRasterDataset createBooleanFlame(IFunctionRasterDataset flameRaster)
         {
-            IRaster rs = rsUtil.calcGreaterFunction(flameRaster, FlameLength);
+            IFunctionRasterDataset rs = rsUtil.calcGreaterFunction(flameRaster, FlameLength);
             return rs;// reSampleRasterGrid(rs);
         }
         private ArrivalClasses arrCls = ArrivalClasses.Hours;
         public ArrivalClasses ArrivalClass { get { return arrCls; } set { arrCls = value; } }
-        private IRaster createArivaltimeZones(IRaster arrivalTime)
+        private IFunctionRasterDataset createArivaltimeZones(IFunctionRasterDataset arrivalTime)
         {
             IRemapFilter arrivalRemap = new RemapFilterClass();
             IRasterStatistics rsStats = ((IRasterBandCollection)arrivalTime).Item(0).Statistics;
@@ -545,7 +540,7 @@ namespace esriUtil.Forms.OptFuels
                 double nVl = (i + skip)/skip;
                 arrivalRemap.AddClass(min, i + skip, nVl);
             }
-            IRaster reRs = rsUtil.calcRemapFunction(arrivalTime, arrivalRemap);
+            IFunctionRasterDataset reRs = rsUtil.calcRemapFunction(arrivalTime, arrivalRemap);
             return reRs;// reSampleRasterGrid(reRs);
         }
         private string outcsvpath = null;
@@ -592,25 +587,25 @@ namespace esriUtil.Forms.OptFuels
                                 Console.WriteLine(strln);
                             }
                             //treatment rasters
-                            IRaster perRs = periodRasterLst[i - 1];
-                            IRaster noActionPeriod = rsUtil.calcEqualFunction(perRs, 0);
-                            IRaster t10 = rsUtil.calcArithmaticFunction(perRs, rst1Fine10, esriRasterArithmeticOperation.esriRasterMultiply);
-                            IRaster f10 = rsUtil.calcArithmaticFunction(noActionPeriod, rsfine10, esriRasterArithmeticOperation.esriRasterMultiply);
-                            IRaster t50 = rsUtil.calcArithmaticFunction(perRs, rst1Fine50, esriRasterArithmeticOperation.esriRasterMultiply);
-                            IRaster f50 = rsUtil.calcArithmaticFunction(noActionPeriod, rsfine50, esriRasterArithmeticOperation.esriRasterMultiply);
-                            IRaster sum10 = rsUtil.calcArithmaticFunction(t10, f10, esriRasterArithmeticOperation.esriRasterPlus);
-                            IRaster sum50 = rsUtil.calcArithmaticFunction(t50, f50, esriRasterArithmeticOperation.esriRasterPlus);
+                            IFunctionRasterDataset perRs = periodRasterLst[i - 1];
+                            IFunctionRasterDataset noActionPeriod = rsUtil.calcEqualFunction(perRs, 0);
+                            IFunctionRasterDataset t10 = rsUtil.calcArithmaticFunction(perRs, rst1Fine10, esriRasterArithmeticOperation.esriRasterMultiply);
+                            IFunctionRasterDataset f10 = rsUtil.calcArithmaticFunction(noActionPeriod, rsfine10, esriRasterArithmeticOperation.esriRasterMultiply);
+                            IFunctionRasterDataset t50 = rsUtil.calcArithmaticFunction(perRs, rst1Fine50, esriRasterArithmeticOperation.esriRasterMultiply);
+                            IFunctionRasterDataset f50 = rsUtil.calcArithmaticFunction(noActionPeriod, rsfine50, esriRasterArithmeticOperation.esriRasterMultiply);
+                            IFunctionRasterDataset sum10 = rsUtil.calcArithmaticFunction(t10, f10, esriRasterArithmeticOperation.esriRasterPlus);
+                            IFunctionRasterDataset sum50 = rsUtil.calcArithmaticFunction(t50, f50, esriRasterArithmeticOperation.esriRasterPlus);
                             //flamelength rasters
                             string flameRasterPath = resultsDir + "\\nodeflamelength" + iter.ToString() + "_" + f.ToString() + "_" + i.ToString() + ".txt";
-                            IRaster flmLng = rsUtil.returnRaster(flameRasterPath);
-                            IRaster flmBool = createBooleanFlame(flmLng);
+                            IFunctionRasterDataset flmLng = rsUtil.createIdentityRaster(flameRasterPath);
+                            IFunctionRasterDataset flmBool = createBooleanFlame(flmLng);
                             //combined raster
-                            IRaster final10 = rsUtil.conditionalRasterFunction(flmBool, rshsf10, sum10);
-                            IRaster final50 = rsUtil.conditionalRasterFunction(flmBool, rshsf50, sum50);
+                            IFunctionRasterDataset final10 = rsUtil.conditionalRasterFunction(flmBool, rshsf10, sum10);
+                            IFunctionRasterDataset final50 = rsUtil.conditionalRasterFunction(flmBool, rshsf50, sum50);
                             //arrival zones
                             string ArivalRasterPath = resultsDir + "\\arrivaltime" + iter.ToString() + "_" + f.ToString() + "_" + i.ToString() + ".txt";
-                            IRaster ariv = rsUtil.returnRaster(ArivalRasterPath);
-                            IRaster arivZones = createArivaltimeZones(ariv);
+                            IFunctionRasterDataset ariv = rsUtil.createIdentityRaster(ArivalRasterPath);
+                            IFunctionRasterDataset arivZones = createArivaltimeZones(ariv);
                             strln = "Summarizing arrival zones for iteration " + iter.ToString() + " fire " + f.ToString() + " period " + i.ToString();
                             if (rpForm != null)
                             {
@@ -637,17 +632,17 @@ namespace esriUtil.Forms.OptFuels
                                 {
                                     Console.WriteLine(strln);
                                 }
-                                rsUtil.saveRasterToDataset(noActionPeriod, "noAct_" + iter.ToString() + f + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(t10, "t10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(f10, "na10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(t50, "t50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(f50, "na50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(sum10, "s10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(sum50, "s50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(flmBool, "flm_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(noActionPeriod), "noAct_" + iter.ToString() + f + i.ToString(), wks,rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(t10), "t10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(f10), "na10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(t50), "t50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(f50), "na50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(sum10), "s10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(sum50), "s50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(flmBool), "flm_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(final10), "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(final50), "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                rsUtil.saveRasterToDataset(rsUtil.createRaster(arivZones), "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
                             }
                             if (createcore)
                             {
@@ -664,9 +659,9 @@ namespace esriUtil.Forms.OptFuels
                                     {
                                         Console.WriteLine(strln);
                                     }
-                                    rsUtil.saveRasterToDataset(final10, "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(final50, "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
-                                    rsUtil.saveRasterToDataset(arivZones, "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(final10), "fl10_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(final50), "fl50_" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
+                                    rsUtil.saveRasterToDataset(rsUtil.createRaster(arivZones), "az" + iter.ToString() + f + i.ToString(), wks, rasterUtil.rasterType.IMAGINE);
                                 }
                             }
                             if(!createcore&&!createinter)
@@ -675,7 +670,7 @@ namespace esriUtil.Forms.OptFuels
                                 {
                                     if (sedRaster != null)
                                     {
-                                        rsUtil.deleteRasterDataset(((IRaster2)sedRaster).RasterDataset.CompleteName);
+                                        rsUtil.deleteRasterDataset(((IRasterDataset)sedRaster).CompleteName);
                                     }
                                 }
                                 catch (Exception e)
@@ -689,7 +684,7 @@ namespace esriUtil.Forms.OptFuels
                 swr.Close();
             }
             outcsvpath = outCSV;
-            removelocks();
+            //removelocks();
             return outCSV;
 
         }
@@ -793,16 +788,21 @@ namespace esriUtil.Forms.OptFuels
             }
         }
 
-        private string getSummaryValue(string iteration,int fire,int Period, IRaster final10, IRaster final50, IRaster arivZones)
+        private string getSummaryValue(string iteration,int fire,int Period, IFunctionRasterDataset final10, IFunctionRasterDataset final50, IFunctionRasterDataset arivZones)
         {
-            IRasterProps rsProp = (IRasterProps)arivZones;
+            IRasterFunctionHelper arFH = new RasterFunctionHelperClass();
+            IRasterFunctionHelper f10FH = new RasterFunctionHelperClass();
+            IRasterFunctionHelper f50FH = new RasterFunctionHelperClass();
+            arFH.Bind(arivZones);
+            f10FH.Bind(final10);
+            f50FH.Bind(final50);
             Dictionary<int, double[]> vlDic = new Dictionary<int, double[]>();
-            IRasterCursor rsCur = ((IRaster2)arivZones).CreateCursorEx(null);
+            IRasterCursor rsCur = ((IRaster2)arFH.Raster).CreateCursorEx(null);
             IPnt pnt = new PntClass();
             pnt.X = rsCur.PixelBlock.Width;
             pnt.Y = rsCur.PixelBlock.Height;
-            IRasterCursor rsCur2 = ((IRaster2)final10).CreateCursorEx(pnt);
-            IRasterCursor rsCur3 = ((IRaster2)final50).CreateCursorEx(pnt);
+            IRasterCursor rsCur2 = ((IRaster2)f10FH.Raster).CreateCursorEx(null);
+            IRasterCursor rsCur3 = ((IRaster2)f50FH.Raster).CreateCursorEx(null);
             IPixelBlock3 pb = null;
             IPixelBlock3 pb2 = null;
             IPixelBlock3 pb3 = null;

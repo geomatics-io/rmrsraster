@@ -40,11 +40,13 @@
             this.btnWorkspace = new System.Windows.Forms.Button();
             this.cmbType = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.txtNoDataVl = new System.Windows.Forms.TextBox();
+            this.lblNoDataVl = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(199, 164);
+            this.btnSave.Location = new System.Drawing.Point(199, 173);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(63, 22);
             this.btnSave.TabIndex = 10;
@@ -68,6 +70,7 @@
             this.cmbRaster.Name = "cmbRaster";
             this.cmbRaster.Size = new System.Drawing.Size(211, 21);
             this.cmbRaster.TabIndex = 8;
+            this.cmbRaster.SelectedIndexChanged += new System.EventHandler(this.cmbRaster_SelectedIndexChanged);
             // 
             // btnOpenRaster
             // 
@@ -102,7 +105,6 @@
             this.label1.Size = new System.Drawing.Size(82, 13);
             this.label1.TabIndex = 13;
             this.label1.Text = "Out Workspace";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label3
             // 
@@ -140,11 +142,31 @@
             this.label4.TabIndex = 17;
             this.label4.Text = "Out Type";
             // 
+            // txtNoDataVl
+            // 
+            this.txtNoDataVl.Location = new System.Drawing.Point(14, 175);
+            this.txtNoDataVl.Name = "txtNoDataVl";
+            this.txtNoDataVl.Size = new System.Drawing.Size(100, 20);
+            this.txtNoDataVl.TabIndex = 18;
+            this.txtNoDataVl.Visible = false;
+            // 
+            // lblNoDataVl
+            // 
+            this.lblNoDataVl.AutoSize = true;
+            this.lblNoDataVl.Location = new System.Drawing.Point(14, 157);
+            this.lblNoDataVl.Name = "lblNoDataVl";
+            this.lblNoDataVl.Size = new System.Drawing.Size(74, 13);
+            this.lblNoDataVl.TabIndex = 19;
+            this.lblNoDataVl.Text = "NoData Value";
+            this.lblNoDataVl.Visible = false;
+            // 
             // frmSaveRaster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(273, 196);
+            this.ClientSize = new System.Drawing.Size(273, 203);
+            this.Controls.Add(this.lblNoDataVl);
+            this.Controls.Add(this.txtNoDataVl);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbType);
             this.Controls.Add(this.btnWorkspace);
@@ -179,5 +201,7 @@
         private System.Windows.Forms.Button btnWorkspace;
         private System.Windows.Forms.ComboBox cmbType;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtNoDataVl;
+        private System.Windows.Forms.Label lblNoDataVl;
     }
 }

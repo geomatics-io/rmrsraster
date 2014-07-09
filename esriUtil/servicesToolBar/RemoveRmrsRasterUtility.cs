@@ -18,9 +18,11 @@ namespace servicesToolBar
             if (dr == System.Windows.Forms.DialogResult.Yes)
             {
                 string id = ThisAddIn.AddInID;
-                string folderLoc = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns\\Desktop10.0\\" + id;
+                string vs = ESRI.ArcGIS.RuntimeManager.ActiveRuntime.Version;
+                string folderLoc = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns\\Desktop"+vs+"\\" + id;
                 esriUtil.update upd = new esriUtil.update();
-                upd.removeRMRSRasterUtility(folderLoc);
+                upd.removeRMRSRasterUtility(folderLoc,vs);
+                upd.removeOldVersion(id, vs);
                 System.Windows.Forms.MessageBox.Show("RMRS Raster Utility has be uninstalled. You will need to restart ArcMap for this change to take effect.");
             }
         }

@@ -194,7 +194,7 @@ namespace esriUtil
                 int bndCnt = rsBndColl.Count;
                 for (int cnt = 0; cnt < bndCnt; cnt++)
                 {
-                    IRaster rst = rsUtil.getBand(inputRstPath, cnt);
+                    IRaster rst = rsUtil.returnRaster(rsUtil.getBand(inputRstPath, cnt));
                     string outRstPath = System.IO.Path.GetDirectoryName(rsPath) + "\\std_" + (cnt + 1).ToString();
                     IGPSANeighborhood nbr = new GPSANeighborhoodClass();
                     double cells = System.Convert.ToDouble(numCellsWide);

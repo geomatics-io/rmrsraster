@@ -20,9 +20,9 @@ namespace esriUtil.FunctionRasters
         {
             rsUtil = rasterUtility;
         }
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
-        public IRaster InRasterCoefficients 
+        public IFunctionRasterDataset InRasterCoefficients 
         { 
             get 
             { 
@@ -30,8 +30,7 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                IRaster temp = value;
-                inrs = rsUtil.returnRaster(temp, rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         private Statistics.dataPrepRandomForest df = null;
@@ -47,19 +46,18 @@ namespace esriUtil.FunctionRasters
                 //Console.WriteLine("Number of Classes = " + nclasses.ToString() + " Number of vars = " + nvars.ToString());
             }
         }
-        public IRaster OutRaster
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
-                IRaster rs = rsUtil.getBand(inrs, 0);
-                rs = rsUtil.constantRasterFunction(rs, 0);
+                IFunctionRasterDataset rs = rsUtil.getBand(inrs, 0);
                 IRasterBandCollection rsBc = new RasterClass();
                 int ncA = df.NumberOfClasses;
                 for (int i = 0; i < ncA; i++)
                 {
                     rsBc.AppendBands((IRasterBandCollection)rs);
                 }
-                return (IRaster)rsBc;
+                return rsUtil.compositeBandFunction(rsBc);
 
             }
         }

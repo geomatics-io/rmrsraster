@@ -105,9 +105,9 @@ namespace esriUtil.Forms.OptFuels
                 IRaster rs2 = rescaleHt();
                 IRaster rs3 = rescaleCov();
                 IRaster rs4 = calcTopo();
-                IRaster rs5 = rsUtil.compositeBandFunction(new IRaster[]{rs1,rs2,rs3,rs4});
-                IRaster sMd = rsUtil.localStatisticsfunction(rs5,rasterUtil.localType.SUM);
-                modelrs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(rsUtil.convertToDifFormatFunction(sMd, rstPixelType.PT_LONG),"lfSeg",landfireworkspace));
+                IRaster rs5 = rsUtil.returnRaster(rsUtil.compositeBandFunction(new IRaster[]{rs1,rs2,rs3,rs4}));
+                IRaster sMd = rsUtil.createRaster(rsUtil.localStatisticsfunction(rs5,rasterUtil.localType.SUM));
+                modelrs = rsUtil.returnRaster(rsUtil.saveRasterToDataset(rsUtil.returnRaster(sMd, rstPixelType.PT_LONG),"lfSeg",landfireworkspace));
                 //Console.WriteLine("Finished Segementing Raster");
             }
             catch (Exception e)
@@ -137,8 +137,8 @@ namespace esriUtil.Forms.OptFuels
                 flt.AddClass(i, nMax, cnt);
                 cnt++;
             }
-            IRaster rs2 = rsUtil.calcRemapFunction(covRs, flt);
-            return rsUtil.calcArithmaticFunction(rs2,100000,esriRasterArithmeticOperation.esriRasterMultiply);
+            IRaster rs2 = rsUtil.returnRaster(rsUtil.calcRemapFunction(covRs, flt));
+            return rsUtil.returnRaster(rsUtil.calcArithmaticFunction(rs2,100000,esriRasterArithmeticOperation.esriRasterMultiply));
         }
 
         private IRaster rescaleHt()
@@ -162,13 +162,13 @@ namespace esriUtil.Forms.OptFuels
                 flt.AddClass(i, nMax, cnt);
                 cnt++;
             }
-            IRaster rs2 = rsUtil.calcRemapFunction(htRs, flt);
-            return rsUtil.calcArithmaticFunction(rs2, 1000000, esriRasterArithmeticOperation.esriRasterMultiply);
+            IRaster rs2 = rsUtil.returnRaster(rsUtil.calcRemapFunction(htRs, flt));
+            return rsUtil.returnRaster(rsUtil.calcArithmaticFunction(rs2, 1000000, esriRasterArithmeticOperation.esriRasterMultiply));
         }
 
         private IRaster calcTopo()
         {
-            IRaster rsAspect = rsUtil.calcAspectFunction(demRs);
+            IFunctionRasterDataset rsAspect = rsUtil.calcAspectFunction(demRs);
             IRemapFilter flt = new RemapFilterClass();
             if (useAspect)
             {
@@ -182,8 +182,8 @@ namespace esriUtil.Forms.OptFuels
             {
                 flt.AddClass(0, 361, 0);
             }
-            IRaster rs2 = rsUtil.calcRemapFunction(rsAspect, flt);
-            return rsUtil.calcArithmaticFunction(rs2, 10000, esriRasterArithmeticOperation.esriRasterMultiply);
+            IRaster rs2 = rsUtil.returnRaster(rsUtil.calcRemapFunction(rsAspect, flt));
+            return rsUtil.returnRaster(rsUtil.calcArithmaticFunction(rs2, 10000, esriRasterArithmeticOperation.esriRasterMultiply));
         }
 
         private string returnSafeName(string outName)
@@ -209,7 +209,7 @@ namespace esriUtil.Forms.OptFuels
                 if (modelrs != null)
                 {
                     string rgNm = rsUtil.getSafeOutputName(landfireworkspace,"RG");
-                    IRaster rgRs = rsUtil.regionGroup(modelrs);
+                    IRaster rgRs = rsUtil.createRaster(rsUtil.regionGroup(modelrs));
                     IRasterProps modelrsProps = (IRasterProps)modelrs;
                     IPnt pnt = modelrsProps.MeanCellSize();
                     double meanCellSize = pnt.X*pnt.Y;

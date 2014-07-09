@@ -95,12 +95,12 @@
             this.clbBiomassTypes.FormattingEnabled = true;
             this.clbBiomassTypes.Location = new System.Drawing.Point(12, 193);
             this.clbBiomassTypes.Name = "clbBiomassTypes";
-            this.clbBiomassTypes.Size = new System.Drawing.Size(210, 109);
+            this.clbBiomassTypes.Size = new System.Drawing.Size(210, 154);
             this.clbBiomassTypes.TabIndex = 21;
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(185, 315);
+            this.btnExecute.Location = new System.Drawing.Point(185, 355);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
             this.btnExecute.TabIndex = 22;
@@ -153,7 +153,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(268, 344);
+            this.ClientSize = new System.Drawing.Size(268, 382);
             this.Controls.Add(this.txtAccessDb);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbSubPlot);

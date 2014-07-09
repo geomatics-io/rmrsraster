@@ -8,15 +8,16 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class focalSampleHelperMode : focalSampleDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClm, int startRw)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int startClm, int startRw, int nBand)
         {
             Dictionary<float, int> countDic = new Dictionary<float, int>();
             foreach (int[] xy in offsetLst)
             {
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
-                float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
-                if (rasterUtil.isNullData(vl, noDataValue))
+                object vlObj = bigArr.GetVal(nBand, bWc, bRc);
+
+                if (vlObj == null)
                 {
                     continue;
                 }
@@ -24,6 +25,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 {
                     //int vl2 = System.Convert.ToInt32(vl);
                     //Console.WriteLine(vl)
+                    float vl = (float)vlObj;
                     int cnt = 0;
                     if (countDic.TryGetValue(vl, out cnt))
                     {

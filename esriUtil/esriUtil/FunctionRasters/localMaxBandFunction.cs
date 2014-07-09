@@ -12,39 +12,34 @@ namespace esriUtil.FunctionRasters
 {
     class localMaxBandFunction : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float maxB)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            float maxVl = float.MinValue;
+            maxB = 0;
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    float max = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    float maxb=0;
-                    if (rasterUtil.isNullData(max, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
-                    {
-                        continue;
-                    }
-                    for (int nBand = 1; nBand < pArr.Count; nBand++)
-                    {
-                        float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        float pixelValue = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue))
-                        {
-                            maxb = noDataVl;
-                            break;
-                        }
-                        if (pixelValue > max)
-                        {
-                            max = pixelValue;
-                            maxb = nBand+1;
-                        }
-                    }
-                    outArr.SetValue(maxb, k, i);
+                    checkNoData = false;
+                    maxB = 0;
+                    break;
                 }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (vl > maxVl)
+                    {
+                        maxVl = vl;
+                        maxB = i;
+                    }
+                }
+
             }
+            return checkNoData;
         }
+        
     }
 }
         

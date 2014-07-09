@@ -75,7 +75,7 @@ namespace esriUtil.Forms.Stats
                         for (int r = 0; r < rsBc.Count; r++)
                         {
                             string nNm = outName + "_Band_" + (r + 1).ToString();
-                            IRaster rsB = rsUtil.getBand(rs, r);
+                            IRaster rsB = rsUtil.returnRaster(rsUtil.getBand(rs, r));
                             if (!rstDic.ContainsKey(nNm))
                             {
                                 rstDic.Add(nNm, rsB);
@@ -135,12 +135,12 @@ namespace esriUtil.Forms.Stats
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (((IRasterBandCollection)rst).Count > 1)
                     {
                         for (int i = 0; i < ((IRasterBandCollection)rst).Count; i++)
                         {
-                            IRaster rsN = rsUtil.getBand(rst, i);
+                            IRaster rsN = rsUtil.returnRaster(rsUtil.getBand(rst, i));
                             string rsNm = lyrNm + "_Band_" + (i + 1).ToString();
                             if (!rstDic.ContainsKey(rsNm))
                             {
@@ -199,6 +199,7 @@ namespace esriUtil.Forms.Stats
             {
                 rsBc.AppendBands((IRasterBandCollection)rstDic[lsbRaster.Items[i].ToString()]);
             }
+            IFunctionRasterDataset frDset = rsUtil.compositeBandFunction(rsBc);
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
@@ -208,7 +209,7 @@ namespace esriUtil.Forms.Stats
             rp.Show();
             try
             {
-                Statistics.ModelHelper br = new Statistics.ModelHelper(mdPath, (IRaster)rsBc,rsUtil);
+                Statistics.ModelHelper br = new Statistics.ModelHelper(mdPath, rsUtil.createRaster(frDset),rsUtil);
                 outraster = br.getRaster();
                 if (mp != null&&addToMap)
                 {

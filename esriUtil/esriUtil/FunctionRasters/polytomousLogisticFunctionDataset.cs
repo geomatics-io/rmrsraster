@@ -19,10 +19,11 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Polytomous Logistic Regression Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using Polytomous Logistic regression transformation"; // Description of the log Function.
-        private IRaster outrs = null;
-        private IRaster inrsBandsCoef = null;
+        private IFunctionRasterDataset outrs = null;
+        private IFunctionRasterDataset inrsBandsCoef = null;
         private double[][] slopes = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -37,8 +38,8 @@ namespace esriUtil.FunctionRasters
                 inrsBandsCoef = arg.InRasterCoefficients;
                 slopes = arg.Slopes;
                 outrs = arg.OutRaster;
-                IRasterProps rsProp = (IRasterProps)outrs;
                 myFunctionHelper.Bind(outrs);
+                myFunctionHelperCoef.Bind(inrsBandsCoef);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -63,35 +64,25 @@ namespace esriUtil.FunctionRasters
             {
                 // Call Read method of the Raster Function Helper object.
 
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
-                float noDataVl = System.Convert.ToSingle(noDataValueArr.GetValue(0));
                 //Console.WriteLine("Before Read");
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 //Console.WriteLine("After Read");
-                noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;//inrsBandsCoef
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 outPb = (IPixelBlock3)inrsBandsCoef.CreatePixelBlock(pbSize);//independent variables  
-                inrsBandsCoef.Read(pTlc, (IPixelBlock)outPb);
+                IPixelBlock3 outPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);//independent variables  
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)outPb);
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                System.Array[] pArr = new System.Array[outPb.Planes];
                 System.Array[] cArr = new System.Array[ipPixelBlock.Planes];
-                for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
-                {
-                    System.Array pixelValues = (System.Array)(outPb.get_PixelData(coefnBand));
-                    pArr[coefnBand] = pixelValues;
-                }
                 for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++)
                 {
                     //float[,] td = new float[ipPixelBlock.Width, ipPixelBlock.Height];
                     System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);//(System.Array)(td);
                     cArr[outBand] = pixelValues;
                 }
-                
                 for (int i = pBRowIndex; i < pBHeight; i++)
                 {
                     for (int k = pBColIndex; k < pBWidth; k++)
@@ -99,46 +90,62 @@ namespace esriUtil.FunctionRasters
                         double[] expArr = new double[slopes.Length];
                         double sumExp = 0;
                         int catCnts = 0;
+                        bool noDataCheck = true;
                         foreach (double[] IntSlpArr in slopes)
                         {
                             double sumVls = IntSlpArr[0];
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
-                                float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
-                                float pixelValue = Convert.ToSingle(pArr[coefnBand].GetValue(k, i));
+                                object coefnVlObj = outPb.GetVal(coefnBand, k, i);
                                 //Console.WriteLine("Slope X value = " + pixelValue.ToString());
-                                if (rasterUtil.isNullData(pixelValue, noDataValue))
+                                if (coefnVlObj==null)
                                 {
-                                    sumVls = noDataVl;
+                                    noDataCheck = false;
                                     break;
                                 }
-
                                 double slp = IntSlpArr[coefnBand + 1];
                                 //Console.WriteLine("x = " + pixelValue.ToString() + " slope = " + slp.ToString());
-                                sumVls += pixelValue * slp;
+                                sumVls += System.Convert.ToSingle(coefnVlObj) * slp;
                             }
-                            //Console.WriteLine("sumVls = " + sumVls.ToString());
-                            double expSum = Math.Exp(sumVls);
-                            
-                            expArr[catCnts] = expSum;
-                            sumExp += expSum;
-                            catCnts +=1 ;
+                            if (noDataCheck)
+                            {
+                                double expSum = Math.Exp(sumVls);
+                                expArr[catCnts] = expSum;
+                                sumExp += expSum;
+                                catCnts += 1;
+                                //Console.WriteLine("sumVls = " + sumVls.ToString());
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
-                        sumExp += 1;
-                        double sumProb = 0;
-                        catCnts = 1;
-                        foreach (double expVl in expArr)
+                        if (noDataCheck)
                         {
-                            double prob = expVl / sumExp;
-                            //Console.WriteLine("Probability = " + prob.ToString());
-                            sumProb += prob;
-                            cArr[catCnts].SetValue(System.Convert.ToSingle(prob), k, i);
-                            //Console.WriteLine("Probability = " + cArr[catCnts].GetValue(k,i).ToString());
-                            catCnts += 1;
+                            sumExp += 1;
+                            double sumProb = 0;
+                            catCnts = 1;
+                            foreach (double expVl in expArr)
+                            {
+                                double prob = expVl / sumExp;
+                                //Console.WriteLine("Probability = " + prob.ToString());
+                                sumProb += prob;
+                                cArr[catCnts].SetValue(System.Convert.ToSingle(prob), k, i);
+                                //Console.WriteLine("Probability = " + cArr[catCnts].GetValue(k,i).ToString());
+                                catCnts += 1;
+
+                            }
+                            double lProb = 1 - sumProb;
+                            cArr[0].SetValue(System.Convert.ToSingle(lProb), k, i);//base category  
+                        }
+                        else
+                        {
+                            for (int b = 0; b < ipPixelBlock.Planes; b++)
+                            {
+                                cArr[b].SetValue(0, k, i);
+                            }
                             
                         }
-                        double lProb = 1-sumProb;
-                        cArr[0].SetValue(System.Convert.ToSingle(lProb),k,i);//base category     
                     }
                 }
                 for(int i=0;i<ipPixelBlock.Planes;i++)

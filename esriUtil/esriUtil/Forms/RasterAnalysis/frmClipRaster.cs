@@ -74,30 +74,14 @@ namespace esriUtil.Forms.RasterAnalysis
                 outName = gxObj.BaseName;
                 if (featureClass)
                 {
-                    IRaster rRs = rsUtil.returnRaster(outName);
-                    if (rRs == null)
+                    if (!ftrDic.ContainsKey(outName))
                     {
-                        if (!ftrDic.ContainsKey(outName))
-                        {
-                            ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
-                            cmbSampleFeatureClass.Items.Add(outName);
-                        }
-                        else
-                        {
-                            ftrDic[outName] = geoUtil.getFeatureClass(outPath);
-                        }
+                        ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
+                        cmbSampleFeatureClass.Items.Add(outName);
                     }
                     else
                     {
-                        if (!rstDic.ContainsKey(outName))
-                        {
-                            rstDic.Add(outName, rsUtil.returnRaster(outPath));
-                            cmbRaster.Items.Add(outName);
-                        }
-                        else
-                        {
-                            rstDic[outName] = rsUtil.returnRaster(outPath);
-                        }
+                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
                     }
                     cmbSampleFeatureClass.Text = outName;
                 }
@@ -175,7 +159,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -225,30 +209,20 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Clipping Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 IRaster rst = rstDic[rstNm];
-                IRaster inRst;
-                IRaster outraster;
-                IGeometry geo;
-                if(rstDic.TryGetValue(ftrNm,out inRst))
-                {
-                    geo = rsUtil.extractDomain(inRst);
-                }
-                else
-                {
-                    IFeatureClass ftrCls = ftrDic[ftrNm];
-                    geo = geoUtil.createGeometry(ftrCls);
-                }
-                outraster = rsUtil.clipRasterFunction(rst, geo, clType);
+                IFeatureClass ftrCls = ftrDic[ftrNm];
+                IGeometry geo = geoUtil.createGeometry(ftrCls);
+                IFunctionRasterDataset outraster = rsUtil.clipRasterFunction(rst, geo, clType);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);
-                    rstLyr.CreateFromRaster(outraster);
+                    rstLyr.CreateFromDataset((IRasterDataset)outraster);
                     rstLyr.Name = outNm;
                     rstLyr.Visible = false;
                     mp.AddLayer(rstLyr);

@@ -13,11 +13,12 @@ namespace esriUtil.FunctionRasters
 {
     public class nullToValueFunctionDataset : IRasterFunction
     {
+        
         private IRasterInfo myRasterInfo; // Raster Info for the focal Function
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "nulltoValue Function"; // Name of the log Function.
         private string myDescription = "Converts null values to a given value"; // Description of the log Function.
-        private IRaster inrs = null;
+        private object inrs = null;
         private double newvalue = 0;
         private System.Array noDataArr = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
@@ -28,17 +29,20 @@ namespace esriUtil.FunctionRasters
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
         public double noDataValue = Double.MinValue;
+        INoDataFilter ndFilt = new NoDataFilterClass();
+        IPixelFilter pFilt;
         public void Bind(object pArgument)
         {
             if (pArgument is nullToValueFunctionArguments)
             {
                 nullToValueFunctionArguments args = (nullToValueFunctionArguments)pArgument;
-                inrs = args.InRaster;
+                inrs = args.Raster;
                 newvalue = args.NewValue;
+                ndFilt.NoDataToPixelValue = newvalue;
+                pFilt = (IPixelFilter)ndFilt;
                 noDataArr = args.NoDataArray;
                 myFunctionHelper.Bind(inrs);
-                myRasterInfo = myFunctionHelper.RasterInfo;
-                myPixeltype = myRasterInfo.PixelType;
+                myRasterInfo = args.RasterInfo;
                 myValidFlag = true;
             }
             else
@@ -59,14 +63,14 @@ namespace esriUtil.FunctionRasters
             try
             {
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                INoDataFilter ndFilt = new NoDataFilterClass();
-                ndFilt.NoDataToPixelValue = newvalue;
-                IPixelFilter pFilt = (IPixelFilter)ndFilt;
                 pFilt.Filter(pPixelBlock);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+            }
+            finally
+            {
             }
         }
 

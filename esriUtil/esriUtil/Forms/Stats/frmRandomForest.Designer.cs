@@ -49,10 +49,11 @@
             this.cmbDepedent = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.chbReg = new System.Windows.Forms.CheckBox();
             this.chbVI = new System.Windows.Forms.CheckBox();
+            this.btnQry = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.gpSelection.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudSplit)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudratio)).BeginInit();
@@ -278,26 +279,6 @@
             this.cmbSampleFeatureClass.TabIndex = 33;
             this.cmbSampleFeatureClass.SelectedIndexChanged += new System.EventHandler(this.cmbSampleFeatureClass_SelectedIndexChanged);
             // 
-            // button1
-            // 
-            this.button1.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.button1.Location = new System.Drawing.Point(247, 423);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(23, 24);
-            this.button1.TabIndex = 40;
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // btnOpenFeatureClass
-            // 
-            this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(247, 29);
-            this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
-            this.btnOpenFeatureClass.Size = new System.Drawing.Size(23, 24);
-            this.btnOpenFeatureClass.TabIndex = 35;
-            this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
-            this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeture_Click);
-            // 
             // chbReg
             // 
             this.chbReg.AutoSize = true;
@@ -318,11 +299,42 @@
             this.chbVI.Text = "Variable Importance";
             this.chbVI.UseVisualStyleBackColor = true;
             // 
+            // btnQry
+            // 
+            this.btnQry.Image = ((System.Drawing.Image)(resources.GetObject("btnQry.Image")));
+            this.btnQry.Location = new System.Drawing.Point(249, 56);
+            this.btnQry.Name = "btnQry";
+            this.btnQry.Size = new System.Drawing.Size(26, 25);
+            this.btnQry.TabIndex = 45;
+            this.btnQry.UseVisualStyleBackColor = true;
+            this.btnQry.Click += new System.EventHandler(this.btnQry_Click);
+            // 
+            // button1
+            // 
+            this.button1.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.button1.Location = new System.Drawing.Point(247, 423);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(23, 24);
+            this.button1.TabIndex = 40;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // btnOpenFeatureClass
+            // 
+            this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(247, 27);
+            this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
+            this.btnOpenFeatureClass.Size = new System.Drawing.Size(28, 25);
+            this.btnOpenFeatureClass.TabIndex = 35;
+            this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
+            this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeture_Click);
+            // 
             // frmRandomForest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(290, 498);
+            this.Controls.Add(this.btnQry);
             this.Controls.Add(this.chbVI);
             this.Controls.Add(this.chbReg);
             this.Controls.Add(this.label5);
@@ -376,5 +388,6 @@
         private System.Windows.Forms.NumericUpDown nudTrees;
         private System.Windows.Forms.CheckBox chbReg;
         private System.Windows.Forms.CheckBox chbVI;
+        private System.Windows.Forms.Button btnQry;
     }
 }

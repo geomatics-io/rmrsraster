@@ -109,7 +109,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -148,7 +148,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rst = rstDic[rstNm];
-                outraster = rsUtil.regionGroup(rst);
+                outraster = rsUtil.createRaster(rsUtil.regionGroup(rst));
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

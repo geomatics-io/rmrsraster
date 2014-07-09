@@ -19,8 +19,9 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Conditional Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using Conditonal transformation"; // Description of the log Function.
-        private IRaster conRs, trueRs, falseRs;
+        private IFunctionRasterDataset outRs, coefRs;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -32,10 +33,10 @@ namespace esriUtil.FunctionRasters
             if (pArgument is conditionalFunctionArguments)
             {
                 conditionalFunctionArguments args = (conditionalFunctionArguments)pArgument;
-                conRs = args.ConditionalRaster;
-                trueRs = args.TrueRaster;
-                falseRs = args.FalseRaster;
-                myFunctionHelper.Bind(conRs);
+                coefRs = args.CoefRaster;
+                outRs = args.OutRaster;
+                myFunctionHelper.Bind(outRs);
+                myFunctionHelperCoef.Bind(coefRs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -55,24 +56,8 @@ namespace esriUtil.FunctionRasters
         /// <param name="pPixelBlock">PixelBlock to be filled in</param>
         public void Read(IPnt pTlc, IRaster pRaster, IPixelBlock pPixelBlock)
         {
-            IRaster2 inRs2 = (IRaster2)pRaster;
-            double inX, inY;
-            int outX, outY; 
-            inRs2.PixelToMap(System.Convert.ToInt32(pTlc.X),System.Convert.ToInt32(pTlc.Y),out inX, out inY);
-            IPnt tpTlc = new PntClass();
-            IPnt fpTlc = new PntClass();
-            IRaster2 tRs2 = (IRaster2)trueRs;
-            IRaster2 fRs2 = (IRaster2)falseRs;
-            tRs2.MapToPixel(inX, inY, out outX, out outY);
-            tpTlc.SetCoords(outX, outY);
-            fRs2.MapToPixel(inX, inY, out outX, out outY);
-            fpTlc.SetCoords(outX, outY);
-            float pixelValue = 0f;
             try
             {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
-                System.Array noDataValueArrT = (System.Array)((IRasterProps)trueRs).NoDataValue;
-                System.Array noDataValueArrF = (System.Array)((IRasterProps)falseRs).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 #region Load log object
                 int pBHeight = pPixelBlock.Height;
@@ -80,65 +65,32 @@ namespace esriUtil.FunctionRasters
                 Pnt pbSize = new PntClass();
                 pbSize.SetCoords(pPixelBlock.Width,pPixelBlock.Height);
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                IPixelBlock3 truePb = (IPixelBlock3)trueRs.CreatePixelBlock(pbSize);
-                IPixelBlock3 falsePb = (IPixelBlock3)falseRs.CreatePixelBlock(pbSize);
-                trueRs.Read(tpTlc, (IPixelBlock)truePb);
-                falseRs.Read(fpTlc, (IPixelBlock)falsePb);
-                float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(0));
-                float noDataValueT = System.Convert.ToSingle(noDataValueArrT.GetValue(0));
-                float noDataValueF = System.Convert.ToSingle(noDataValueArrF.GetValue(0));
-                System.Array pixelValuesCon = (System.Array)ipPixelBlock.get_PixelData(0);
-                int lng = pixelValuesCon.Length;
-                System.Array truePixelValues = (System.Array)truePb.get_PixelData(0);
-                System.Array falsePixelValues = (System.Array)falsePb.get_PixelData(0);
+                System.Array outPutArr = (System.Array)ipPixelBlock.get_PixelData(0);
+                IPixelBlock3 CoefPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
+                myFunctionHelperCoef.Read(pTlc, null, myFunctionHelperCoef.Raster, (IPixelBlock)CoefPb);
                 for (int r = 0; r < ipPixelBlock.Height; r++)
                 {
                     for (int c = 0; c < ipPixelBlock.Width; c++)
                     {
-                        pixelValue = System.Convert.ToSingle(pixelValuesCon.GetValue(c, r));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue)) continue;
-                        if (pixelValue >= 1)
+                        object vlObj = CoefPb.GetVal(0, c, r);
+                        if (vlObj != null)
                         {
-                            pixelValue = System.Convert.ToSingle(truePixelValues.GetValue(c, r));
-                            if (pixelValue == noDataValueT) pixelValue = noDataValue;
-                        }
-                        else
-                        {
-                            pixelValue = System.Convert.ToSingle(falsePixelValues.GetValue(c, r));
-                            if (pixelValue == noDataValueT) pixelValue = noDataValue;
+                            if ((float)vlObj > 0)
+                            {
+                                vlObj = CoefPb.GetVal(1, c, r);
+                            }
+                            else
+                            {
+                                vlObj = CoefPb.GetVal(1, c, r);
+                            }
+                            if (vlObj != null)
+                            {
+                                outPutArr.SetValue(vlObj, c, r);
+                            }
                         }
                     }
-                    
                 }
-                ipPixelBlock.set_PixelData(0, pixelValuesCon);
-
-                //unsafe
-                //{
-                //    fixed(float* conVl = pixelValuesCon, tVl = truePixelValues, fVl = falsePixelValues)
-                //    {
-                //        for (int i = 0; i < lng; i++)
-                //        {
-                //            pixelValue = *(conVl + i);
-                //            if (rasterUtil.isNullData(pixelValue, noDataValue))
-                //            {
-                //                continue;
-                //            }
-                //            if (pixelValue >= 1)
-                //            {
-                //                pixelValue = *(tVl+i);
-                //                if (pixelValue == noDataValueT) pixelValue = noDataValue;
-                //            }
-                //            else
-                //            {
-                //                pixelValue = *(fVl + i);
-                //                if (pixelValue == noDataValueF) pixelValue = noDataValue;
-                //            }
-                //            *(conVl + i) = pixelValue;
-                            
-                //        }
-                //    }
-                //}
-                //ipPixelBlock.set_PixelData(0, pixelValuesCon);
+                ipPixelBlock.set_PixelData(0,outPutArr);
                 #endregion
             }
             catch (Exception exc)

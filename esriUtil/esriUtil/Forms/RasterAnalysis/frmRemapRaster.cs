@@ -18,6 +18,7 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmRemapRaster(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
@@ -41,7 +42,7 @@ namespace esriUtil.Forms.RasterAnalysis
         private bool addToMap = true;
         private viewUtility vUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        private rasterUtil rsUtil = new rasterUtil();
+        private rasterUtil rsUtil = null;
         private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
         public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
         private IRaster outraster = null;
@@ -102,7 +103,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -172,7 +173,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.calcRemapFunction(rstDic[rstIn],rfilt);
+                outraster = rsUtil.returnRaster(rsUtil.calcRemapFunction(rstDic[rstIn],rfilt));
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

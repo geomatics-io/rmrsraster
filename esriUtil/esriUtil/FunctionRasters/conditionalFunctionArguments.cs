@@ -21,8 +21,19 @@ namespace esriUtil.FunctionRasters
              rsUtil = rasterUtilitiy;
          }
          private rasterUtil rsUtil = null;
-         private IRaster conRs = null;
-         public IRaster ConditionalRaster 
+         private IFunctionRasterDataset conRs = null;
+         public IFunctionRasterDataset CoefRaster
+         {
+             get
+             {
+                 IRasterBandCollection rsBc = new RasterClass();
+                 rsBc.AppendBands((IRasterBandCollection)rsUtil.getBand(conRs, 0));
+                 rsBc.AppendBands((IRasterBandCollection)rsUtil.getBand(trs, 0));
+                 rsBc.AppendBands((IRasterBandCollection)rsUtil.getBand(frs, 0));
+                 return rsUtil.compositeBandFunction(rsBc);
+             }
+         }
+         public IFunctionRasterDataset ConditionalRaster 
          {
              get
              {
@@ -30,17 +41,11 @@ namespace esriUtil.FunctionRasters
              }
              set
              {
-                 IRaster temp = value;
-                 IRasterProps rsProps = (IRasterProps)temp;
-                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
-                 {
-                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
-                 }
-                 conRs = temp;
+                 conRs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
              }
          }
-         private IRaster trs = null;
-         public IRaster TrueRaster
+         private IFunctionRasterDataset trs = null;
+         public IFunctionRasterDataset TrueRaster
          {
              get
              {
@@ -48,17 +53,11 @@ namespace esriUtil.FunctionRasters
              }
              set
              {
-                 IRaster temp = value;
-                 IRasterProps rsProps = (IRasterProps)temp;
-                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
-                 {
-                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
-                 }
-                 trs = temp;
+                 trs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
              }
          }
-         private IRaster frs = null;
-         public IRaster FalseRaster
+         private IFunctionRasterDataset frs = null;
+         public IFunctionRasterDataset FalseRaster
          {
              get
              {
@@ -66,13 +65,15 @@ namespace esriUtil.FunctionRasters
              }
              set
              {
-                 IRaster temp = value;
-                 IRasterProps rsProps = (IRasterProps)temp;
-                 if (rsProps.PixelType != rstPixelType.PT_FLOAT)
-                 {
-                     temp = rsUtil.convertToDifFormatFunction(temp, rstPixelType.PT_FLOAT);
-                 }
-                 frs = temp;
+                 
+                 frs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
+             }
+         }
+         public IFunctionRasterDataset OutRaster
+         {
+             get
+             {
+                 return rsUtil.getBand(conRs, 0);
              }
          }
      }

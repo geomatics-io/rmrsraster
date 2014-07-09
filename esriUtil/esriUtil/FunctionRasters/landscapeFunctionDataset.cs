@@ -17,13 +17,14 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "focal Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using focal analysis"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster orig = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset orig = null;
         private int clms, rws, radius;
         private rasterUtil.windowType inWindow = rasterUtil.windowType.RECTANGLE;
         private rasterUtil.focalType inop = rasterUtil.focalType.SUM;
         private rasterUtil.landscapeType landType = rasterUtil.landscapeType.AREA;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -43,8 +44,8 @@ namespace esriUtil.FunctionRasters
                 clms = args.Columns;
                 rws = args.Rows;
                 radius = args.Radius;
-                IRasterProps rsProp = (IRasterProps)inrs;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperCoef.Bind(orig);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -66,7 +67,6 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 switch (landType)
                 {
@@ -76,47 +76,47 @@ namespace esriUtil.FunctionRasters
                         {
                             case rasterUtil.focalType.MAX:
                                 neighborhoodHelperLandscapeMaxAreaRectangle nHMax = new neighborhoodHelperLandscapeMaxAreaRectangle();
-                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig,inWindow);
+                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef,inWindow);
                                 break;
                             case rasterUtil.focalType.MIN:
                                 neighborhoodHelperLandscapeMinAreaRectangle nHMin = new neighborhoodHelperLandscapeMinAreaRectangle();
-                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.SUM:
                                 neighborhoodHelperLandscapeSumAreaRectangle nHSum = new neighborhoodHelperLandscapeSumAreaRectangle();
-                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEAN:
                                 neighborhoodHelperLandscapeMeanAreaRectangle nHMean = new neighborhoodHelperLandscapeMeanAreaRectangle();
-                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MODE:
                                 neighborhoodHelperLandscapeModeAreaRectangle nHMode = new neighborhoodHelperLandscapeModeAreaRectangle();
-                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEDIAN:
                                 neighborhoodHelperLandscapeMedianAreaRectangle nHMed = new neighborhoodHelperLandscapeMedianAreaRectangle();
-                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.VARIANCE:
                                 neighborhoodHelperLandscapeVarianceAreaRectangle nHVar = new neighborhoodHelperLandscapeVarianceAreaRectangle();
-                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdAreaRectangle nHSTD = new neighborhoodHelperLandscapeStdAreaRectangle();
-                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.UNIQUE:
                                 neighborhoodHelperLandscapeUniqueAreaRectangle nHUniq = new neighborhoodHelperLandscapeUniqueAreaRectangle();
-                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.ENTROPY:
                                 neighborhoodHelperLandscapeEntropyAreaRectangle nHEnt = new neighborhoodHelperLandscapeEntropyAreaRectangle();
-                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             default:
                                 neighborhoodHelperLandscapeProbabilityAreaRectangle nHProb = new neighborhoodHelperLandscapeProbabilityAreaRectangle();
-                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                         }
                         break;
@@ -127,47 +127,47 @@ namespace esriUtil.FunctionRasters
                         {
                             case rasterUtil.focalType.MAX:
                                 neighborhoodHelperLandscapeMaxEdgeRectangle nHMax = new neighborhoodHelperLandscapeMaxEdgeRectangle();
-                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MIN:
                                 neighborhoodHelperLandscapeMinEdgeRectangle nHMin = new neighborhoodHelperLandscapeMinEdgeRectangle();
-                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.SUM:
                                 neighborhoodHelperLandscapeSumEdgeRectangle nHSum = new neighborhoodHelperLandscapeSumEdgeRectangle();
-                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEAN:
                                 neighborhoodHelperLandscapeMeanEdgeRectangle nHMean = new neighborhoodHelperLandscapeMeanEdgeRectangle();
-                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MODE:
                                 neighborhoodHelperLandscapeModeEdgeRectangle nHMode = new neighborhoodHelperLandscapeModeEdgeRectangle();
-                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEDIAN:
                                 neighborhoodHelperLandscapeMedianEdgeRectangle nHMed = new neighborhoodHelperLandscapeMedianEdgeRectangle();
-                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.VARIANCE:
                                 neighborhoodHelperLandscapeVarianceEdgeRectangle nHVar = new neighborhoodHelperLandscapeVarianceEdgeRectangle();
-                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdEdgeRectangle nHSTD = new neighborhoodHelperLandscapeStdEdgeRectangle();
-                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.UNIQUE:
                                 neighborhoodHelperLandscapeUniqueEdgeRectangle nHUniq = new neighborhoodHelperLandscapeUniqueEdgeRectangle();
-                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.ENTROPY:
                                 neighborhoodHelperLandscapeEntropyEdgeRectangle nHEnt = new neighborhoodHelperLandscapeEntropyEdgeRectangle();
-                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             default:
                                 neighborhoodHelperLandscapeProbabilityEdgeRectangle nHProb = new neighborhoodHelperLandscapeProbabilityEdgeRectangle();
-                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                         }
                         break;
@@ -178,55 +178,55 @@ namespace esriUtil.FunctionRasters
                         {
                             case rasterUtil.focalType.MAX:
                                 neighborhoodHelperLandscapeMaxRatioRectangle nHMax = new neighborhoodHelperLandscapeMaxRatioRectangle();
-                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMax.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MIN:
                                 neighborhoodHelperLandscapeMinRatioRectangle nHMin = new neighborhoodHelperLandscapeMinRatioRectangle();
-                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMin.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.SUM:
                                  
                                 neighborhoodHelperLandscapeSumRatioRectangle nHSum = new neighborhoodHelperLandscapeSumRatioRectangle();
-                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSum.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEAN:
                                 neighborhoodHelperLandscapeMeanRatioRectangle nHMean = new neighborhoodHelperLandscapeMeanRatioRectangle();
-                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMean.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MODE:
                                 neighborhoodHelperLandscapeModeRatioRectangle nHMode = new neighborhoodHelperLandscapeModeRatioRectangle();
-                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMode.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.MEDIAN:
                                 neighborhoodHelperLandscapeMedianRatioRectangle nHMed = new neighborhoodHelperLandscapeMedianRatioRectangle();
-                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHMed.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.VARIANCE:
                                 neighborhoodHelperLandscapeVarianceRatioRectangle nHVar = new neighborhoodHelperLandscapeVarianceRatioRectangle();
-                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHVar.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.STD:
                                 neighborhoodHelperLandscapeStdRatioRectangle nHSTD = new neighborhoodHelperLandscapeStdRatioRectangle();
-                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHSTD.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.UNIQUE:
                                 neighborhoodHelperLandscapeUniqueRatioRectangle nHUniq = new neighborhoodHelperLandscapeUniqueRatioRectangle();
-                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHUniq.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             case rasterUtil.focalType.ENTROPY:
                                 neighborhoodHelperLandscapeEntropyRatioRectangle nHEnt = new neighborhoodHelperLandscapeEntropyRatioRectangle();
-                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHEnt.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                             default:
                                 neighborhoodHelperLandscapeProbabilityRatioRectangle nHProb = new neighborhoodHelperLandscapeProbabilityRatioRectangle();
-                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                                nHProb.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                                 break;
                         }
                         break;
                     #endregion
                     default:
                         neighborhoodHelperLandscapeUniqueRegionsRectangle nHReg = new neighborhoodHelperLandscapeUniqueRegionsRectangle();
-                        nHReg.Read(pTlc, pRaster, pPixelBlock, clms, rws, orig, inWindow);
+                        nHReg.Read(pTlc, pRaster, pPixelBlock, clms, rws, myFunctionHelperCoef, inWindow);
                         break;
                         
                 }

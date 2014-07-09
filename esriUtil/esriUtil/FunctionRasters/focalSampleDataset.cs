@@ -16,14 +16,15 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "focal Sample Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using focal sample analysis"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster orig = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset orig = null;
         private int rws = 0;
         private int clms = 0;
         private HashSet<string> offset = null;
         public List<int[]> offsetLst = new List<int[]>();
         private rasterUtil.focalType inop = rasterUtil.focalType.SUM;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperOrig = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -41,8 +42,8 @@ namespace esriUtil.FunctionRasters
                 inop = args.Operation;
                 offset = args.OffSets;
                 getPlusWidthHeight();
-                IRasterProps rsProp = (IRasterProps)inrs;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperOrig.Bind(orig);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -57,9 +58,8 @@ namespace esriUtil.FunctionRasters
         {
             double mX = 0;
             double mY = 0;
-            IPnt pnt = ((IRasterProps)inrs).MeanCellSize();
-            double cellSizeX = pnt.X;
-            double cellSizeY = pnt.Y;
+            double cellSizeX = inrs.RasterInfo.CellSize.X;
+            double cellSizeY = inrs.RasterInfo.CellSize.Y;
             foreach (string s in offset)
             {
                 string[] sArr = s.Split(new char[] { ';' });
@@ -104,26 +104,25 @@ namespace esriUtil.FunctionRasters
                 //Console.WriteLine("lt = " + (pTlc.X - l).ToString() + ":" + (pTlc.Y - t).ToString());
                 pbBigSize.SetCoords(pbBigWd, pbBigHt);
                 pbBigLoc.SetCoords((pTlc.X - l), (pTlc.Y - t));
-                IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
-                orig.Read(pbBigLoc, (IPixelBlock)pbBig);
+                IPixelBlock3 pbBig = (IPixelBlock3)myFunctionHelperOrig.Raster.CreatePixelBlock(pbBigSize);
+                myFunctionHelperOrig.Read(pbBigLoc, null, myFunctionHelperOrig.Raster, (IPixelBlock)pbBig);
                 for (int nBand = 0; nBand < pbBig.Planes; nBand++)
                 {
-                    noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
-                    System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
+                    //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            float inVl = System.Convert.ToSingle(pixelValues.GetValue(c, r));
-
-                            if (rasterUtil.isNullData(inVl, noDataValue))
+                            object objVl = ipPixelBlock.GetVal(nBand,c, r);
+                            if (objVl==null)
                             {
                                 continue;
                             }
                             else
                             {
-                                float outVl = System.Convert.ToSingle(getTransformedValue(pixelValuesBig, c+l, r+t));
+                                float outVl = System.Convert.ToSingle(getTransformedValue(pbBig, c+l, r+t,nBand));
                                 //Console.WriteLine(outVl.ToString());
                                 pixelValues.SetValue(outVl,c, r);
                             }
@@ -152,6 +151,6 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract object getTransformedValue(System.Array bigArr, int startClm, int startRw);
+        public abstract object getTransformedValue(IPixelBlock3 bigPb, int startClm, int startRw, int nBand);
     }
 }

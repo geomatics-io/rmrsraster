@@ -16,10 +16,11 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Cluster Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using Cluster transformation"; // Description of the log Function.
-        private IRaster outrs = null;
-        private IRaster inrsBandsCoef = null;
+        private IFunctionRasterDataset outrs = null;
+        private IFunctionRasterDataset inrsBandsCoef = null;
         private Statistics.dataPrepClusterBinary cluster = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -35,8 +36,8 @@ namespace esriUtil.FunctionRasters
                 outrs = arg.OutRaster;
                 //Console.WriteLine("Number of Bands in outrs = " + ((IRasterBandCollection)outrs).Count.ToString());
                 cluster = (Statistics.dataPrepClusterBinary)arg.ClusterModel;
-                IRasterProps rsProp = (IRasterProps)outrs;
                 myFunctionHelper.Bind(outrs);
+                myFunctionHelperCoef.Bind(inrsBandsCoef);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -69,8 +70,8 @@ namespace esriUtil.FunctionRasters
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 outPb = (IPixelBlock3)inrsBandsCoef.CreatePixelBlock(pbSize);//independent variables  
-                inrsBandsCoef.Read(pTlc, (IPixelBlock)outPb);
+                IPixelBlock3 outPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);//independent variables  
+                myFunctionHelperCoef.Read(pTlc, null,myFunctionHelperCoef.Raster,(IPixelBlock)outPb);
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;

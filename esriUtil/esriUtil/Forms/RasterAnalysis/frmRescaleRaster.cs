@@ -108,7 +108,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -154,7 +154,7 @@ namespace esriUtil.Forms.RasterAnalysis
             {
                 IRaster rst = rstDic[rstNm];
                 rstPixelType pType = (rstPixelType)Enum.Parse(typeof(rstPixelType),pixelNm);
-                outraster = rsUtil.reScaleRasterFunction(rst,pType);
+                outraster = rsUtil.createRaster(rsUtil.reScaleRasterFunction(rst,pType));
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

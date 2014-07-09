@@ -8,20 +8,22 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class focalSampleHelperUnique: focalSampleDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClm, int startRw)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int startClm, int startRw, int nBand)
         {
             HashSet<float> unq = new HashSet<float>();
             foreach (int[] xy in offsetLst)
             {
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
-                float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
-                if (rasterUtil.isNullData(vl, noDataValue))
+                object vlObj = bigArr.GetVal(nBand, bWc, bRc);
+
+                if (vlObj == null)
                 {
                     continue;
                 }
                 else
                 {
+                    float vl = (float)vlObj;
                     unq.Add(vl);
                 }
             }

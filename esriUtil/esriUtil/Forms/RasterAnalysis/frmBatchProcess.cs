@@ -20,7 +20,7 @@ namespace esriUtil.Forms.RasterAnalysis
         private batchCalculations btCalc = null;
         private rasterUtil rsUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private Dictionary<string, IFunctionRasterDataset> rstDic = new Dictionary<string, IFunctionRasterDataset>();
         private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
         private Dictionary<string, ITable> tblDic = new Dictionary<string, ITable>();
         private Dictionary<string, string> lyrDic = new Dictionary<string, string>();
@@ -34,11 +34,11 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         IDataset dSet = (IDataset)((IRaster2)rst).RasterDataset;
-                        rstDic.Add(lyrNm, rst);
+                        rstDic.Add(lyrNm, rsUtil.createIdentityRaster(rst));
                         lyrDic.Add(lyrNm, dSet.Workspace.PathName + "\\" + dSet.BrowseName);
                         lsbLayers.Items.Add(lyrNm);
                     }
@@ -148,7 +148,7 @@ namespace esriUtil.Forms.RasterAnalysis
                     outName = gxObj.BaseName;
                     if (gxDialog.ObjectFilter is ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass)
                     {
-                        IRaster rs = rsUtil.returnRaster(outPath);
+                        IFunctionRasterDataset rs = rsUtil.createIdentityRaster(outPath);
                         if (!rstDic.ContainsKey(outName))
                         {
                             rstDic.Add(outName, rs);

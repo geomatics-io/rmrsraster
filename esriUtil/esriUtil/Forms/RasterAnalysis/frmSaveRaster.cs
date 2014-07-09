@@ -82,7 +82,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -114,15 +114,15 @@ namespace esriUtil.Forms.RasterAnalysis
                     }
                 }
                 cmbType.SelectedItem = rasterUtil.rasterType.IMAGINE.ToString();
-                //lblNoData.Visible = true;
-                //txtNoData.Visible = true;
+                lblNoDataVl.Visible = true;
+                txtNoDataVl.Visible = true;
             }
             else
             {
                 cmbType.Items.Add(rasterUtil.rasterType.GDB.ToString());
                 cmbType.SelectedItem = rasterUtil.rasterType.GDB.ToString();
-                //lblNoData.Visible = false;
-                //txtNoData.Visible = false;
+                lblNoDataVl.Visible = false;
+                txtNoDataVl.Visible = false;
             }
             
             
@@ -145,7 +145,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 return;
             }
             object noDataVl = null;
-            //if (rsUtil.isNumeric(txtNoData.Text)) noDataVl = System.Convert.ToDouble(txtNoData.Text);
+            if (rsUtil.isNumeric(txtNoDataVl.Text)&&txtNoDataVl.Visible) noDataVl = System.Convert.ToDouble(txtNoDataVl.Text);
             rasterUtil.rasterType rType = (rasterUtil.rasterType)Enum.Parse(typeof(rasterUtil.rasterType), outType);
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -159,7 +159,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rs = rstDic[rstNm];
-                IRasterDataset rsDset = rsUtil.saveRasterToDataset(rs, outNm, outWks);// rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl);
+                IRasterDataset rsDset = rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl);//rsUtil.saveRasterToDataset(rs, outNm, outWks);
                 DateTime dt2 = DateTime.Now;
                 IRasterLayer rsLyr = new RasterLayerClass();
                 rsLyr.CreateFromDataset(rsDset);
@@ -198,6 +198,13 @@ namespace esriUtil.Forms.RasterAnalysis
         private void label1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void cmbRaster_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            IRaster rs = rstDic[cmbRaster.Text];
+            double ndVl = rasterUtil.getNoDataValue(((IRasterProps)rs).PixelType);
+            txtNoDataVl.Text = ndVl.ToString();
         }
 
         

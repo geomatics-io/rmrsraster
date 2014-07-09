@@ -17,11 +17,12 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "combine Function"; // Name of the log Function.
         private string myDescription = "creates a unique value raster given a multiband raster"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster outRs = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset outRs = null;
         private Dictionary<string,int> uniqueDic = new Dictionary<string,int>();
         private int uniqueCounter = 0;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -33,15 +34,11 @@ namespace esriUtil.FunctionRasters
             if (pArgument is combineFunctionArguments)
             {
                 combineFunctionArguments args = (combineFunctionArguments)pArgument;
-                IRaster[] rsArr = args.InRaster;
-                inrs = new RasterClass();
-                IRasterBandCollection rsBc = (IRasterBandCollection)inrs;
-                foreach (IRaster rs in rsArr)
-                {
-                    rsBc.AppendBands((IRasterBandCollection)rs);
-                }
-                outRs = args.outRaster;
+
+                inrs = args.InRasterDataset;
+                outRs = args.OutRaster;
                 myFunctionHelper.Bind(outRs);
+                myFunctionHelperCoef.Bind(inrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -69,8 +66,8 @@ namespace esriUtil.FunctionRasters
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 inVlsPb = (IPixelBlock3)inrs.CreatePixelBlock(pbSize);
-                inrs.Read(pTlc, (IPixelBlock)inVlsPb);
+                IPixelBlock3 inVlsPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)inVlsPb);
                 IPixelBlock3 outPixelBlock = (IPixelBlock3)pPixelBlock;
                 System.Array outArr = (System.Array)outPixelBlock.get_PixelData(0);
                 updateOutArr(ref outArr, ref inVlsPb);

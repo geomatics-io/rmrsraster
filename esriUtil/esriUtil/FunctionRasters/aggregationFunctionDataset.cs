@@ -17,17 +17,17 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "aggregation Function"; // Name of the log Function.
         private string myDescription = "Aggregates a raster using specified number of cells"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster orig = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset orig = null;
         private int cells;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperOrig = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public System.Array noDataValueArr = null;
         public void Bind(object pArgument)
         {
             if (pArgument is aggregationFunctionArguments)
@@ -36,8 +36,9 @@ namespace esriUtil.FunctionRasters
                 inrs = args.InRaster;
                 orig = args.OriginalRaster;
                 cells = args.Cells;
-                noDataValueArr = (System.Array)((IRasterProps)inrs).NoDataValue;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperOrig.Bind(orig);
+                //System.Windows.Forms.MessageBox.Show(orig.RasterInfo.CellSize.X.ToString()+"\n" + inrs.RasterInfo.CellSize.X.ToString());
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -60,6 +61,7 @@ namespace esriUtil.FunctionRasters
             try
             {
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
+                //System.Windows.Forms.MessageBox.Show("Read resized raster");
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
@@ -69,26 +71,32 @@ namespace esriUtil.FunctionRasters
                 int pbBigHt = pBHeight * cells;
                 pbBigSize.SetCoords(pbBigWd, pbBigHt);
                 pbBigLoc.SetCoords((pTlc.X * cells), (pTlc.Y * cells));
-                IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
-                orig.Read(pbBigLoc, (IPixelBlock)pbBig);
-                
+                IPixelBlock pbOrig = myFunctionHelperOrig.Raster.CreatePixelBlock(pbBigSize);
+                //System.Windows.Forms.MessageBox.Show("Read original Raster");
+                myFunctionHelperOrig.Read(pbBigLoc, null, myFunctionHelperOrig.Raster, pbOrig);
+                IPixelBlock3 pbBig = (IPixelBlock3)pbOrig;
+                //int cnt = 0;
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
                     //Console.WriteLine(ipPixelBlock.get_PixelType(nBand).ToString());
-                    object noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
+                    //object noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
                         for (int c = 0; c < pBWidth; c++)
                         {
-                            object outVl = getTransformedValue(pbBig,nBand,c,r,cells,noDataValue);
-                            //Console.WriteLine("summed value = " + outVl.ToString());
-                            pixelValues.SetValue(outVl, c, r);
-                        }
+                            object objVl = ipPixelBlock.GetVal(nBand, c, r);
+                            if (objVl != null)
+                            {
+                                object outVl = getTransformedValue(pbBig, nBand, c, r, cells);
+                                //System.Windows.Forms.MessageBox.Show(outVl.ToString());
+                                pixelValues.SetValue(outVl, c, r);
 
+                            }
+                        }
                     }
-                    ((IPixelBlock3)pPixelBlock).set_PixelData(nBand, pixelValues);
+                    ipPixelBlock.set_PixelData(nBand, pixelValues);
                 }
             }
             catch (Exception e)
@@ -109,6 +117,6 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms,int startRws,int cells,object noDataValue);
+        public abstract object getTransformedValue(IPixelBlock3 bigArr,int band, int startClms,int startRws,int cells);
     }
 }

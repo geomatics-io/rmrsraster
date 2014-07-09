@@ -55,7 +55,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 rsProp = (IRasterProps)inRs;
                 if (rsProp.PixelType == rstPixelType.PT_DOUBLE || rsProp.PixelType == rstPixelType.PT_FLOAT)
                 {
-                    inRs = rsUtil.convertToDifFormatFunction(inRs, rstPixelType.PT_LONG);
+                    inRs = rsUtil.returnRaster(inRs, rstPixelType.PT_LONG);
                     rsProp = (IRasterProps)inRs;
                 }
                 System.Array noDataValues = (System.Array)rsProp.NoDataValue;

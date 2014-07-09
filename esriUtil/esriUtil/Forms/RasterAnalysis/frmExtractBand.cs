@@ -108,7 +108,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -138,13 +138,12 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must check at least on Raster Band", "No Bands", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<IRaster> rsLst = new List<IRaster>();
+            ILongArray lArr = new LongArrayClass();
             for (int i = 0; i < clbBands.CheckedItems.Count; i++)
             {
-                IRaster slRs = rstDic[cmbInRaster1.Text];
                 string bandVl = clbBands.CheckedItems[i].ToString();
                 int bndIndex = System.Convert.ToInt32(bandVl.Split(new char[] { '_' })[1])-1;
-                rsLst.Add(rsUtil.getBand(slRs, bndIndex));
+                lArr.Add(bndIndex);
             }
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -152,13 +151,14 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Extracting Bands From  Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
-                outraster = rsUtil.compositeBandFunction(rsLst.ToArray());
+                outraster = rsUtil.returnRaster(rsUtil.getBands(rstDic[cmbInRaster1.Text],lArr));
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
+                    
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);

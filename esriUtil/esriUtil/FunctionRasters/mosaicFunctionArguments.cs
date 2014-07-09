@@ -58,7 +58,7 @@ namespace esriUtil.FunctionRasters
             get
             {
                 IRaster rs = inrs[0];
-                rs = rsUtil.constantRasterFunction(rs, 0);
+                rs = rsUtil.createRaster(rsUtil.constantRasterFunction(rs, 0));
                 IRasterProps rsP = (IRasterProps)rs;
                 double cX = rsP.MeanCellSize().X;
                 double cY = rsP.MeanCellSize().Y;

@@ -102,7 +102,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -175,7 +175,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.setValueRangeToNodata(rstDic[rstIn],strArr);
+                outraster = rsUtil.returnRaster(rsUtil.setValueRangeToNodata(rstDic[rstIn],strArr));
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

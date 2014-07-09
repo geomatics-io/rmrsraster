@@ -19,24 +19,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmNormalize(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmNormalize(IMap map,ref rasterUtil rasterUtility,bool addToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             aM = addToMap;
         }
         private IMap mp = null;
@@ -90,7 +92,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -165,11 +167,11 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             rp.Show();
             rp.Refresh();
-            normalization nm = new normalization(rs1, rs2, pChange, rsUtil);
+            normalization nm = new normalization(rsUtil.createIdentityRaster(rs1), rsUtil.createIdentityRaster(rs2), pChange, rsUtil);
             try
             {
                 double[][] coef = nm.Coefficients;
-                outraster = nm.OutRaster;
+                outraster = rsUtil.createRaster(nm.OutRaster);
                 outrastername = outNmRst;
                 int bCnt = ((IRasterBandCollection)outraster).Count;
                 for (int i = 0; i < bCnt; i++)

@@ -18,24 +18,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmFocalSample(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmFocalSample(IMap map,ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             addToMap = AddToMap;
         }
         private IMap mp = null;
@@ -88,7 +90,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -168,7 +170,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outRs = rsUtil.calcFocalSampleFunction(rs1, offsets, fcType);
+                outRs = rsUtil.createRaster(rsUtil.calcFocalSampleFunction(rs1, offsets, fcType));
                 outraster = outRs;
                 outrastername = outNmRst;
                 if (mp != null && addToMap)

@@ -9,7 +9,7 @@ namespace esriUtil.Statistics
 {
     public abstract class dataPrepBase
     {
-        public enum modelTypes { Accuracy, AdjustedAccuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, StrataCovCorr, PCA, Cluster, TTEST, PAIREDTTEST, KS, GLM, CompareClassifications }
+        public enum modelTypes { Accuracy, AdjustedAccuracy, LinearRegression, MvlRegression, LogisticRegression, PLR, RandomForest, SoftMax, Cart, L3, CovCorr, StrataCovCorr, PCA, Cluster, TTEST, PAIREDTTEST, KS, GLM, CompareClassifications, KDA, LDA, SVM }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         public geoDatabaseUtility GeoUtil { get { return geoUtil; } }
         private string intablepath = "";
@@ -62,6 +62,7 @@ namespace esriUtil.Statistics
             }
             
         }
+        public IQueryFilter generalQf = new QueryFilterClass();
         public double[] minValues, maxValues, sumValues;
         public string[] ClassFieldNames { get; set; }
         public Dictionary<string, List<string>> UniqueClassValues
@@ -80,11 +81,15 @@ namespace esriUtil.Statistics
             string cFldn1 = ClassFieldNames[0];
             if (cFldn1 == "") return outDic;
             IQueryFilter qf = new QueryFilterClass();
+            if (generalQf != null)
+            {
+                qf.WhereClause = generalQf.WhereClause;
+            }
             qf.SubFields = String.Join(",", ClassFieldNames);
             HashSet<string>[] hshStrgLst = new HashSet<string>[ClassFieldNames.Length];
             //Console.WriteLine("HashStrgLstLength = " + hshStrgLst.Length);
             int[] fldIndexArr = new int[ClassFieldNames.Length];
-            ICursor cur = InTable.Search(qf, false);
+            ICursor cur = InTable.Search(qf, true);
             for (int i = 0; i < ClassFieldNames.Length; i++)
             {
                 fldIndexArr[i] = cur.FindField(ClassFieldNames[i]);
@@ -103,6 +108,7 @@ namespace esriUtil.Statistics
                 }
                 rw = cur.NextRow();
             }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
             
             for (int i = 0; i < ClassFieldNames.Length; i++)
             {

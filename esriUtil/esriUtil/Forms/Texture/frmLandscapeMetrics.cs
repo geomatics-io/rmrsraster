@@ -18,24 +18,26 @@ namespace esriUtil.Forms.Texture
         public frmLandscapeMetrics(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmLandscapeMetrics(IMap map,ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             addToMap = AddToMap;
         }
         private IMap mp = null;
@@ -88,7 +90,7 @@ namespace esriUtil.Forms.Texture
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -199,11 +201,11 @@ namespace esriUtil.Forms.Texture
             {
                 if (wdType == rasterUtil.windowType.CIRCLE)
                 {
-                    outRs = rsUtil.calcLandscapeFunction(rs1, clms, fcType, lcType);
+                    outRs = rsUtil.createRaster(rsUtil.calcLandscapeFunction(rs1, clms, fcType, lcType));
                 }
                 else
                 {
-                    outRs = rsUtil.calcLandscapeFunction(rs1, clms, rws, fcType,lcType);
+                    outRs = rsUtil.createRaster(rsUtil.calcLandscapeFunction(rs1, clms, rws, fcType,lcType));
                 }
                 outraster = outRs;
                 outrastername = outNmRst;

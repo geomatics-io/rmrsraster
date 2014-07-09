@@ -70,6 +70,18 @@ namespace esriUtil.Statistics
         private object clusterCollection = null;
         public object Model { get { return model; } }
         double[][] inputMatrix = null;
+        public double[][] InputMatrix
+        {
+            get
+            {
+                return inputMatrix;
+            }
+            set
+            {
+                inputMatrix = value;
+            }
+
+        }
         private int k = 2;
         public int K { set { k = value; } }
         public int Classes { get { return k; } }
@@ -81,6 +93,8 @@ namespace esriUtil.Statistics
                 return lbl;
             }
         }
+        private double precision = 0.0001;
+        public double Precision { get { return precision; } set { precision = value; } }
         public void buildModel()
         {
             if (inputMatrix == null) getMatrix();
@@ -88,20 +102,20 @@ namespace esriUtil.Statistics
             {
                 case clusterType.KMEANS:
                     KMeans kmeans = new KMeans(k);
-                    kmeans.Compute(inputMatrix, 0.0001);
+                    kmeans.Compute(inputMatrix, precision);
                     clusterCollection = kmeans.Clusters;
                     model = kmeans;
                     break;
                 case clusterType.BINARY:
                     BinarySplit bSplit = new BinarySplit(k);
-                    bSplit.Compute(inputMatrix, 0.0001);
+                    bSplit.Compute(inputMatrix, precision);
                     clusterCollection = bSplit.Clusters;
                     model = bSplit;
                     //Console.WriteLine("BinarySplit");
                     break;
                 case clusterType.GAUSSIANMIXTURE:
                     GaussianMixtureModel gModel = new GaussianMixtureModel(k);
-                    gModel.Compute(inputMatrix, 0.0001);
+                    gModel.Compute(inputMatrix, precision);
                     clusterCollection = gModel.Gaussians;
                     model = gModel;
                     break;
@@ -153,7 +167,7 @@ namespace esriUtil.Statistics
             IRaster2 rs2 = (IRaster2)InRaster;
             IRasterBandCollection rsbc = (IRasterBandCollection)rs2;
             IRasterProps rsp = (IRasterProps)rs2;
-            System.Array nDataVlArr = (System.Array)rsp.NoDataValue;
+            //System.Array nDataVlArr = (System.Array)rsp.NoDataValue;
             IRasterCursor rsCur = rs2.CreateCursorEx(null);
             IPixelBlock pb = null;
             Random rand = new Random();
@@ -236,10 +250,11 @@ namespace esriUtil.Statistics
             inputMatrix = inputMatrixLst.ToArray();
             System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
         }
-
+        private double mr = 10000000d;
+        public double MaxRecords { get { return mr; } set { mr = value; } }
         private void getProportionOfSamples()
         {
-            double maxRecords = 10000000d;
+            double maxRecords = MaxRecords;
             int rec = 0;
             if (inraster == null)
             {

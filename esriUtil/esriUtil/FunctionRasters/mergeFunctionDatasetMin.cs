@@ -20,7 +20,7 @@ namespace esriUtil.FunctionRasters
                     if (System.Convert.ToSingle(inVlobj) < System.Convert.ToSingle(minVl)) minVl = inVlobj;
                 }
             }
-            if (System.Convert.ToSingle(minVl) == Single.MaxValue) minVl = noDataVl;
+            if (System.Convert.ToSingle(minVl) == Single.MaxValue) minVl = 0;
             return minVl;
         }
     }

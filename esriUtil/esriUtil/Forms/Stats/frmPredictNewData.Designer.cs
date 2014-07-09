@@ -36,6 +36,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
             this.btnExecute = new System.Windows.Forms.Button();
+            this.btnQry = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -67,9 +68,9 @@
             // btnOpenFeatureClass
             // 
             this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(238, 90);
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(235, 89);
             this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
-            this.btnOpenFeatureClass.Size = new System.Drawing.Size(23, 24);
+            this.btnOpenFeatureClass.Size = new System.Drawing.Size(26, 25);
             this.btnOpenFeatureClass.TabIndex = 47;
             this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
             this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenRaster_Click);
@@ -101,11 +102,22 @@
             this.btnExecute.UseVisualStyleBackColor = true;
             this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
             // 
+            // btnQry
+            // 
+            this.btnQry.Image = ((System.Drawing.Image)(resources.GetObject("btnQry.Image")));
+            this.btnQry.Location = new System.Drawing.Point(12, 116);
+            this.btnQry.Name = "btnQry";
+            this.btnQry.Size = new System.Drawing.Size(26, 25);
+            this.btnQry.TabIndex = 49;
+            this.btnQry.UseVisualStyleBackColor = true;
+            this.btnQry.Click += new System.EventHandler(this.btnQry_Click);
+            // 
             // frmPredictNewData
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(270, 166);
+            this.Controls.Add(this.btnQry);
             this.Controls.Add(this.btnExecute);
             this.Controls.Add(this.btnOpenFeatureClass);
             this.Controls.Add(this.label2);
@@ -132,5 +144,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbSampleFeatureClass;
         private System.Windows.Forms.Button btnExecute;
+        private System.Windows.Forms.Button btnQry;
     }
 }

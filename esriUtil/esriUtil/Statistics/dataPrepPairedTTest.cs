@@ -20,7 +20,7 @@ namespace esriUtil.Statistics
             InValueRaster = VariableRaster;
             if (StrataRaster == null)
             {
-                InStrataRaster = rsUtil.constantRasterFunction(rsUtil.getBand(VariableRaster, 0), 1);
+                InStrataRaster = rsUtil.createRaster(rsUtil.constantRasterFunction(rsUtil.getBand(VariableRaster, 0), 1));
             }
             else
             {

@@ -112,7 +112,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
 
                     if (!rstDic.ContainsKey(lyrNm))
                     {
@@ -173,7 +173,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.Show();
             try
             {
-                outraster = rsUtil.calcMosaicFunction(rsArr,mType);//rsUtil.mergeRasterFunction(rsArr, mType, rstNm);//
+                outraster = rsUtil.createRaster(rsUtil.calcMosaicFunction(rsArr,mType));//rsUtil.mergeRasterFunction(rsArr, mType, rstNm);//
                 if (mp != null&&addToMap)
                 {
                     rp.Refresh();

@@ -12,33 +12,31 @@ namespace esriUtil.FunctionRasters
 {
     class localMinFunctionDataset : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float minVl)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            minVl = float.MaxValue;
+
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    double min = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    if (rasterUtil.isNullData(min, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
-                    {
-                        continue;
-                    }
-                    for (int nBand = 1; nBand < pArr.Count; nBand++)
-                    {
-                        float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        float pixelValue = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue))
-                        {
-                            min = noDataVl;
-                            break;
-                        }
-                        if (pixelValue < min) min = pixelValue;
-                    }
-                    outArr.SetValue(min, k, i);
+                    checkNoData = false;
+                    minVl = 0;
+                    break;
                 }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (vl < minVl)
+                    {
+                        minVl = vl;
+                    }
+                }
+
             }
+            return checkNoData;
         }
     }
 }

@@ -18,24 +18,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmFocalAnalysis(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmFocalAnalysis(IMap map,ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             addToMap = AddToMap;
         }
         private IMap mp = null;
@@ -88,7 +90,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -182,15 +184,16 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Creating Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 if (wdType == rasterUtil.windowType.CIRCLE)
                 {
-                    outRs = rsUtil.calcFocalStatisticsFunction(rs1, clms, fcType);
+                    outRs = rsUtil.returnRaster(rsUtil.calcFocalStatisticsFunction(rs1, clms, fcType));
                 }
                 else
                 {
-                    outRs = rsUtil.calcFocalStatisticsFunction(rs1, clms, rws, fcType);
+                    outRs = rsUtil.returnRaster(rsUtil.calcFocalStatisticsFunction(rs1, clms, rws, fcType));
                 }
                 outraster = outRs;
                 outrastername = outNmRst;

@@ -13,8 +13,7 @@ namespace RMRSBatchProcess
         static void Main(string[] args)
         {
             //ESRI License Initializer generated code.
-            m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[] { esriLicenseProductCode.esriLicenseProductCodeArcView,esriLicenseProductCode.esriLicenseProductCodeArcEditor,esriLicenseProductCode.esriLicenseProductCodeArcInfo,esriLicenseProductCode.esriLicenseProductCodeEngine,esriLicenseProductCode.esriLicenseProductCodeEngineGeoDB,esriLicenseProductCode.esriLicenseProductCodeArcServer },
-            new esriLicenseExtensionCode[] { });
+            m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[]{},new esriLicenseExtensionCode[] { });
             //ESRI License Initializer generated code.
             //Do not make any call to ArcObjects after ShutDownApplication()
             if (args.Length < 1)

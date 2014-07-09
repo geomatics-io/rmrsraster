@@ -12,36 +12,40 @@ namespace esriUtil.FunctionRasters
 {
     class localUniqueValuesFunctionDataset : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float unique)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            Dictionary<float, int> probDic = new Dictionary<float, int>();
+            unique = 0;
+            int cnt = 0;
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    HashSet<double> hash = new HashSet<double>();
-                    float vl = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    if (rasterUtil.isNullData(vl, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
-                    {
-                        continue;
-                    }
-                    hash.Add(vl);
-                    double unique = 0;
-                    for (int nBand = 1; nBand < pArr.Count; nBand++)
-                    {
-                        double noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        vl = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(vl, noDataValue))
-                        {
-                            unique = noDataValue;
-                            break;
-                        }
-                        hash.Add(vl);
-                    }
-                    outArr.SetValue(hash.Count,k, i);
+                    checkNoData = false;
+                    break;
                 }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (probDic.TryGetValue(vl, out cnt))
+                    {
+                        probDic[vl] = cnt + 1;
+                    }
+                    else
+                    {
+                        probDic.Add(vl, 1);
+                    }
+
+                }
+
             }
+            if (checkNoData)
+            {
+                unique = probDic.Keys.Count;
+            }
+            return checkNoData;
         }
     }
 }

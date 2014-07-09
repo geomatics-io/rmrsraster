@@ -137,7 +137,7 @@ namespace esriUtil.Statistics
         private void adjustXTableRst(IGeometry iGeometry)
         {
             double tN = 0;
-            IRaster rs = rsUtil.clipRasterFunction(rstMap, iGeometry, ESRI.ArcGIS.DataSourcesRaster.esriRasterClippingType.esriRasterClippingOutside);
+            IRaster rs = rsUtil.createRaster(rsUtil.clipRasterFunction(rstMap, iGeometry, ESRI.ArcGIS.DataSourcesRaster.esriRasterClippingType.esriRasterClippingOutside));
             IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
             while (rsCur.Next())
             {

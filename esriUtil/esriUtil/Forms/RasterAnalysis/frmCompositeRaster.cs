@@ -85,36 +85,14 @@ namespace esriUtil.Forms.RasterAnalysis
                     outPath = gxObj.FullName;
                     outName = gxObj.BaseName;
                     IRaster rs = rsUtil.returnRaster(outPath);
-                    if (((IRasterBandCollection)rs).Count > 1)
+                    if (!rstDic.ContainsKey(outName))
                     {
-                        IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                        for (int r = 0; r < rsBc.Count; r++)
-                        {
-                            string nNm = outName + "_Band_" + (r + 1).ToString();
-                            IRaster rsB = rsUtil.getBand(rs, r);
-                            if (!rstDic.ContainsKey(nNm))
-                            {
-                                rstDic.Add(nNm, rsB);
-                                lsbRaster.Items.Add(nNm);
-                                //cmbInRaster1.Items.Add(nNm);
-                            }
-                            else
-                            {
-                                rstDic[nNm] = rsB;
-                            }
-                        }
+                        rstDic.Add(outName, rs);
+                        lsbRaster.Items.Add(outName);
                     }
                     else
                     {
-                        if (!rstDic.ContainsKey(outName))
-                        {
-                            rstDic.Add(outName, rs);
-                            lsbRaster.Items.Add(outName);
-                        }
-                        else
-                        {
-                            rstDic[outName] = rs;
-                        }
+                        rstDic[outName] = rs;
                     }
                     gxObj = eGxObj.Next();
                 }
@@ -151,35 +129,15 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
-                    if (((IRasterBandCollection)rst).Count > 1)
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
+                    if (!rstDic.ContainsKey(lyrNm))
                     {
-                        for (int i = 0; i < ((IRasterBandCollection)rst).Count; i++)
-                        {
-                            IRaster rsN = rsUtil.getBand(rst, i);
-                            string rsNm = lyrNm + "_Band_" + (i + 1).ToString();
-                            if (!rstDic.ContainsKey(rsNm))
-                            {
-                                rstDic.Add(rsNm, rsN);
-                                cmbInRaster1.Items.Add(rsNm);
-                            }
-                            else
-                            {
-                                rstDic[rsNm] = rsN;
-                            }
-                        }
+                        rstDic.Add(lyrNm, rst);
+                        cmbInRaster1.Items.Add(lyrNm);
                     }
                     else
                     {
-                        if (!rstDic.ContainsKey(lyrNm))
-                        {
-                            rstDic.Add(lyrNm, rst);
-                            cmbInRaster1.Items.Add(lyrNm);
-                        }
-                        else
-                        {
-                            rstDic[lyrNm] = rst;
-                        }
+                        rstDic[lyrNm] = rst;
                     }
                     lyr = rstLyrs.Next();
                 }
@@ -205,10 +163,11 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must select at least on Raster", "No Rasters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<IRaster> rsLst = new List<IRaster>();
+            IRasterBandCollection rsBc = new RasterClass();
             for (int i = 0; i < lsbRaster.Items.Count; i++)
             {
-                rsLst.Add(rstDic[lsbRaster.Items[i].ToString()]);
+                rsBc.AppendBands((IRasterBandCollection)rstDic[lsbRaster.Items[i].ToString()]);
+                
             }
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -216,15 +175,16 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Building " + mStr + " Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 if (this.Text == "Create Composite Raster")
                 {
-                    outraster = rsUtil.compositeBandFunction(rsLst.ToArray());
+                    outraster = rsUtil.returnRaster(rsUtil.compositeBandFunction(rsBc));
                 }
                 else
                 {
-                    outraster = rsUtil.calcCombineRasterFunction(rsLst.ToArray());
+                    //outraster = rsUtil.calcCombineRasterFunction(rsLst.ToArray());
                 }
                 if (mp != null && addToMap)
                 {

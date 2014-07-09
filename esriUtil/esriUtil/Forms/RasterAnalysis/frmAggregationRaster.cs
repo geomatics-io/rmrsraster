@@ -18,24 +18,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmAggregationRaster(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmAggregationRaster(IMap map, ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             addToMap = AddToMap;
         }
         private IMap mp = null;
@@ -88,7 +90,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -159,10 +161,11 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Creating Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 
-                outRs = rsUtil.calcAggregationFunction(rs1,clms,fcType);
+                outRs = rsUtil.createRaster(rsUtil.calcAggregationFunction(rs1,clms,fcType));
                 
                 outraster = outRs;
                 outrastername = outNmRst;

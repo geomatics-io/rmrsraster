@@ -8,7 +8,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class focalSampleHelperSum : focalSampleDataset
     {
-        public override object getTransformedValue(System.Array bigArr, int startClm, int startRw)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int startClm, int startRw, int nBand)
         {
             //Console.WriteLine("Start CR = " + startClm.ToString()+":"+ startRw.ToString());
             float db = 0;
@@ -17,14 +17,15 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 int bWc = xy[0] + startClm;
                 int bRc = xy[1] + startRw;
                 //Console.WriteLine("\tOffset CR = " + bWc.ToString() + " : " + bRc.ToString());
-                float vl = System.Convert.ToSingle(bigArr.GetValue(bWc, bRc));
-                //Console.WriteLine("\t"+vl.ToString());
-                if (rasterUtil.isNullData(vl, noDataValue))
+                object vlObj = bigArr.GetVal(nBand, bWc, bRc);
+
+                if (vlObj == null)
                 {
                     continue;
                 }
                 else
                 {
+                    float vl = (float)vlObj;
                     db += vl;
                 }
             }

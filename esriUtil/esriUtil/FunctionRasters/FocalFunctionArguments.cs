@@ -22,17 +22,17 @@ namespace esriUtil.FunctionRasters
             rsUtil = rasterUtility;
         }
         private rasterUtil rsUtil = null;
-        private ESRI.ArcGIS.Geodatabase.IRaster inrs = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster InRaster { 
+        private IFunctionRasterDataset inrs = null;
+        public IFunctionRasterDataset InRaster
+        { 
             get 
             { 
                 return inrs;
             } 
             set 
             { 
-                IRaster inrsT = value;
-                inrs = rsUtil.constantRasterFunction(inrsT,0);
-                origRs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
+                origRs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         public rasterUtil.focalType Operation { get; set; }
@@ -137,7 +137,7 @@ namespace esriUtil.FunctionRasters
         private int rows = 3;
         public int Columns { get { return columns; } set { columns = value; windowtype = rasterUtil.windowType.RECTANGLE; } }
         public int Rows { get { return rows; } set { rows = value; windowtype = rasterUtil.windowType.RECTANGLE; } }
-        private ESRI.ArcGIS.Geodatabase.IRaster origRs = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster OriginalRaster { get { return origRs; } }
+        private IFunctionRasterDataset origRs = null;
+        public IFunctionRasterDataset OriginalRaster { get { return origRs; } }
     }
 }

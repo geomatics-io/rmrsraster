@@ -31,13 +31,20 @@ namespace esriUtil.FunctionRasters
              set 
              {
                  inrs = value;
-                 IRaster  tRs = rsUtil.returnRaster(inrs[0],rstPixelType.PT_FLOAT);
-                 IRaster rs = rsUtil.getBand(tRs, 0);
-                 otrs = rsUtil.constantRasterFunction(rs, 0);
+                 IFunctionRasterDataset rs = rsUtil.getBand(inrs[0], 0);
+                 otrs = rs;
              } 
          }
-         private IRaster otrs = null;
-         public ESRI.ArcGIS.Geodatabase.IRaster outRaster { get { return otrs; }}
+         private IFunctionRasterDataset otrs = null;
+         public IFunctionRasterDataset InRasterDataset
+         {
+             get
+             {
+                 return rsUtil.compositeBandFunction(inrs);
+             }
+         }
+         public IFunctionRasterDataset OutRaster { get { return otrs; } }
+
      }
 }
 

@@ -10,7 +10,7 @@ namespace esriUtil.FunctionRasters
     {
         public override object  getValue(int i, int c, int r, List<ESRI.ArcGIS.Geodatabase.IPixelBlock> inPbValueLst, int cntLst = 0)
         {
-            object inVl = noDataVl;
+            object inVl = 0;
             if (cntLst >= inPbValueLst.Count)
             {
                 return inVl;

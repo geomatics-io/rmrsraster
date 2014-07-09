@@ -16,7 +16,7 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Math Function"; // Name of the log Function.
         private string myDescription = "Performs a math transformation of each pixel value"; // Description of the log Function.
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
@@ -54,7 +54,7 @@ namespace esriUtil.FunctionRasters
             float pixelValue = 0f;
             try
             {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
+                //System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 // Call Read method of the Raster Function Helper object.
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 IPixelBlock3 pb3 = (IPixelBlock3)pPixelBlock;
@@ -67,7 +67,7 @@ namespace esriUtil.FunctionRasters
                     {
                         for (int c = 0; c < pPixelBlock.Width; c++)
                         {
-                            object objVl = dArr.GetValue(c, r);
+                            object objVl = pb3.GetVal(nBand,c, r);
                             if (objVl == null)
                             {
                                 continue;
@@ -75,33 +75,12 @@ namespace esriUtil.FunctionRasters
                             else
                             {
                                 vl = System.Convert.ToSingle(objVl);
-                                pixelValue = System.Convert.ToSingle(getFunctionValue(vl));
+                                pixelValue = (float)getFunctionValue(vl);
                                 dArr.SetValue(pixelValue, c, r);
                             }
                         }
                     }
                     pb3.set_PixelData(nBand, dArr);
-                    //unsafe
-                    //{ 
-                    //    System.Array dArr = (System.Array)pb3.get_PixelData(nBand);
-                    //    int lng = dArr.Length;
-                    //    fixed (float* dValue = (float[,])dArr)
-                    //    {
-                    //        for (int i = 0; i < lng; i++)
-                    //        {
-                    //            pixelValue = *(dValue + i);
-                    //            if (rasterUtil.isNullData(pixelValue, noDataValue))
-                    //            {
-                    //                continue;
-                    //            }
-                    //            pixelValue = System.Convert.ToSingle(getFunctionValue(pixelValue));
-                    //            *(dValue + i) = pixelValue;
-
-                    //        }
-                    //        pb3.set_PixelData(nBand, dArr);
-                    //    }
-                    //}
-                    
                 }
                 #endregion
             }

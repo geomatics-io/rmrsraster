@@ -21,8 +21,10 @@ namespace servicesToolBar
                 esriUtil.rasterUtil.cleanupTempDirectories();
                 esriUtil.update up = new esriUtil.update(ThisAddIn.Version);
                 string id = ThisAddIn.AddInID;
-                string folderLoc = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns\\Desktop10.0\\" + id;
-                up.updateApp(folderLoc);
+                string arcMapVs = "10.0";//ESRI.ArcGIS.RuntimeManager.ActiveRuntime.Version;
+                string folderLoc = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\ArcGIS\\AddIns\\Desktop"+arcMapVs+"\\" + id;
+                up.updateApp(folderLoc,arcMapVs);
+                up.removeOldVersion(id, arcMapVs);//arcMapVs);
                 up.updateHelp();
             }
             catch

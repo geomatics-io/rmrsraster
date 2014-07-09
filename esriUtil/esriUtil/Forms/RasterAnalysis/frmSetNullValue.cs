@@ -17,24 +17,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmSetNullValue(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmSetNullValue(IMap map, ref rasterUtil rasterUtility, bool addToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             aM = addToMap;
         }
         private IMap mp = null;
@@ -88,7 +90,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -156,7 +158,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.Refresh();
             try
             {
-                outraster = rsUtil.setNullValue(rs1,noVl);
+                outraster = rsUtil.returnRaster(rsUtil.setNullValue(rs1,noVl));
                 outrastername = outNmRst;
                 int bCnt = ((IRasterBandCollection)outraster).Count;
                 if (mp != null && aM)

@@ -41,10 +41,10 @@ namespace esriUtil
             } 
         }
         private esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new Forms.RunningProcess.frmRunningProcessDialog(false);
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private Dictionary<string, IFunctionRasterDataset> rstDic = new Dictionary<string, IFunctionRasterDataset>();
         private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
         private Dictionary<string, ITable> tblDic = new Dictionary<string, ITable>();
-        public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } set { rstDic = value; } }
+        public Dictionary<string, IFunctionRasterDataset> RasterDictionary { get { return rstDic; } set { rstDic = value; } }
         public Dictionary<string, IFeatureClass> FeatureClassDictionary { get { return ftrDic; } set { ftrDic = value; } }
         public Dictionary<string, ITable> TableDictionary { get { return tblDic; } set { tblDic = value; } }
         private Dictionary<string, string> modelDic = new Dictionary<string, string>();
@@ -485,6 +485,12 @@ namespace esriUtil
                 case Statistics.dataPrepBase.modelTypes.GLM:
                     createGLMFunction(paramArr);
                     break;
+                case Statistics.dataPrepBase.modelTypes.KDA:
+                    createKDAFunction(paramArr);
+                    break;
+                case Statistics.dataPrepBase.modelTypes.LDA:
+                    createLDAFunction(paramArr);
+                    break;
                 case Statistics.dataPrepBase.modelTypes.CompareClassifications:
                     createCompareClassificationsFunction(paramArr);
                     break;
@@ -493,6 +499,27 @@ namespace esriUtil
             }
             return paramArr[paramArr.Length - 1];
 
+        }
+
+        private void createLDAFunction(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepDiscriminantAnalysisLda dpLda = new Statistics.dataPrepDiscriminantAnalysisLda(table, dependentField, independentFields, categoricalFields);
+            dpLda.writeModel(paramArr[paramArr.Length - 1]);
+        }
+
+        private void createKDAFunction(string[] paramArr)
+        {
+            ITable table = getTable(paramArr[1]);
+            string[] dependentField = paramArr[2].Split(new char[] { ',' });
+            string[] independentFields = paramArr[3].Split(new char[] { ',' });
+            string[] categoricalFields = paramArr[4].Split(new char[] { ',' });
+            Statistics.dataPrepDiscriminantAnalysis.KernelType kTyp = (Statistics.dataPrepDiscriminantAnalysis.KernelType)Enum.Parse(typeof(Statistics.dataPrepDiscriminantAnalysis.KernelType),paramArr[5]);
+            Statistics.dataPrepDiscriminantAnalysis dpKda = new Statistics.dataPrepDiscriminantAnalysis(table, dependentField, independentFields, categoricalFields,kTyp);
+            dpKda.writeModel(paramArr[paramArr.Length - 1]);
         }
 
         private void createCompareClassificationsFunction(string[] paramArr)
@@ -528,8 +555,8 @@ namespace esriUtil
             }
             else
             {
-                IRaster StrataRaster = getRaster(paramArr[1]);
-                IRaster VariableRaster = getRaster(paramArr[2]);
+                IRaster StrataRaster = rsUtil.createRaster(getRaster(paramArr[1]));
+                IRaster VariableRaster = rsUtil.createRaster(getRaster(paramArr[2]));
                 dps = new Statistics.dataPrepStrata(StrataRaster, VariableRaster);
             }
             dps.writeModel(paramArr[paramArr.Length - 1]);
@@ -547,8 +574,8 @@ namespace esriUtil
             }
             else
             {
-                IRaster StrataRaster = getRaster(paramArr[1]);
-                IRaster VariableRaster = getRaster(paramArr[2]);
+                IRaster StrataRaster = rsUtil.createRaster(getRaster(paramArr[1]));
+                IRaster VariableRaster = rsUtil.createRaster(getRaster(paramArr[2]));
                 dpTT = new Statistics.dataPrepPairedTTest(StrataRaster, VariableRaster);
             }
             dpTT.writeModel(paramArr[paramArr.Length - 1]);
@@ -566,8 +593,8 @@ namespace esriUtil
             }
             else
             {
-                IRaster StrataRaster = getRaster(paramArr[1]);
-                IRaster VariableRaster = getRaster(paramArr[2]);
+                IRaster StrataRaster = rsUtil.createRaster(getRaster(paramArr[1]));
+                IRaster VariableRaster = rsUtil.createRaster(getRaster(paramArr[2]));
                 dpTT = new Statistics.dataPrepTTest(StrataRaster, VariableRaster);
             }
             dpTT.writeModel(paramArr[paramArr.Length-1]);
@@ -585,7 +612,7 @@ namespace esriUtil
             }
             else
             {
-                IRaster rs = getRaster(paramArr[1]);
+                IRaster rs = rsUtil.createRaster(getRaster(paramArr[1]));
                 dpVc = new Statistics.dataPrepVarCovCorr(rs);
             }
             dpVc.writeModel(paramArr[paramArr.Length - 1]);
@@ -674,7 +701,7 @@ namespace esriUtil
         private void createAAAModel(string[] paramArr)
         {
             IFeatureClass projectArea = getFeatureClass(paramArr[1]);
-            IRaster mapRs = getRaster(paramArr[2]);
+            IRaster mapRs = rsUtil.createRaster(getRaster(paramArr[2]));
             string orgModel = paramArr[3];
             string outModel = paramArr[4];
             Statistics.dataPrepAdjustAccuracyAssessment dpAaa = null;
@@ -718,7 +745,7 @@ namespace esriUtil
             Statistics.dataPrepPrincipleComponents dpPca = null;
             if (paramArr.Length < 4)
             {
-                IRaster rs = getRaster(paramArr[1]);
+                IRaster rs = rsUtil.createRaster(getRaster(paramArr[1]));
                 dpPca = new Statistics.dataPrepPrincipleComponents(rs);
             }
             else
@@ -737,7 +764,7 @@ namespace esriUtil
             esriUtil.Statistics.clusterType cType = Statistics.clusterType.KMEANS;
             if(paramArr.Length<6)
             {
-                IRaster rs = getRaster(paramArr[1]);
+                IRaster rs = rsUtil.createRaster(getRaster(paramArr[1]));
                 int nCls = System.Convert.ToInt32(paramArr[2]);
                 cType = (esriUtil.Statistics.clusterType)Enum.Parse(typeof(esriUtil.Statistics.clusterType), paramArr[3]);
                 switch (cType)
@@ -778,51 +805,51 @@ namespace esriUtil
             dpKs.writeModel(paramArr[paramArr.Length - 1]);
         }
 
-        private IRaster createNullToValueRaster(string[] paramArr)
+        private IFunctionRasterDataset createNullToValueRaster(string[] paramArr)
         {
-            IRaster inRs = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
             double d = System.Convert.ToDouble(paramArr[1]);
             return rsUtil.setnullToValueFunction(inRs, d);
         }
 
-        private IRaster createShiftRaster(string[] paramArr)
+        private IFunctionRasterDataset createShiftRaster(string[] paramArr)
         {
-            IRaster inRs = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
             double shiftX = System.Convert.ToDouble(paramArr[1]);
             double shiftY = System.Convert.ToDouble(paramArr[2]);
             return rsUtil.shiftRasterFunction(inRs,shiftX,shiftY);
         }
 
-        private IRaster createRotateRaster(string[] paramArr)
+        private IFunctionRasterDataset createRotateRaster(string[] paramArr)
         {
-            IRaster inRs = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
             double d = System.Convert.ToDouble(paramArr[1]);
             return rsUtil.RotateRasterFunction(inRs, d);
         }
 
-        private IRaster createConstantRaster(string[] paramArr)
+        private IFunctionRasterDataset createConstantRaster(string[] paramArr)
         {
-            IRaster inRs = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
             double d = System.Convert.ToDouble(paramArr[1]);
             return rsUtil.constantRasterFunction(inRs, d);
         }
 
-        private IRaster createCombineFunction(string[] paramArr)
+        private IFunctionRasterDataset createCombineFunction(string[] paramArr)
         {
             IRaster[] inRasters = new IRaster[paramArr.Length];
             for (int i = 0; i < paramArr.Length; i++)
             {
-                inRasters[i] = getRaster(paramArr[i]);
+                inRasters[i] = rsUtil.createRaster(getRaster(paramArr[i]));
             }
             return rsUtil.calcCombineRasterFunction(inRasters);
         }
 
-        private IRaster createSurfaceFunction(string[] paramArr)
+        private IFunctionRasterDataset createSurfaceFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IRaster rs = rsUtil.createRaster(getRaster(paramArr[0]));
             string sTypeStr = paramArr[1];
             rasterUtil.surfaceType sType = (rasterUtil.surfaceType)Enum.Parse(typeof(rasterUtil.surfaceType), sTypeStr);
-            IRaster oRs = null;
+            IFunctionRasterDataset oRs = null;
             switch (sType)
             {
                 case rasterUtil.surfaceType.SLOPE:
@@ -850,20 +877,20 @@ namespace esriUtil
         {
             if (paramArr.Length < 4)
             {
-                IRaster rs1 = getRaster(paramArr[0]);
-                IRaster rs2 = getRaster(paramArr[1]);
+                IFunctionRasterDataset rs1 = getRaster(paramArr[0]);
+                IFunctionRasterDataset rs2 = getRaster(paramArr[1]);
                 return rsUtil.zonalStats(rs1, rs2, paramArr[2], null, rp,true);
             }
             else
             {
                 IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
                 string inFtrFld = paramArr[1];
-                IRaster vRs = getRaster(paramArr[2]);
+                IFunctionRasterDataset vRs = getRaster(paramArr[2]);
                 return rsUtil.zonalStats(inFtrCls, inFtrFld, vRs, paramArr[3], null, rp,true);
             }
         }
 
-        private IRaster createAggregationFunction(string[] paramArr)
+        private IFunctionRasterDataset createAggregationFunction(string[] paramArr)
         {
             IRasterBandCollection rsBC = new RasterClass();
             string rstStr = paramArr[0];
@@ -871,7 +898,7 @@ namespace esriUtil
             rasterUtil.focalType ftype = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), paramArr[2]);
             foreach (string s in rstStr.Split(new char[] { ',' }))
             {
-                IRaster rs = getRaster(s);
+                IFunctionRasterDataset rs = getRaster(s);
                 rsBC.AppendBands((IRasterBandCollection)rs);
             }
             return rsUtil.calcAggregationFunction((IRaster)rsBC,cells,ftype);
@@ -882,35 +909,41 @@ namespace esriUtil
             string tblStr = paramArr[0];
             ITable tbl = getTable(tblStr);
             string mPath = getModelPath(paramArr[1]);
+            IQueryFilter qf = new QueryFilterClass();
+            if (paramArr.Length > 2)
+            {
+                qf.WhereClause = paramArr[2];
+            }
             Statistics.ModelHelper mH = new Statistics.ModelHelper(mPath);
-            mH.predictNewData(tbl);
+            mH.predictNewData(tbl,qf);
             return tbl;
         }
 
-        private IRaster createModelFunction(string[] paramArr)
+        private IFunctionRasterDataset createModelFunction(string[] paramArr)
         {
             IRasterBandCollection rsBC = new RasterClass();
             string rstStr = paramArr[0];
             string mPath = getModelPath(paramArr[1]);
             foreach (string s in rstStr.Split(new char[]{','}))
             {
-                IRaster rs = getRaster(s);
+                IFunctionRasterDataset rs = getRaster(s);
                 rsBC.AppendBands((IRasterBandCollection)rs);
             }
-            Statistics.ModelHelper mH = new Statistics.ModelHelper(mPath, (IRaster)rsBC, rsUtil);
-            return mH.getRaster();
+            IFunctionRasterDataset fDset = rsUtil.compositeBandFunction(rsBC);
+            Statistics.ModelHelper mH = new Statistics.ModelHelper(mPath, rsUtil.createRaster(fDset), rsUtil);
+            return rsUtil.createIdentityRaster(mH.getRaster());
         }
 
-        private IRaster convertPixelType(string[] paramArr)
+        private IFunctionRasterDataset convertPixelType(string[] paramArr)
         {
-            IRaster inRaster = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRaster = getRaster(paramArr[0]);
             rstPixelType pType = (rstPixelType)Enum.Parse(typeof(rstPixelType),paramArr[1]);
             return rsUtil.convertToDifFormatFunction(inRaster, pType);
         }
 
-        private IRaster createFocalSampleFunction(string[] paramArr)
+        private IFunctionRasterDataset createFocalSampleFunction(string[] paramArr)
         {
-            IRaster inRaster = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRaster = getRaster(paramArr[0]);
             HashSet<string> offset = new HashSet<string>();
             foreach(string s in paramArr[1].Split(new char[]{','},StringSplitOptions.RemoveEmptyEntries))//azimuth:distance -> azimuth;distance
             {
@@ -923,7 +956,7 @@ namespace esriUtil
         private IFeatureClass clusterSampleRaster(string[] paramArr)
         {
             IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
-            IRaster sampleRst = getRaster(paramArr[1]);
+            IRaster sampleRst = rsUtil.createRaster(getRaster(paramArr[1]));
             string inName = paramArr[2];
             if (inName == "" || inName == "null")
             {
@@ -943,7 +976,7 @@ namespace esriUtil
         private IFeatureClass createStratifiedRandomSample(string[] paramArr)
         {
             IWorkspace wks = geoUtil.OpenWorkSpace(paramArr[0]);
-            IRaster rasterPath = rsUtil.returnRaster(paramArr[1]);
+            IFunctionRasterDataset rasterPath = getRaster(paramArr[1]);
             int[] sampleSizePerClass = (from string s in paramArr[2].Split(new char[] { ',' }) select System.Convert.ToInt32(s)).ToArray();
             string outName = paramArr[3];
             return rsUtil.createRandomSampleLocationsByClass(wks, rasterPath, sampleSizePerClass, 1, outName);
@@ -952,7 +985,7 @@ namespace esriUtil
         private IFeatureClass createRandomSample(string[] paramArr)
         {
             IWorkspace wks = geoUtil.OpenWorkSpace(paramArr[0]);
-            IRaster rasterPath = rsUtil.returnRaster(paramArr[1]);
+            IFunctionRasterDataset rasterPath = getRaster(paramArr[1]);
             int sampleSize = System.Convert.ToInt32(paramArr[2]);
             string outName = paramArr[3];
             return rsUtil.createRandomSampleLocations(wks, rasterPath, sampleSize, outName);
@@ -961,7 +994,7 @@ namespace esriUtil
         private IFeatureClass sampleRaster(string[] paramArr)
         {
             IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
-            IRaster sampleRst = getRaster(paramArr[1]);
+            IRaster sampleRst = rsUtil.createRaster(getRaster(paramArr[1]));
             string inName = paramArr[2];
             if (inName == "" || inName == "null")
             {
@@ -971,20 +1004,20 @@ namespace esriUtil
             return inFtrCls;
         }
 
-        private IRaster createMerge(string[] paramArr)
+        private IFunctionRasterDataset createMerge(string[] paramArr)
         {
             string rsStr = paramArr[0];
             string[] rsStrArr = rsStr.Split(new char[]{','});
             IRaster[] rstArr = new IRaster[rsStrArr.Length];
             for (int i = 0; i < rsStrArr.Length; i++)
 			{
-                rstArr[i] = getRaster(rsStrArr[i]);
+                rstArr[i] = rsUtil.createRaster(getRaster(rsStrArr[i]));
 			}
             rasterUtil.mergeType mType = (rasterUtil.mergeType)Enum.Parse(typeof(rasterUtil.mergeType), paramArr[1]);
             return rsUtil.calcMosaicFunction(rstArr, mType);
         }
 
-        private IRaster createMosaic(string[] paramArr)
+        private IFunctionRasterDataset createMosaic(string[] paramArr)
         {
             IWorkspace wks = geoUtil.OpenRasterWorkspace(paramArr[0]);
             string mosiacName = paramArr[1];
@@ -993,7 +1026,7 @@ namespace esriUtil
             IRaster[] rstArr = new IRaster[rsStrArr.Length];
             for (int i = 0; i < rsStrArr.Length; i++)
             {
-                rstArr[i] = getRaster(rsStrArr[i]);
+                rstArr[i] = rsUtil.createRaster(getRaster(rsStrArr[i]));
             }
             esriMosaicMethod mosaicmethod = (esriMosaicMethod)Enum.Parse(typeof(esriMosaicMethod), paramArr[3]);
             rstMosaicOperatorType mosaictype = (rstMosaicOperatorType)Enum.Parse(typeof(rstMosaicOperatorType), paramArr[4]);
@@ -1001,35 +1034,55 @@ namespace esriUtil
             bool buildboundary = System.Convert.ToBoolean(paramArr[6]);
             bool seemlines = System.Convert.ToBoolean(paramArr[7]);
             bool buildOverview = System.Convert.ToBoolean(paramArr[8]);
-            return rsUtil.mosaicRastersFunction(wks, mosiacName, rstArr, mosaicmethod,mosaictype, buildfootprint, buildboundary, seemlines, buildOverview);
+            return rsUtil.createIdentityRaster(rsUtil.mosaicRastersFunction(wks, mosiacName, rstArr, mosaicmethod,mosaictype, buildfootprint, buildboundary, seemlines, buildOverview));
         }
 
         private ITable buildRasterVat(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
-            return rsUtil.buildVat(rs);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
+            IRasterDataset rsDset = (IRasterDataset)rs;
+            string tblName = "";
+            IWorkspace rsWks = null;
+            if(paramArr.Length>1)
+            {
+                rsWks = geoUtil.OpenWorkSpace(paramArr[1]);
+                tblName = paramArr[2] + "_Vat";
+            }
+            else
+            {
+                IDataset ds = (IDataset)rsDset;
+                rsWks = ds.Workspace;
+                tblName = ds.Name + "_Vat";
+            }
+            Dictionary<int,int> vlDic = rsUtil.buildVat(rs);
+            ITable vatTbl = rsUtil.convertDicToVat(vlDic,rsWks,tblName);
+            rsUtil.appendVatToRasterDataset(vatTbl,rsDset);
+            return vatTbl;
+
         }
 
-        private IRaster buildRasterStats(string[] paramArr)
+        private IFunctionRasterDataset buildRasterStats(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
+            IRaster rs2 = rsUtil.createRaster(rs);
             int skipFactor = System.Convert.ToInt32(paramArr[1]);
-            return rsUtil.calcStatsAndHist(rs, skipFactor);
+            return rsUtil.createIdentityRaster(rsUtil.calcStatsAndHist(rs2, skipFactor));
             
         }
 
-        private IRaster saveRaster(string[] paramArr)
+        private IFunctionRasterDataset saveRaster(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
+            IRaster rs2 = rsUtil.createRaster(rs);
             string outName = paramArr[1];
             IWorkspace wks = geoUtil.OpenRasterWorkspace(paramArr[2]);
             rasterUtil.rasterType rastertype = (rasterUtil.rasterType)Enum.Parse(typeof(rasterUtil.rasterType),paramArr[3].ToUpper());
-            return rsUtil.returnRaster(rsUtil.saveRasterToDataset(rs, outName, wks, rastertype));
+            return rsUtil.createIdentityRaster(rsUtil.saveRasterToDataset(rs2, outName, wks, rastertype));
         }
 
-        private IRaster createLandscapeFunction(string[] paramArr)
+        private IFunctionRasterDataset createLandscapeFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             if (paramArr.Length < 4)
             {
                 int radius = System.Convert.ToInt32(paramArr[1]);
@@ -1049,9 +1102,9 @@ namespace esriUtil
 
         }
 
-        private IRaster createGLCMFunction(string[] paramArr)
+        private IFunctionRasterDataset createGLCMFunction(string[] paramArr)
         {
-            IRaster inRaster = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRaster = getRaster(paramArr[0]);
             bool horizontal = true;
             rasterUtil.glcmMetric glcmType = rasterUtil.glcmMetric.CONTRAST;
             if (paramArr.Length <5)
@@ -1079,33 +1132,32 @@ namespace esriUtil
             }
         }
 
-        private IRaster createExtractFunction(string[] paramArr)
+        private IFunctionRasterDataset createExtractFunction(string[] paramArr)
         {
-            IRaster inRaster = getRaster(paramArr[0]);
-            IRasterBandCollection rsBCO = (IRasterBandCollection)inRaster;
-            IRasterBandCollection rsBC = new RasterClass();
+            IFunctionRasterDataset inRaster = getRaster(paramArr[0]);
+            ILongArray lArr = new LongArrayClass();
             foreach (string s in paramArr[1].Split(new char[]{','}))
             {
                 int bnd = System.Convert.ToInt32(s.Trim()) - 1;
-                rsBC.AppendBand(rsBCO.Item(bnd));
+                lArr.Add(bnd);
             }
-            return (IRaster)rsBC;
+            return rsUtil.getBands(inRaster,lArr);
         }
 
-        private IRaster createCompositeFunction(string[] paramArr)
+        private IFunctionRasterDataset createCompositeFunction(string[] paramArr)
         {
             IRasterBandCollection rsBC = new RasterClass();
             foreach(string s in paramArr)
             {
-                IRaster rs = getRaster(s);
+                IFunctionRasterDataset rs = getRaster(s);
                 rsBC.AppendBands((IRasterBandCollection)rs);
             }
-            return (IRaster)rsBC;
+            return rsUtil.compositeBandFunction(rsBC);
         }
 
-        private IRaster createRemapFunction(string[] paramArr)
+        private IFunctionRasterDataset createRemapFunction(string[] paramArr)
         {
-            IRaster inRaster = getRaster(paramArr[0]);
+            IFunctionRasterDataset inRaster = getRaster(paramArr[0]);
             IRemapFilter flt = new RemapFilterClass();
             foreach (string s in paramArr[1].Split(new char[] { ',' }))
             {
@@ -1115,12 +1167,12 @@ namespace esriUtil
             return rsUtil.calcRemapFunction(inRaster,flt);
         }
 
-        private IRaster createRescaleFunction(string[] paramArr)
+        private IFunctionRasterDataset createRescaleFunction(string[] paramArr)
         {
             return rsUtil.reScaleRasterFunction(getRaster(paramArr[0]));
         }
 
-        private IRaster createLinearTransformFunction(string[] paramArr)
+        private IFunctionRasterDataset createLinearTransformFunction(string[] paramArr)
         {
             string rrStr = paramArr[0];
             IRasterBandCollection rsBC = new RasterClass();
@@ -1134,22 +1186,22 @@ namespace esriUtil
             return rsUtil.calcRegressFunction((IRaster)rsBC, slopes);
         }
 
-        private IRaster createLocalFunction(string[] paramArr)
+        private IFunctionRasterDataset createLocalFunction(string[] paramArr)
         {
             IRasterBandCollection rsBC = new RasterClass();
             string rstStr = paramArr[0];
             rasterUtil.localType lType = (rasterUtil.localType)Enum.Parse(typeof(rasterUtil.localType),paramArr[1]);
             foreach (string s in rstStr.Split(new char[] { ',' }))
             {
-                IRaster rs = getRaster(s);
+                IFunctionRasterDataset rs = getRaster(s);
                 rsBC.AppendBands((IRasterBandCollection)rs);
             }
             return rsUtil.localStatisticsfunction((IRaster)rsBC,lType);
         }
 
-        private IRaster createFocalFunction(string[] paramArr)
+        private IFunctionRasterDataset createFocalFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             string fTypeStr = null;
             if (paramArr.Length < 4)
             {
@@ -1168,9 +1220,9 @@ namespace esriUtil
             }
         }
 
-        private IRaster createConvolutionFunction(string[] paramArr)
+        private IFunctionRasterDataset createConvolutionFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             int wd = System.Convert.ToInt32(paramArr[1]);
             int ht = System.Convert.ToInt32(paramArr[2]);
             string krn = paramArr[3];
@@ -1182,7 +1234,7 @@ namespace esriUtil
             return rsUtil.convolutionRasterFunction(rs, wd, ht, dblLst.ToArray());
         }
 
-        private IRaster createConditionalFunction(string[] paramArr)
+        private IFunctionRasterDataset createConditionalFunction(string[] paramArr)
         {
             string inRs1Str = paramArr[1];
             string inRs2Str = paramArr[2];
@@ -1204,19 +1256,19 @@ namespace esriUtil
             {
                 inRs2 = getRaster(inRs2Str);
             }
-            IRaster conRs = getRaster(paramArr[0]);
+            IFunctionRasterDataset conRs = getRaster(paramArr[0]);
             return rsUtil.conditionalRasterFunction(conRs, inRs1, inRs2);
         }
 
-        private IRaster createClipFunction(string[] paramArr)
+        private IFunctionRasterDataset createClipFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             IFeatureClass ftrCls = getFeatureClass(paramArr[1]);
             IGeometry geo = ((IGeoDataset)ftrCls).Extent;
             return rsUtil.clipRasterFunction(rs, geo, esriRasterClippingType.esriRasterClippingOutside);
         }
 
-        private IRaster createLogicalFunction(string[] paramArr)
+        private IFunctionRasterDataset createLogicalFunction(string[] paramArr)
         {
             rasterUtil.logicalType opType = (rasterUtil.logicalType)Enum.Parse(typeof(rasterUtil.logicalType),paramArr[2].ToUpper());
             string p1 = paramArr[0];
@@ -1239,7 +1291,7 @@ namespace esriUtil
             {
                 inRs2 = getRaster(p2);
             }
-            IRaster rs = null;
+            IFunctionRasterDataset rs = null;
             switch (opType)
             {
                 case rasterUtil.logicalType.GT:
@@ -1267,9 +1319,9 @@ namespace esriUtil
             return rs;
         }
 
-        private IRaster createSetNullFunction(string[] paramArr)
+        private IFunctionRasterDataset createSetNullFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             IStringArray strArray = new StrArrayClass();
             string vlStr = paramArr[1];
             string[] vlArr = vlStr.Split(new char[] { ',' });
@@ -1288,9 +1340,9 @@ namespace esriUtil
             return rsUtil.setValueRangeToNodata(rs,strArray);
         }
 
-        private IRaster createMathFunction(string[] paramArr)
+        private IFunctionRasterDataset createMathFunction(string[] paramArr)
         {
-            IRaster rs = getRaster(paramArr[0]);
+            IFunctionRasterDataset rs = getRaster(paramArr[0]);
             rasterUtil.transType tType = (rasterUtil.transType)Enum.Parse(typeof(rasterUtil.transType), paramArr[1]);
             return rsUtil.calcMathRasterFunction(rs, tType);
             
@@ -1307,15 +1359,15 @@ namespace esriUtil
             }
             if(paramArr.Length<5)
             {
-                IRaster rs1 = getRaster(paramArr[0]);
-                IRaster rs2 = getRaster(paramArr[1]);
+                IFunctionRasterDataset rs1 = getRaster(paramArr[0]);
+                IFunctionRasterDataset rs2 = getRaster(paramArr[1]);
                 return rsUtil.zonalStats(rs1, rs2,paramArr[2], zLst.ToArray(),rp);
             }
             else
             {
                 IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
                 string inFtrFld = paramArr[1];
-                IRaster vRs = getRaster(paramArr[2]);
+                IRaster vRs = rsUtil.createRaster(getRaster(paramArr[2]));
                 return rsUtil.zonalStats(inFtrCls, inFtrFld, vRs, paramArr[3],zLst.ToArray(),rp);
             }
         }
@@ -1365,7 +1417,7 @@ namespace esriUtil
             }
         }
 
-        private IRaster createArithmeticFunction(string[] paramArr)
+        private IFunctionRasterDataset createArithmeticFunction(string[] paramArr)
         {
             string inRs1Str = paramArr[0];
             string inRs2Str = paramArr[1];
@@ -1391,7 +1443,7 @@ namespace esriUtil
             return rsUtil.calcArithmaticFunction(inRs1, inRs2, op);
         }
 
-        private IRaster getRaster(string p)
+        private IFunctionRasterDataset getRaster(string p)
         {
             string tp = p.Trim();
             if (rstDic.ContainsKey(tp))
@@ -1400,7 +1452,7 @@ namespace esriUtil
             }
             else
             {
-                IRaster outRs = rsUtil.returnRaster(tp);
+                IFunctionRasterDataset outRs = rsUtil.createIdentityRaster(tp);
                 return outRs;
             }
         }
@@ -1580,7 +1632,7 @@ namespace esriUtil
             desc = "";
             if (rstDic.Keys.Contains(lstName))
             {
-                IRaster rs;
+                IFunctionRasterDataset rs;
                 GetFinalRaster(out nm, out rs, out desc);
                 finalObject = rs;
                 
@@ -1598,7 +1650,7 @@ namespace esriUtil
                 finalObject = tbl;
             }
         }
-        public void GetFinalRaster(out string nm, out IRaster rs, out string desc)
+        public void GetFinalRaster(out string nm, out IFunctionRasterDataset rs, out string desc)
         {
             nm = "";
             rs = null;

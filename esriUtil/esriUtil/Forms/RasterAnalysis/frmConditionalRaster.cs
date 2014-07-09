@@ -18,24 +18,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmConditionalRaster(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmConditionalRaster(IMap map, ref rasterUtil rasterUtility, bool addToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             aM = addToMap;
         }
         private IMap mp = null;
@@ -89,7 +91,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -210,7 +212,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.TopMost = true;
             try
             {
-                outraster = rsUtil.conditionalRasterFunction(rs1, rs2, rs3);
+                outraster = rsUtil.createRaster(rsUtil.conditionalRasterFunction(rs1, rs2, rs3));
                 outrastername = outNmRst;
                 if (mp != null && aM)
                 {

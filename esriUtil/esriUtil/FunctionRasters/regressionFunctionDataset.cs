@@ -19,10 +19,11 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the Tobit Function.
         private string myName = "Regression Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using regression transformation"; // Description of the log Function.
-        private IRaster outrs = null;
-        private IRaster inrsBandsCoef = null;
+        private IFunctionRasterDataset outrs = null;
+        private IFunctionRasterDataset inrsBandsCoef = null;
         private List<float[]> slopes = null;
-        private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass();
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();// Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -37,8 +38,8 @@ namespace esriUtil.FunctionRasters
                 inrsBandsCoef = arg.InRasterCoefficients;
                 slopes = arg.Slopes;
                 outrs = arg.OutRaster;
-                IRasterProps rsProp = (IRasterProps)outrs;
                 myFunctionHelper.Bind(outrs);
+                myFunctionHelperCoef.Bind(inrsBandsCoef);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -62,17 +63,14 @@ namespace esriUtil.FunctionRasters
             try
             {
                 // Call Read method of the Raster Function Helper object.
-
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
-                float noDataVl = System.Convert.ToSingle(noDataValueArr.GetValue(0));
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 //noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;//inrsBandsCoef
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 outPb = (IPixelBlock3)inrsBandsCoef.CreatePixelBlock(pbSize);
-                inrsBandsCoef.Read(pTlc, (IPixelBlock)outPb);
+                IPixelBlock3 outPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)outPb);
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
@@ -92,6 +90,7 @@ namespace esriUtil.FunctionRasters
 
                             float[] IntSlpArr = slopes[nBand];
                             double sumVls = IntSlpArr[0];
+                            bool checkNoData = true;
                             for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                             {
                                 double slp = System.Convert.ToDouble(IntSlpArr[coefnBand + 1]);
@@ -100,7 +99,7 @@ namespace esriUtil.FunctionRasters
                                 object objPvl = outPb.GetVal(coefnBand, k, i);
                                 if (objPvl == null)
                                 {
-                                    sumVls = noDataVl;
+                                    checkNoData = false;
                                     break;
                                 }
                                 else
@@ -109,7 +108,10 @@ namespace esriUtil.FunctionRasters
                                     sumVls += pixelValue * slp;
                                 }
                             }
-                            outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
+                            if (checkNoData)
+                            {
+                                outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
+                            }
                         }
                     }
                     ipPixelBlock.set_PixelData(nBand, outArr);

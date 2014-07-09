@@ -18,24 +18,26 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmLogicalRaster(IMap map)
         {
             InitializeComponent();
+            rsUtil = new rasterUtil();
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = new rasterUtil();
+            
         }
         public frmLogicalRaster(IMap map, ref rasterUtil rasterUtility, bool addToMap)
         {
             InitializeComponent();
+            rsUtil = rasterUtility;
             mp = map;
             if (mp != null)
             {
                 vUtil = new viewUtility((IActiveView)mp);
             }
             populateComboBox();
-            rsUtil = rasterUtility;
+            
             aM = addToMap;
         }
         private IMap mp = null;
@@ -89,7 +91,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -230,25 +232,25 @@ namespace esriUtil.Forms.RasterAnalysis
                 switch (op)
                 {
                     case rasterUtil.logicalType.GT:
-                        outraster = rsUtil.calcGreaterFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcGreaterFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.LT:
-                        outraster = rsUtil.calcLessFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcLessFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.GE:
-                        outraster = rsUtil.calcGreaterEqualFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcGreaterEqualFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.LE:
-                        outraster = rsUtil.calcLessEqualFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcLessEqualFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.EQ:
-                        outraster = rsUtil.calcEqualFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcEqualFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.AND:
-                        outraster = rsUtil.calcAndFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcAndFunction(rs1, rs2));
                         break;
                     case rasterUtil.logicalType.OR:
-                        outraster = rsUtil.calcOrFunction(rs1, rs2);
+                        outraster = rsUtil.returnRaster(rsUtil.calcOrFunction(rs1, rs2));
                         break;
                     default:
                         break;

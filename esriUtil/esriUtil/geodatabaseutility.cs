@@ -1953,7 +1953,9 @@ namespace esriUtil
             HashSet<string> x = new HashSet<string>();
             try
             {
-                IFeatureCursor scur = ftrCls.Search(null,false);
+                IQueryFilter qf = new QueryFilterClass();
+                qf.SubFields = Fld;
+                IFeatureCursor scur = ftrCls.Search(null,true);
                 int fldIndex = scur.FindField(Fld);
                 if (fldIndex == -1) return x;
                 IFeature srow = scur.NextFeature();
@@ -1977,7 +1979,7 @@ namespace esriUtil
             {
                 IQueryFilter qf = new QueryFilterClass();
                 qf.SubFields = Fld;
-                ICursor scur = tbl.Search(qf, false);
+                ICursor scur = tbl.Search(qf, true);
                 int fldIndex = scur.FindField(Fld);
                 if (fldIndex == -1) return x;
                 IRow srow = scur.NextRow();
@@ -2610,7 +2612,7 @@ namespace esriUtil
             string vl = null;
             using (System.IO.StreamWriter sW = new System.IO.StreamWriter(filePath))
             {
-                ICursor scur = inTable.Search(null, false);
+                ICursor scur = inTable.Search(null, true);
                 IFields flds = inTable.Fields;
                 int fldCnt = flds.FieldCount;
                 for(int i =0;i<fldCnt;i++)
@@ -2740,7 +2742,7 @@ namespace esriUtil
                 IFeatureClass newFtrCls = createFeatureClass(wks2,outNm,flds,esriGeometryType.esriGeometryPoint,sr);
                 int newLinkIndex = newFtrCls.FindField(linkField);
                 int subLinkIndex = newFtrCls.FindField("SubValue");
-                IFeatureCursor sCur = featureClass.Search(null, false);
+                IFeatureCursor sCur = featureClass.Search(null, true);
                 IFeature sRow = sCur.NextFeature();
                 IGeometry geo = null;
                 while (sRow != null)
@@ -2782,6 +2784,7 @@ namespace esriUtil
                     sRow = sCur.NextFeature();
                 }
                 outFtr = newFtrCls;
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
             }
             catch (Exception e)
             {
@@ -2811,6 +2814,20 @@ namespace esriUtil
                 // Set the lock to shared, whether or not an error occurred.
                 schemaLock.ChangeSchemaLock(esriSchemaLock.esriSharedSchemaLock);
             }
+        }
+        public IQueryFilter createQuery(IFeatureClass ftrCls)
+        {
+            return createQuery((ITable)ftrCls);
+        }
+        public IQueryFilter createQuery(ITable tbl)
+        {
+
+            Forms.frmAttributeQuery atQry = new Forms.frmAttributeQuery(tbl);
+            atQry.ShowDialog();
+            IQueryFilter qf = new QueryFilterClass();
+            qf.WhereClause = atQry.qry;
+            atQry.Dispose();
+            return qf;
         }
     }
 }

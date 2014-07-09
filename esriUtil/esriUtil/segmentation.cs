@@ -115,7 +115,7 @@ namespace esriUtil
             int clms = rws;
             
             esriUtil.Statistics.dataPrepClusterBinary dpClus = new Statistics.dataPrepClusterBinary(inputRaster, specificity);
-            IRaster clusRs = rsUtil.calcClustFunctionBinary(inputRaster, dpClus);
+            IRaster clusRs = rsUtil.createRaster(rsUtil.calcClustFunctionBinary(inputRaster, dpClus));
             extractDomains(clusRs,dpClus);
             IFeatureCursor ftrCur = outftr.Search(null, false);
             IFeature ftr = ftrCur.NextFeature();
@@ -184,13 +184,13 @@ namespace esriUtil
                     mfldIndex[i] = outftr.FindField("Band" + i.ToString());
                 }
             }
-            IRaster clusRsInt = rsUtil.convertToDifFormatFunction(clusRs,rstPixelType.PT_UCHAR);
+            IRaster clusRsInt = rsUtil.returnRaster(clusRs,rstPixelType.PT_UCHAR);
             IRasterDomainExtractor domExtract = new RasterDomainExtractorClass();
             for (int i = 0; i < specificity; i++)
             {
                 double[] means = ((Accord.MachineLearning.BinarySplit)dpClus.Model).Clusters[i].Mean;
-                IRaster bRs = rsUtil.calcEqualFunction(clusRsInt,i);
-                IRaster mRs = rsUtil.setNullValue(bRs,0);
+                IRaster bRs = rsUtil.returnRaster(rsUtil.calcEqualFunction(clusRsInt,i));
+                IRaster mRs = rsUtil.returnRaster(rsUtil.setNullValue(bRs,0));
                 IPolygon4 poly = (IPolygon4)domExtract.ExtractDomain(mRs, false);
                 IGeometryBag geoBag = poly.ConnectedComponentBag;
                 IGeometryCollection geoColl = (IGeometryCollection)geoBag;
@@ -227,10 +227,10 @@ namespace esriUtil
 
             try
             {
-                IRaster clipRs = rsUtil.clipRasterFunction(inputRaster, subPoly, esriRasterClippingType.esriRasterClippingOutside);
+                IRaster clipRs = rsUtil.createRaster(rsUtil.clipRasterFunction(inputRaster, subPoly, esriRasterClippingType.esriRasterClippingOutside));
                 esriUtil.Statistics.dataPrepClusterBinary dpClus = new Statistics.dataPrepClusterBinary(clipRs, specificity);
-                IRaster clusRs = rsUtil.calcClustFunctionBinary(inputRaster, dpClus);
-                IRaster clipRs2 = rsUtil.clipRasterFunction(clusRs, subPoly, esriRasterClippingType.esriRasterClippingOutside);
+                IRaster clusRs = rsUtil.createRaster(rsUtil.calcClustFunctionBinary(inputRaster, dpClus));
+                IRaster clipRs2 = rsUtil.createRaster(rsUtil.clipRasterFunction(clusRs, subPoly, esriRasterClippingType.esriRasterClippingOutside));
                 extractDomains(clipRs2,dpClus);
             }
             catch (Exception e)

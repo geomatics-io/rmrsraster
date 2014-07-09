@@ -12,33 +12,34 @@ namespace esriUtil.FunctionRasters
 {
     class localPowFunctionDataset : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float sumVl)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            sumVl = 0;
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    float sumVl = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    if (rasterUtil.isNullData(sumVl, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
-                    {
-                        continue;
-                    }
-                    for (int nBand = 0; nBand < pArr.Count; nBand++)
-                    {
-                        float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        float pixelValue = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue))
-                        {
-                            sumVl = noDataVl;
-                            break;
-                        }
-                        sumVl = System.Convert.ToSingle(Math.Pow(sumVl,pixelValue));
-                    }
-                    outArr.SetValue(sumVl, k, i);
+                    checkNoData = false;
+                    sumVl = 0;
+                    break;
                 }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (i == 0)
+                    {
+                        sumVl = vl;
+                    }
+                    else
+                    {
+                        sumVl = (float)Math.Pow(sumVl,vl);
+                    }
+                }
+
             }
+            return checkNoData;
         }
     }
 }

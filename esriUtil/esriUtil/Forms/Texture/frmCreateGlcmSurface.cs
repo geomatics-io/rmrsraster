@@ -60,7 +60,7 @@ namespace esriUtil.Forms.Texture
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rstUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -221,12 +221,12 @@ namespace esriUtil.Forms.Texture
             {
                 if(radius)
                 {
-                    rst = rstUtil.fastGLCMFunction(inRs,clms,horz,gm);
+                    rst = rstUtil.createRaster(rstUtil.fastGLCMFunction(inRs,clms,horz,gm));
                 }
                 else
                 {
 
-                    rst = rstUtil.fastGLCMFunction(inRs, clms, rows, horz, gm);
+                    rst = rstUtil.createRaster(rstUtil.fastGLCMFunction(inRs, clms, rows, horz, gm));
                 }
                 if (mp != null&&perm)
                 {

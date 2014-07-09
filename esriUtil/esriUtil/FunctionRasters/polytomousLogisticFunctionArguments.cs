@@ -21,9 +21,9 @@ namespace esriUtil.FunctionRasters
         {
             rsUtil = rasterUtility;
         }
-        private IRaster inrs = null;
+        private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster InRasterCoefficients 
+        public IFunctionRasterDataset InRasterCoefficients 
         { 
             get 
             { 
@@ -31,8 +31,7 @@ namespace esriUtil.FunctionRasters
             } 
             set 
             {
-                IRaster temp = value;
-                inrs = rsUtil.returnRaster(temp, rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         private double[][] slopes = null;//dictionary of classes and float array = intercept followed by betas
@@ -47,48 +46,21 @@ namespace esriUtil.FunctionRasters
                 slopes = value;
             } 
         }
-        private IRaster seedRaster = null;
-        public IRaster OutRaster
+        public IFunctionRasterDataset OutRaster
         {
             get
             {
-                IRaster rs = seedRaster;
-                if (rs == null)
+                
+                IFunctionRasterDataset rs = rsUtil.getBand(inrs, 0);
+                IRasterBandCollection rsBc = new RasterClass();
+                for (int i = 0; i < slopes.Length+1; i++)
                 {
-                    rs = rsUtil.getBand(inrs, 0);
-                    rs = rsUtil.constantRasterFunction(rs, 0);
-                    IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    for (int i = 0; i < slopes.Length; i++)
-                    {
-                        rsBc.AppendBand(rsBc.Item(0));
-                    }
+                    rsBc.AppendBand(rsBc.Item(0));
                 }
-                else
-                {
-                    rs = rsUtil.returnRaster(rs, rstPixelType.PT_FLOAT);
-                    IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                    int rsCnt = rsBc.Count;
-                    int slCnt = slopes.Length + 1;
-                    int dif = rsCnt - slCnt;
-                    if (dif > 0)
-                    {
-                        for (int i = 0; i < dif; i++)
-                        {
-                            rsBc.Remove(0);
-                        }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < Math.Abs(dif); i++)
-                        {
-                            rsBc.AppendBand(rsBc.Item(0));
-                        }
-                    }
-                }
-                return rs;
+                
+                return rsUtil.compositeBandFunction(rsBc);
 
             }
         }
-        public IRaster SeedRaster{get{return seedRaster;}set{seedRaster=value;}}
      }
 }

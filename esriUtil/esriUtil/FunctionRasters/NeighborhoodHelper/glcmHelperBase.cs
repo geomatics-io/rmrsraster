@@ -14,7 +14,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
     {
         private rasterUtil rsUtil = null;
         public rasterUtil RasterUtility { get { return rsUtil; } set { rsUtil = value; } }
-        public IRaster InRaster { get; set; }
+        public IFunctionRasterDataset InRaster { get; set; }
         private int sumClms, sumRws;
         public int SumClms
         {
@@ -78,10 +78,10 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                 rws = clms;
             } 
         }
-        private IRaster outraster = null;
-        public IRaster OutRaster { get { return RasterUtility.returnRaster(outraster,rstPixelType.PT_FLOAT); } set { outraster = value; } }
+        private IFunctionRasterDataset outraster = null;
+        public IFunctionRasterDataset OutRaster { get { return outraster; } set { outraster = value; } }
         public rasterUtil.glcmMetric GlCM_Metric {get;set;}
-        public IRaster calcGLCM()
+        public IFunctionRasterDataset calcGLCM()
         {
             if (windowtype == rasterUtil.windowType.RECTANGLE)
             {
@@ -154,7 +154,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             }
         }
 
-        private IRaster makeDefaultGLCMFuntionRaster()
+        private IFunctionRasterDataset makeDefaultGLCMFuntionRaster()
         {
             if (WindowType == rasterUtil.windowType.RECTANGLE)
             {
@@ -166,110 +166,113 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
             }
         }
 
-        private IRaster calCov()
+        private IFunctionRasterDataset calCov()
         {
             double N = (SumRws * SumClms * 2);
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster pRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster pRs2T = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster pRs2 = RasterUtility.calcArithmaticFunction(pRs2T, 2, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster mRsT = RasterUtility.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster mRsT2 = RasterUtility.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster mRs = RasterUtility.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
-            IRaster mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster dif = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
-            return RasterUtility.calcArithmaticFunction(dif, N, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset pRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset pRs2T = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMultiply);
+            IFunctionRasterDataset pRs2 = rsUtil.calcArithmaticFunction(pRs2T, 2, esriRasterArithmeticOperation.esriRasterMultiply);
+            IFunctionRasterDataset mRsT = rsUtil.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset mRsT2 = rsUtil.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset mRs = rsUtil.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset mRs2 = rsUtil.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset dif = rsUtil.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            return rsUtil.calcArithmaticFunction(dif, N, esriRasterArithmeticOperation.esriRasterDivide);
         }
 
-        private IRaster calcCorr()
+        private IFunctionRasterDataset calcCorr()
         {
             //Cov
             double N = (SumRws * SumClms * 2);
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster pRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster pRs2T = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster pRs2 = RasterUtility.calcArithmaticFunction(pRs2T, 2, esriRasterArithmeticOperation.esriRasterMultiply);
-            IRaster mRsT = RasterUtility.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster mRsT2 = RasterUtility.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster mRs = RasterUtility.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
-            IRaster mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster cov = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset pRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset pRs2T = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMultiply);
+            IFunctionRasterDataset pRs2 = rsUtil.calcArithmaticFunction(pRs2T, 2, esriRasterArithmeticOperation.esriRasterMultiply);
+            IFunctionRasterDataset mRsT = rsUtil.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset mRsT2 = rsUtil.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset mRs = rsUtil.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset mRs2 = rsUtil.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset cov = rsUtil.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
             //IRaster cov2 = RasterUtility.calcEqualFunction(cov1, 0);
             //IRaster cov = RasterUtility.calcArithmaticFunction(cov2, cov1, esriRasterArithmeticOperation.esriRasterPlus);
             //Var
-            IRaster x2 = RasterUtility.calcArithmaticFunction(InRaster, 2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster mvRst2 = getShiftedRaster(x2);
-            pRs2 = RasterUtility.calcArithmaticFunction(x2, mvRst2, esriRasterArithmeticOperation.esriRasterPlus);
-            mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster var = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset x2 = rsUtil.calcArithmaticFunction(InRaster, 2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset mvRst2 = getShiftedRaster(x2);
+            pRs2 = rsUtil.calcArithmaticFunction(x2, mvRst2, esriRasterArithmeticOperation.esriRasterPlus);
+            mRs2 = rsUtil.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset var = rsUtil.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
             //IRaster var2 = RasterUtility.calcEqualFunction(var1, 0);
             //IRaster var = RasterUtility.calcArithmaticFunction(var2, var1, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster cor = RasterUtility.calcArithmaticFunction(cov, var, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset cor = rsUtil.calcArithmaticFunction(cov, var, esriRasterArithmeticOperation.esriRasterDivide);
             return RasterUtility.setnullToValueFunction(cor, 1);
         }
 
-        private IRaster calcVar()
+        private IFunctionRasterDataset calcVar()
         {
             double N = (SumRws * SumClms * 2);
-            IRaster x2 = RasterUtility.calcArithmaticFunction(InRaster,2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster mvRst2 = getShiftedRaster(x2);
-            IRaster pRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster pRs2 = RasterUtility.calcArithmaticFunction(x2, mvRst2, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster mRsT = RasterUtility.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster mRsT2 = RasterUtility.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster mRs = RasterUtility.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
-            IRaster mRs2 = RasterUtility.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
-            IRaster dif = RasterUtility.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
-            return RasterUtility.calcArithmaticFunction(dif, N, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset x2 = rsUtil.calcArithmaticFunction(InRaster, 2, esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset mvRst2 = getShiftedRaster(x2);
+            IFunctionRasterDataset pRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset pRs2 = rsUtil.calcArithmaticFunction(x2, mvRst2, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset mRsT = rsUtil.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset mRsT2 = rsUtil.calcArithmaticFunction(mRsT,2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset mRs = rsUtil.calcArithmaticFunction(mRsT2, N, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset mRs2 = rsUtil.calcFocalStatisticsFunction(pRs2, SumClms, SumRws, rasterUtil.focalType.SUM);
+            IFunctionRasterDataset dif = rsUtil.calcArithmaticFunction(mRs2, mRs, esriRasterArithmeticOperation.esriRasterMinus);
+            return rsUtil.calcArithmaticFunction(dif, N, esriRasterArithmeticOperation.esriRasterDivide);
         }
 
-        private IRaster calcMean()
+        private IFunctionRasterDataset calcMean()
         {
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster pRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster mRs = RasterUtility.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.MEAN);
-            return RasterUtility.calcArithmaticFunction(mRs, 2, esriRasterArithmeticOperation.esriRasterDivide);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset pRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset mRs = rsUtil.calcFocalStatisticsFunction(pRs, SumClms, SumRws, rasterUtil.focalType.MEAN);
+            return rsUtil.calcArithmaticFunction(mRs, 2, esriRasterArithmeticOperation.esriRasterDivide);
         }
 
-        private IRaster calcHomog()
+        private IFunctionRasterDataset calcHomog()
         {
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster difRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster dif2 = RasterUtility.calcArithmaticFunction(difRs,2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster p1 = RasterUtility.calcArithmaticFunction(1, dif2, esriRasterArithmeticOperation.esriRasterPlus);
-            IRaster div1 = RasterUtility.calcArithmaticFunction(1, p1, esriRasterArithmeticOperation.esriRasterDivide);
-            return RasterUtility.calcFocalStatisticsFunction(div1, SumClms, SumRws, rasterUtil.focalType.MEAN);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset difRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset dif2 = rsUtil.calcArithmaticFunction(difRs,2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset p1 = rsUtil.calcArithmaticFunction(1, dif2, esriRasterArithmeticOperation.esriRasterPlus);
+            IFunctionRasterDataset div1 = rsUtil.calcArithmaticFunction(1, p1, esriRasterArithmeticOperation.esriRasterDivide);
+            return rsUtil.calcFocalStatisticsFunction(div1, SumClms, SumRws, rasterUtil.focalType.MEAN);
             
         }
 
-        private IRaster calcDis()
+        private IFunctionRasterDataset calcDis()
         {
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster difRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster dif2t = RasterUtility.calcArithmaticFunction(difRs, 2,esriRasterArithmeticOperation.esriRasterPower);
-            IRaster dif2 = RasterUtility.calcArithmaticFunction(dif2t, 0.5, esriRasterArithmeticOperation.esriRasterPower);
-            return RasterUtility.calcFocalStatisticsFunction(dif2, SumClms, SumRws, rasterUtil.focalType.MEAN);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset difRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset dif2t = rsUtil.calcArithmaticFunction(difRs, 2,esriRasterArithmeticOperation.esriRasterPower);
+            IFunctionRasterDataset dif2 = rsUtil.calcArithmaticFunction(dif2t, 0.5, esriRasterArithmeticOperation.esriRasterPower);
+            return rsUtil.calcFocalStatisticsFunction(dif2, SumClms, SumRws, rasterUtil.focalType.MEAN);
         }
 
-        private IRaster calcContrast()
+        private IFunctionRasterDataset calcContrast()
         {
-            IRaster mvRst = getShiftedRaster(InRaster);
-            IRaster difRs = RasterUtility.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
-            IRaster dif2 = RasterUtility.calcArithmaticFunction(difRs,2,esriRasterArithmeticOperation.esriRasterPower);
-            return RasterUtility.calcFocalStatisticsFunction(dif2, SumClms,SumRws, rasterUtil.focalType.MEAN);
+            IFunctionRasterDataset mvRst = getShiftedRaster(InRaster);
+            IFunctionRasterDataset difRs = rsUtil.calcArithmaticFunction(InRaster, mvRst, esriRasterArithmeticOperation.esriRasterMinus);
+            IFunctionRasterDataset dif2 = rsUtil.calcArithmaticFunction(difRs,2,esriRasterArithmeticOperation.esriRasterPower);
+            return rsUtil.calcFocalStatisticsFunction(dif2, SumClms,SumRws, rasterUtil.focalType.MEAN);
         }
-        public IRaster getShiftedRaster(IRaster rasterToShift)
+        public IFunctionRasterDataset getShiftedRaster(IFunctionRasterDataset rasterToShift)
         {
-            IRaster mvRst = null;
+            IFunctionRasterDataset mvRst = null;
+            double x = 0;
+            double y = 0;
             if (Horizontal)
             {
-                mvRst = rsUtil.shiftRasterFunction(rasterToShift, -1, 0);
+                x = -1 * rasterToShift.RasterInfo.CellSize.X;
             }
             else
             {
-                mvRst = rsUtil.shiftRasterFunction(rasterToShift, 0, 1);
+                y = rasterToShift.RasterInfo.CellSize.Y;
             }
+            mvRst = rsUtil.shiftRasterFunction(rasterToShift, x, y);
             return mvRst;
         }
     }

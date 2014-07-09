@@ -49,7 +49,7 @@ namespace esriUtil.Statistics
         //    variableImportanceGraph = buildImportanceGraph;
 
         //}
-        public dataPrepRandomForest(string tablePath,string dependentField, string independentFields, string categoricalFields, int trees, double ratio, bool buildImportanceGraph=false)//,int Clusters = 10)
+        public dataPrepRandomForest(string tablePath,string dependentField, string independentFields, string categoricalFields, int trees, double ratio, bool buildImportanceGraph=false, IQueryFilter qry = null)//,int Clusters = 10)
         {
             InTablePath = tablePath;
             if (dependentField == null || dependentField.Length == 0)
@@ -65,12 +65,13 @@ namespace esriUtil.Statistics
             IndependentFieldNames = independentFields.Split(new char[] { ',' });
             ClassFieldNames = categoricalFields.Split(new char[] { ',' });
             nTrees = trees;
+            generalQf = qry;
             r = ratio;
 
             variableImportanceGraph = buildImportanceGraph;
             
         }
-        public dataPrepRandomForest(ITable table, string[] dependentField, string[] independentFields, string[] categoricalFields, int trees, double ratio, bool buildImportanceGraph = false)//, int Clusters = 10)
+        public dataPrepRandomForest(ITable table, string[] dependentField, string[] independentFields, string[] categoricalFields, int trees, double ratio, bool buildImportanceGraph = false,IQueryFilter qry = null)//, int Clusters = 10)
         {
             InTable = table;
             if (dependentField == null || dependentField.Length == 0)
@@ -85,11 +86,12 @@ namespace esriUtil.Statistics
             }
             IndependentFieldNames = independentFields;
             ClassFieldNames = categoricalFields;
+            generalQf = qry;
             nTrees = trees;
             r = ratio;
             variableImportanceGraph = buildImportanceGraph;
         }
-        public dataPrepRandomForest(string tablePath, string dependentField, string independentFields, string categoricalFields, int trees, double ratio, int nSplitVar, bool buildImportanceGraph = false)//, int Clusters = 10)
+        public dataPrepRandomForest(string tablePath, string dependentField, string independentFields, string categoricalFields, int trees, double ratio, int nSplitVar, bool buildImportanceGraph = false, IQueryFilter qry = null)//, int Clusters = 10)
         {
             InTablePath = tablePath;
             if (dependentField == null || dependentField.Length == 0)
@@ -106,11 +108,12 @@ namespace esriUtil.Statistics
             ClassFieldNames = categoricalFields.Split(new char[] { ',' });
             nTrees = trees;
             r = ratio;
+            generalQf = qry;
             advance = true;
             nrndvars = nSplitVar;
             variableImportanceGraph = buildImportanceGraph;
         }
-        public dataPrepRandomForest(ITable table, string[] dependentField, string[] independentFields, string[] categoricalFields, int trees, double ratio, int nSplitVar, bool buildImportanceGraph = false)//, int Clusters = 10)
+        public dataPrepRandomForest(ITable table, string[] dependentField, string[] independentFields, string[] categoricalFields, int trees, double ratio, int nSplitVar, bool buildImportanceGraph = false, IQueryFilter qry = null)//, int Clusters = 10)
         {
             InTable = table;
             if (dependentField == null || dependentField.Length == 0)
@@ -128,6 +131,7 @@ namespace esriUtil.Statistics
             nTrees = trees;
             r = ratio;
             advance = true;
+            generalQf = qry;
             nrndvars = nSplitVar;
             variableImportanceGraph = buildImportanceGraph;
         }
@@ -169,6 +173,8 @@ namespace esriUtil.Statistics
             } 
         }
         private int nTrees = 75;
+        public double[] MinValues { get { return minValues; } }
+        public double[] MaxValues { get { return maxValues; } }
         public int NumberOfTrees
         {
             get
@@ -227,6 +233,7 @@ namespace esriUtil.Statistics
                 return n;
             }
         }
+
         public override double[,] getMatrix()
         {
             if (inRs == null)
@@ -240,9 +247,9 @@ namespace esriUtil.Statistics
                 {
                     depCnt = DependentFieldNames.Length;
                 }
-                int rws = InTable.RowCount(null);
+                int rws = InTable.RowCount(generalQf);
                 n = rws;
-                ICursor cur = InTable.Search(null, false);
+                ICursor cur = InTable.Search(generalQf, false);
                 int clms = indCnt + depCnt;
                 int[] allFieldIndexArray = new int[clms];
                 allFieldNames = new string[clms];
@@ -548,7 +555,9 @@ namespace esriUtil.Statistics
                 sw.WriteLine(Ratio.ToString());
                 sw.WriteLine(NumberOfSplitVariables.ToString());
                 sw.WriteLine(Regression.ToString());
-                sw.WriteLine(Clustering.ToString());//need to add this part to model building
+                string nLn = Clustering.ToString();
+                if (generalQf != null) nLn = nLn + ":" + generalQf.WhereClause;
+                sw.WriteLine(nLn);//need to add this part to model building
                 sw.WriteLine(Advanced.ToString());
                 if (Clustering)
                 {
@@ -626,7 +635,14 @@ namespace esriUtil.Statistics
                 r = System.Convert.ToDouble(sr.ReadLine());
                 nrndvars = System.Convert.ToInt32(sr.ReadLine());
                 reg = System.Convert.ToBoolean(sr.ReadLine());
-                Clustering = System.Convert.ToBoolean(sr.ReadLine());
+                string nLn = sr.ReadLine();
+                string[] nLnArr = nLn.Split(new char[]{':'});
+                Clustering = System.Convert.ToBoolean(nLnArr[0]);
+                if (nLnArr.Length > 1)
+                {
+                    generalQf = new QueryFilterClass();
+                    generalQf.WhereClause = nLnArr[1];
+                }
                 advance = System.Convert.ToBoolean(sr.ReadLine());
                 string allvariablenames = sr.ReadLine();
                 nvars = System.Convert.ToInt32(sr.ReadLine());

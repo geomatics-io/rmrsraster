@@ -21,23 +21,23 @@ namespace esriUtil.FunctionRasters
             rsUtil = rasterUtility;
         }
         private rasterUtil rsUtil = null;
-        private ESRI.ArcGIS.Geodatabase.IRaster inrs = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster InRaster { 
+        private IFunctionRasterDataset inrs = null;
+        public IFunctionRasterDataset InRaster
+        { 
             get 
             { 
                 return inrs;
             } 
             set 
             { 
-                IRaster inrsT = value;
-                inrs = rsUtil.constantRasterFunction(inrsT,0);
-                origRs = rsUtil.returnRaster(value,rstPixelType.PT_FLOAT);
+                inrs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
+                origRs = rsUtil.createIdentityRaster(value, rstPixelType.PT_FLOAT);
             } 
         }
         public rasterUtil.focalType Operation { get; set; }
         private HashSet<string> offsets = new HashSet<string>();//azimuth:distance in degrees:map units
         public HashSet<string> OffSets { get { return offsets; } set { offsets = value; } }
-        private ESRI.ArcGIS.Geodatabase.IRaster origRs = null;
-        public ESRI.ArcGIS.Geodatabase.IRaster OriginalRaster { get { return origRs; } }
+        private IFunctionRasterDataset origRs = null;
+        public IFunctionRasterDataset OriginalRaster { get { return origRs; } }
     }
 }

@@ -47,7 +47,7 @@ namespace esriUtil.FunctionRasters
                 int wH = (int)((h / pntSize.Y) + 1);
                 env.YMin = env.YMax - wH * cHeight;
                 env.XMax = env.XMin + wC * cWidth;
-                IRaster oRs = rsUtil.constantRasterFunction(inrs, env, 1, pntSize);
+                IRaster oRs = rsUtil.createRaster(rsUtil.constantRasterFunction(inrs, env, 1, pntSize));
                 return oRs;
             } 
         }

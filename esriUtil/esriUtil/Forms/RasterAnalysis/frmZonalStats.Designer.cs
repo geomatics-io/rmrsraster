@@ -47,6 +47,7 @@
             this.txtTableName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.chbClassCounts = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // cmbZonalStat
@@ -192,6 +193,7 @@
             // 
             // txtTableName
             // 
+            this.txtTableName.Enabled = false;
             this.txtTableName.Location = new System.Drawing.Point(10, 330);
             this.txtTableName.Name = "txtTableName";
             this.txtTableName.Size = new System.Drawing.Size(222, 20);
@@ -202,9 +204,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(10, 313);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(100, 13);
+            this.label3.Size = new System.Drawing.Size(94, 13);
             this.label3.TabIndex = 50;
-            this.label3.Text = "Output Table Name";
+            this.label3.Text = "Output Table Path";
             // 
             // chbClassCounts
             // 
@@ -216,11 +218,22 @@
             this.chbClassCounts.Text = "Class Counts";
             this.chbClassCounts.UseVisualStyleBackColor = true;
             // 
+            // button1
+            // 
+            this.button1.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.button1.Location = new System.Drawing.Point(238, 327);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(25, 27);
+            this.button1.TabIndex = 52;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
             // frmZonalStats
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(271, 395);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.chbClassCounts);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtTableName);
@@ -269,5 +282,6 @@
         private System.Windows.Forms.TextBox txtTableName;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox chbClassCounts;
+        private System.Windows.Forms.Button button1;
     }
 }

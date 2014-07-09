@@ -12,54 +12,49 @@ namespace esriUtil.FunctionRasters
 {
     class localModeFunctionDataset : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float mode)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            Dictionary<float, int> probDic = new Dictionary<float, int>();
+            mode = 0;
+            int cnt = 0;
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    Dictionary<float, int> entDic = new Dictionary<float, int>();
-                    float vl = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    float entropy = 0;
-                    int cnt = 0;
-                    if (rasterUtil.isNullData(vl, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
+                    checkNoData = false;
+                    break;
+                }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (probDic.TryGetValue(vl, out cnt))
                     {
-                        continue;
+                        probDic[vl] = cnt + 1;
                     }
-                    entDic[vl] = 1;
-                    for (int nBand = 1; nBand < pArr.Count; nBand++)
+                    else
                     {
-                        float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        vl = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(vl, noDataValue))
-                        {
-                            entropy = noDataVl;
-                            break;
-                        }
-                        if (entDic.TryGetValue(vl, out cnt))
-                        {
-                            entDic[vl] = cnt + 1;
-                        }
-                        else
-                        {
-                            entDic.Add(vl, 1);
-                        }
+                        probDic.Add(vl, 1);
                     }
-                    int maxCnt = entDic.Values.Max();
-                    foreach (KeyValuePair<float,int> kVp in entDic)
+
+                }
+
+            }
+            if (checkNoData)
+            {
+                int maxCnt = probDic.Values.Max();
+                foreach (KeyValuePair<float, int> kVp in probDic)
+                {
+                    int dicVl = kVp.Value;
+                    if (dicVl == maxCnt)
                     {
-                        int dicVl = kVp.Value;
-                        if (dicVl == maxCnt)
-                        {
-                            entropy = kVp.Key;
-                            break;
-                        }
+                        mode = kVp.Key;
+                        break;
                     }
-                    outArr.SetValue(entropy,k, i);
                 }
             }
+            return checkNoData;
         }
     }
 }

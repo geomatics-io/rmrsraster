@@ -108,7 +108,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -149,15 +149,16 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Transforming Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
                 IRaster rst = rstDic[rstNm];
                 rstPixelType pType = (rstPixelType)Enum.Parse(typeof(rstPixelType),pixelNm);
-                outraster = rsUtil.convertToDifFormatFunction(rst,pType);
+                outraster = rsUtil.returnRaster(rst,pType);
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
+                    
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);

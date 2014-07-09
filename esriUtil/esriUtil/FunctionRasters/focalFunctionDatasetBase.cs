@@ -17,8 +17,8 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "focal Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using focal analysis"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster orig = null;
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset orig = null;
         public int clms, rws, radius;
         public float windowN = 9;
         public int[][] lsiter = null;
@@ -26,6 +26,7 @@ namespace esriUtil.FunctionRasters
         public rasterUtil.windowType inWindow = rasterUtil.windowType.RECTANGLE;
         private rasterUtil.focalType inop = rasterUtil.focalType.SUM;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IRasterFunctionHelper myFunctionHelperOrig = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -48,8 +49,8 @@ namespace esriUtil.FunctionRasters
                 clms = args.Columns;
                 rws = args.Rows;
                 radius = args.Radius;
-                IRasterProps rsProp = (IRasterProps)inrs;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperOrig.Bind(orig);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -69,9 +70,9 @@ namespace esriUtil.FunctionRasters
         /// <param name="pPixelBlock">PixelBlock to be filled in</param>
         public void Read(IPnt pTlc, IRaster pRaster, IPixelBlock pPixelBlock)
         {
-            try
-            {
-                System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
+            //try
+            //{
+                //System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
@@ -86,37 +87,17 @@ namespace esriUtil.FunctionRasters
                 //Console.WriteLine("lt = " + (pTlc.X - l).ToString() + ":" + (pTlc.Y - t).ToString());
                 pbBigSize.SetCoords(pbBigWd, pbBigHt);
                 pbBigLoc.SetCoords((pTlc.X - l), (pTlc.Y - t));
-                IPixelBlock3 pbBig = (IPixelBlock3)orig.CreatePixelBlock(pbBigSize);
-                orig.Read(pbBigLoc, (IPixelBlock)pbBig);
-                for (int nBand = 0; nBand < pbBig.Planes; nBand++)
-                {
-                    noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                    System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
-                    System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
-                    switch (inWindow)
-                    {
-                        case rasterUtil.windowType.CIRCLE:
-                            //Console.WriteLine("Getting transformed values for a circle");
-                            getTransformedValuesCircle(pixelValuesBig, pixelValues);
-                            break;
-                        case rasterUtil.windowType.RECTANGLE:
-                            //Console.WriteLine("Getting transformed values for a rectangle");
-                            getTransformedValuesRectangle(pixelValuesBig, pixelValues);
-                            break;
-                        default:
-                            getTransformedValuesRectangle(pixelValuesBig, pixelValues);
-                            break;
-                    }
-                    ((IPixelBlock3)pPixelBlock).set_PixelData(nBand, pixelValues);
+                IPixelBlock3 pbBig = (IPixelBlock3)myFunctionHelperOrig.Raster.CreatePixelBlock(pbBigSize);
+                myFunctionHelperOrig.Read(pbBigLoc, null, myFunctionHelperOrig.Raster, (IPixelBlock)pbBig);
+                updatePixelRectangle(ipPixelBlock, pbBig);
+            //}
+            //catch (Exception e)
+            //{
+                //Console.WriteLine(e.ToString());
+                //System.Windows.Forms.MessageBox.Show(e.ToString());
+                //Console.WriteLine(pTlc.X.ToString() + ":" + pTlc.Y.ToString());
 
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                Console.WriteLine(pTlc.X.ToString() + ":" + pTlc.Y.ToString());
-
-            }
+            //}
         }
         public void Update()
         {
@@ -129,7 +110,6 @@ namespace esriUtil.FunctionRasters
                 throw myExc;
             }
         }
-        public abstract void getTransformedValuesCircle(System.Array bigArr, System.Array updateArr);
-        public abstract void getTransformedValuesRectangle(System.Array bigArr,System.Array updateArr);
+        public abstract void updatePixelRectangle(IPixelBlock3 pbIn, IPixelBlock3 pbInBig);
     }
 }

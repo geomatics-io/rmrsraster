@@ -8,9 +8,9 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     class aggregationHelperMean : aggregationFunctionDataset
     {
-        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells, object noDataVl)
+        public override object getTransformedValue(ESRI.ArcGIS.DataSourcesRaster.IPixelBlock3 bigArr, int band, int startClms, int startRws, int cells)
         {
-            return blockHelperStats.getBlockMean(bigArr,band, startClms, startRws, cells,noDataVl);
+            return blockHelperStats.getBlockMean(bigArr,band, startClms, startRws, cells);
         }
 
     }

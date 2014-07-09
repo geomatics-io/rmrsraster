@@ -124,7 +124,7 @@ namespace esriUtil.Forms.Stats
                 Statistics.ModelHelper.runProgressBar("Predicting data");
                 Statistics.ModelHelper br = new Statistics.ModelHelper(mdPath);
                 rp.Refresh();
-                br.predictNewData(tbl);
+                br.predictNewData(tbl,qf);
                 this.DialogResult = DialogResult.OK;
             }
             catch (Exception ex)
@@ -155,6 +155,21 @@ namespace esriUtil.Forms.Stats
             if (sd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 txtOutputPath.Text = sd.FileName;
+            }
+        }
+        IQueryFilter qf = new QueryFilterClass();
+        private void btnQry_Click(object sender, EventArgs e)
+        {
+            string ftClsStr = cmbSampleFeatureClass.Text;
+            if (ftClsStr == null || ftClsStr == "")
+            {
+                MessageBox.Show("You must select a table or feature class before specifying an attribute query", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                ITable sTbl = rstDic[ftClsStr];
+                qf = geoUtil.createQuery(sTbl);
+                //MessageBox.Show(qf.WhereClause);
             }
         } 
     }

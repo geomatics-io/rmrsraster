@@ -16,17 +16,16 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "Local Standard Deviation Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using local Standard Deviation value transformation"; // Description of the log Function.
-        private IRaster inrs = null;
-        private IRaster inrsBands = null;
-        private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
+        private IFunctionRasterDataset inrs = null;
+        private IFunctionRasterDataset inrsBands = null;
+        private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass();
+        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();// Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public float noDataVl = 0;
-        public System.Array noDataValueArr; 
         public void Bind(object pArgument)
         {
             if (pArgument is LocalFunctionArguments)
@@ -35,6 +34,7 @@ namespace esriUtil.FunctionRasters
                 inrsBands = arg.InRaster;
                 inrs = arg.outRaster;
                 myFunctionHelper.Bind(inrs);
+                myFunctionHelperCoef.Bind(inrsBands);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -56,26 +56,34 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
-                noDataVl = System.Convert.ToSingle(noDataValueArr.GetValue(0));
-                noDataValueArr = (System.Array)((IRasterProps)inrsBands).NoDataValue;
                 // Call Read method of the Raster Function Helper object.
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 outPb = (IPixelBlock3)inrsBands.CreatePixelBlock(pbSize);
-                inrsBands.Read(pTlc, (IPixelBlock)outPb);
+                IPixelBlock3 coefPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)coefPb);
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                List<System.Array> pArr = new List<System.Array>();
                 System.Array outArr = (System.Array)ipPixelBlock.get_PixelData(0);
-                for (int nBand = 0; nBand < outPb.Planes; nBand++)
+                for (int r = 0; r < ipPixelBlock.Height; r++)
                 {
-                    System.Array pixelValues = (System.Array)(outPb.get_PixelData(nBand));
-                    pArr.Add(pixelValues);
+                    for (int c = 0; c < ipPixelBlock.Width; c++)
+                    {
+                        object outVlObj = ipPixelBlock.GetVal(0, c, r);
+                        if (outVlObj != null)
+                        {
+                            float outVl;
+                            if(getOutPutVl(coefPb, c, r, out outVl))
+                            {
+                                outArr.SetValue(outVl, c, r);
+                            }
+                        }
+
+
+                        
+                    }
                 }
-                updateOutArr(ref outArr, ref pArr);
                 ipPixelBlock.set_PixelData(0, outArr);
 
             }
@@ -85,9 +93,6 @@ namespace esriUtil.FunctionRasters
                 throw myExc;
             }
         }
-
-        public abstract void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr);
-        
         public void Update()
         {
             try
@@ -95,10 +100,12 @@ namespace esriUtil.FunctionRasters
             }
             catch (Exception exc)
             {
-                System.Exception myExc = new System.Exception("Exception caught in Update method of abs Function", exc);
+                System.Exception myExc = new System.Exception("Exception caught in Update method of local Function", exc);
                 throw myExc;
             }
         }
-       
+
+        public abstract bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float outvl);
+
     }
 }

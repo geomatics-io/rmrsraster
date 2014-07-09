@@ -13,8 +13,9 @@ namespace esriUtil.Statistics
     {
         public dataPrepClusterBinary()
         {
+            cType = clusterType.BINARY;
         }
-        public dataPrepClusterBinary(IRaster raster, int numberOfClasses)
+        public dataPrepClusterBinary(IRaster raster, int numberOfClasses,double maxRec = 10000000d,double prec = 0.0001)
         {
             InRaster = raster;
             IRasterBandCollection bc = (IRasterBandCollection)InRaster;
@@ -26,14 +27,18 @@ namespace esriUtil.Statistics
             }
             K = numberOfClasses;
             cType = esriUtil.Statistics.clusterType.BINARY;
+            MaxRecords = maxRec;
+            Precision = prec;
             buildModel();
         }
-        public dataPrepClusterBinary(ITable table, string[] variables, int numberOfClasses)
+        public dataPrepClusterBinary(ITable table, string[] variables, int numberOfClasses, double maxRec = 10000000d, double prec = 0.0001)
         {
             InTable = table;
             VariableFieldNames = variables;
             K = numberOfClasses;
             cType = esriUtil.Statistics.clusterType.BINARY;
+            MaxRecords = maxRec;
+            Precision = prec;
             buildModel();
         }
         public override int computNew(double[] input)

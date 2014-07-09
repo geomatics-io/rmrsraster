@@ -35,20 +35,33 @@ namespace esriUtil.FunctionRasters
         private esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
-        private IRasterProps zProps = null;
-        private IRasterProps vProps = null;
         public rasterUtil.zoneType[] ZoneTypes { get; set; }
         private IWorkspace wks = null;
         public IWorkspace OutWorkspace { get { return wks; } }
         private ITable oTbl = null;
+        private ITable oTbl2 = null;
+        public ITable OutClassTable { get { return oTbl2; } }
         public ITable OutTable { get { return oTbl; } }
         private string linkfieldname = "Value";
         public string LinkFieldName { get { return linkfieldname; } }
-        private IRaster zRs = null;
-        private IRaster vRs = null;
+        private IFunctionRasterDataset zRs = null;
+        private IFunctionRasterDataset vRs = null;
         private string oName = "_VAT";
-        public string OutTableName { get { return oName; } set { oName = value; } }
-        public IRaster InZoneRaster 
+        public string OutTableName 
+        { 
+            get 
+            { 
+                return oName; 
+            } 
+            set 
+            {
+                string outDbStr = geoUtil.getDatabasePath(value);
+                string outName = System.IO.Path.GetFileNameWithoutExtension(value);
+                wks = geoUtil.OpenWorkSpace(outDbStr);
+                oName = outName + "_VAT"; 
+            } 
+        }
+        public IFunctionRasterDataset InZoneRaster 
         {
             get
             {
@@ -57,14 +70,9 @@ namespace esriUtil.FunctionRasters
             set
             {
                 zRs = value;
-                zProps = (IRasterProps)zRs;
-                IDataset ds = (IDataset)((IRaster2)zRs).RasterDataset;
-                if(wks==null) wks = geoUtil.OpenWorkSpace(ds.Workspace.PathName);
-                //zName = ds.BrowseName;
-                //Console.WriteLine(tblName);
             }
         }
-        public IRaster InValueRaster
+        public IFunctionRasterDataset InValueRaster
         {
             get
             {
@@ -74,19 +82,17 @@ namespace esriUtil.FunctionRasters
             {
                 
                 vRs = value;
-                vProps = (IRasterProps)vRs;
                 zoneValueDicArr = new Dictionary<double, object[]>[((IRasterBandCollection)vRs).Count];
                 for (int i = 0; i < zoneValueDicArr.Length; i++)
                 {
                     zoneValueDicArr[i] = new Dictionary<double, object[]>();
                 }
-                IDataset ds = (IDataset)((IRaster2)vRs).RasterDataset;
-                //vName = ds.BrowseName;
             }
         }
         public void setZoneValues()
         {
-            tblName = geoUtil.getSafeOutputNameNonRaster(wks, oName + "_VAT");
+            tblName = geoUtil.getSafeOutputNameNonRaster(wks, oName);
+            oName = tblName;
             if (vRs == null)
             {
                 if (rd != null) rd.addMessage("Value raster has not been set! Cannot proceed!");
@@ -94,7 +100,7 @@ namespace esriUtil.FunctionRasters
             }
             if (zRs == null)
             {
-                rd.addMessage("Feature class method");
+                if (rd != null) rd.addMessage("Feature class method");
                 if (ftrCls == null||ftrField==null)
                 {
                     if (rd != null) rd.addMessage("Zone Feature Class has not been set! Cannot proceed!");
@@ -111,17 +117,14 @@ namespace esriUtil.FunctionRasters
                 if (!cP)
                 {
                     if (rd != null) rd.addMessage("Zone and value dataset projections are different! Project on the fly to value raster projection!");
-                    ftrCls = reprojectInFeatureClass(ftrCls, vProps.SpatialReference);
+                    ftrCls = reprojectInFeatureClass(ftrCls, vRs.RasterInfo.SpatialReference);
                 }
-                //need to re-project before clipping
-                //vRs = rsUtil.clipRasterFunction(vRs, ((IGeoDataset)ftrCls).Extent, esriRasterClippingType.esriRasterClippingOutside);
-                //vProps = (IRasterProps)vRs;
                 calcZoneValuesFtr();
             }
             else
             {
 
-                rd.addMessage("Raster method");
+                if (rd != null) rd.addMessage("Raster method");
                 bool cP = checkProjections();
                 bool cC = checkCellSize();
                 bool cE = checkExtents();
@@ -150,55 +153,47 @@ namespace esriUtil.FunctionRasters
         private void fillFields()
         {
             if (rd != null) rd.addMessage("Output table name = " + wks.PathName + "\\" + tblName);
-            bool weCreate = true;
-            if (!geoUtil.ftrExists(wks, tblName))
+            //bool weCreate = true;
+            //if (!geoUtil.ftrExists(wks, tblName))
+            //{
+            IFields nflds = new FieldsClass();
+            IFieldsEdit nfldsE = (IFieldsEdit)nflds;
+            IField nfld = new FieldClass();
+            IFieldEdit nfldE = (IFieldEdit)nfld;
+            nfldE.Name_2 = "Band";
+            nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfldE);
+            IField nfld2 = new FieldClass();
+            IFieldEdit nfld2E = (IFieldEdit)nfld2;
+            nfld2E.Name_2 = "Zone";
+            nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfld2E);
+            IField nfld3 = new FieldClass();
+            IFieldEdit nfld3E = (IFieldEdit)nfld3;
+            nfld3E.Name_2 = "Count";
+            nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfld3E);
+            oTbl = geoUtil.createTable(wks, tblName, nflds);
+            int[] fldIndex = new int[ZoneTypes.Length];
+            for (int zIndex=0; zIndex<ZoneTypes.Length;zIndex++)
             {
-                IFields nflds = new FieldsClass();
-                IFieldsEdit nfldsE = (IFieldsEdit)nflds;
-                IField nfld = new FieldClass();
-                IFieldEdit nfldE = (IFieldEdit)nfld;
-                nfldE.Name_2 = "Band";
-                nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfldE);
-                IField nfld2 = new FieldClass();
-                IFieldEdit nfld2E = (IFieldEdit)nfld2;
-                nfld2E.Name_2 = "Zone";
-                nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld2E);
-                IField nfld3 = new FieldClass();
-                IFieldEdit nfld3E = (IFieldEdit)nfld3;
-                nfld3E.Name_2 = "Count";
-                nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld3E);
-                oTbl = geoUtil.createTable(wks, tblName, nflds);
-            }
-            else
-            {
-                weCreate = false;
-                IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
-                oTbl = ftrWks.OpenTable(tblName);
-            }
-            foreach (rasterUtil.zoneType zT in ZoneTypes)
-            {
-                string fldNm = zT.ToString();
-                if (oTbl.FindField(fldNm) == -1)
-                {
-                    geoUtil.createField(oTbl, fldNm, esriFieldType.esriFieldTypeDouble);
-                }
+                string fldNm = ZoneTypes[zIndex].ToString();
+                fldNm = geoUtil.createField(oTbl, fldNm, esriFieldType.esriFieldTypeDouble);
+                fldIndex[zIndex] = oTbl.FindField(fldNm);
             }
             IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
             if (wksE.IsBeingEdited())
             {
                 wksE.StopEditing(true);
             }
-            //ITransactions trs = (ITransactions)wks;
-            //trs.StartTransaction();
             try
             {
                 int bdIndex = oTbl.FindField("Band");
                 int vlIndex = oTbl.FindField("Zone");
                 int cntIndex = oTbl.FindField("Count");
                 int bndCnt = 1;
+                ICursor cur = oTbl.Insert(true);
+                IRowBuffer rw = oTbl.CreateRowBuffer();
                 foreach (Dictionary<double, object[]> zoneValueDicOut in zoneValueDicArr)
                 {
                     foreach (KeyValuePair<double, object[]> kVp in zoneValueDicOut)
@@ -207,52 +202,49 @@ namespace esriUtil.FunctionRasters
                         double key = kVp.Key;
                         object[] vl = kVp.Value;
                         Dictionary<rasterUtil.zoneType, double> vDic = getValueDic(vl);
-                        IRow rw = null;
-                        if (!weCreate)
-                        {
-                            string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key;
-                            IQueryFilter qf = new QueryFilterClass();
-                            qf.WhereClause = qry;
-                            ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
-                            if (tblSelectionSet.Count > 0)
-                            {
-                                int id = tblSelectionSet.IDs.Next();
-                                rw = oTbl.GetRow(id);
-                            }
-                            else
-                            {
-                                rw = oTbl.CreateRow();
-                            }
+                        
+                        //IRow rw = null;
+                        //if (!weCreate)
+                        //{
+                        //    string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key;
+                        //    IQueryFilter qf = new QueryFilterClass();
+                        //    qf.WhereClause = qry;
+                        //    ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
+                        //    if (tblSelectionSet.Count > 0)
+                        //    {
+                        //        int id = tblSelectionSet.IDs.Next();
+                        //        rw = oTbl.GetRow(id);
+                        //    }
+                        //    else
+                        //    {
+                        //        rw = oTbl.CreateRow();
+                        //    }
 
-                        }
-                        else
-                        {
-                            rw = oTbl.CreateRow();
-                        }
+                        //}
+                        //else
+                        //{
+                        //rw = oTbl.CreateRow();
+                        //}
                         //Console.WriteLine(key.ToString());
                         rw.set_Value(bdIndex, bndCnt);
                         rw.set_Value(vlIndex, key);
                         rw.set_Value(cntIndex, vl[0]);
-                        foreach (rasterUtil.zoneType zT in ZoneTypes)
+                        for(int zIndex=0;zIndex<ZoneTypes.Length;zIndex++)// (rasterUtil.zoneType zT in ZoneTypes)
                         {
-                            string fldNm = zT.ToString();
-                            int fldIndex = oTbl.FindField(fldNm);
+                            rasterUtil.zoneType zT = ZoneTypes[zIndex];
                             double zVl = vDic[zT];
                             //Console.WriteLine("\t"+fldNm+ ": " + zVl.ToString());
-                            if (fldIndex > -1)
-                            {
-                                rw.set_Value(fldIndex, zVl);
-                            }
-                            else
-                            {
-                                Console.WriteLine(fldNm);
-                            }
+                            rw.set_Value(fldIndex[zIndex], zVl);
                         }
-                        rw.Store();
+                        //rw.Store();
+                        cur.InsertRow(rw);
                     }
                     bndCnt += 1;
                 }
                 //trs.CommitTransaction();
+                cur.Flush();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(rw);
             }
             catch (Exception e)
             {
@@ -271,13 +263,13 @@ namespace esriUtil.FunctionRasters
             //
             //HashSet<byte> hByt = new HashSet<byte>();
             //
-            ISpatialReference sr = vProps.SpatialReference;
-            IEnvelope vrsEnv = vProps.Extent;
+            ISpatialReference sr = vRs.RasterInfo.SpatialReference;
+            IEnvelope vrsEnv = vRs.RasterInfo.Extent;
             ISpatialFilter spFilt = new SpatialFilterClass();
             spFilt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
             spFilt.Geometry = vrsEnv;
             spFilt.GeometryField = ftrCls.ShapeFieldName;
-            IFeatureCursor fCur = ftrCls.Search(spFilt, false);
+            IFeatureCursor fCur = ftrCls.Search(spFilt, true);
             int zoneIndex = fCur.FindField(InZoneField);
             IFeature ftr = fCur.NextFeature();
             while (ftr != null)
@@ -294,10 +286,12 @@ namespace esriUtil.FunctionRasters
                 for (int g = 0; g < geoColl.GeometryCount; g++)
                 {
                     IGeometry geo2 = geoColl.Geometry[g];
-                    IRaster rs = rsUtil.clipRasterFunction(vRs, geo2, esriRasterClippingType.esriRasterClippingOutside);
-                    IEnvelope rsEnv = ((IRasterProps)rs).Extent;
+                    IFunctionRasterDataset rs = rsUtil.clipRasterFunction(vRs, geo2, esriRasterClippingType.esriRasterClippingOutside);
+                    IEnvelope rsEnv = rs.RasterInfo.Extent;
+                    IRasterFunctionHelper rsFHelper = new RasterFunctionHelperClass();
+                    rsFHelper.Bind(rs);
                     //Console.WriteLine((rsEnv.Width / 30).ToString() + ", " + (rsEnv.Height / 30).ToString());
-                    IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
+                    IRasterCursor rsCur = ((IRaster2)rsFHelper.Raster).CreateCursorEx(null);
                     do
                     {
                         IPixelBlock pb = rsCur.PixelBlock;
@@ -382,15 +376,16 @@ namespace esriUtil.FunctionRasters
 
                         }
                     } while (rsCur.Next());
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(rsCur);
                 }
                 ftr = fCur.NextFeature();
             }
-            
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(fCur);
         }
 
         public bool checkProjectionsFtr()
         {
-            bool x = (((IGeoDataset)ftrCls).SpatialReference.FactoryCode == vProps.SpatialReference.FactoryCode);
+            bool x = (((IGeoDataset)ftrCls).SpatialReference.FactoryCode == vRs.RasterInfo.SpatialReference.FactoryCode);
             if (!x)
             {
                 needToProject = true;
@@ -407,9 +402,9 @@ namespace esriUtil.FunctionRasters
             IEnvelope envFtr = ((IGeoDataset)ftrCls).Extent;
             if (needToProject)
             {
-                envFtr.Project(vProps.SpatialReference);
+                envFtr.Project(vRs.RasterInfo.SpatialReference);
             }
-            IEnvelope envRst = vProps.Extent;
+            IEnvelope envRst = vRs.RasterInfo.Extent;
             IRelationalOperator rO = (IRelationalOperator)envRst;
             bool dis = rO.Disjoint(envFtr);
             if (dis) return false;
@@ -420,39 +415,30 @@ namespace esriUtil.FunctionRasters
         {
             string cTblName = geoUtil.getSafeOutputNameNonRaster(wks,tblName.Replace("_VAT","_CLASS"));
             if (rd != null) rd.addMessage("Output table name = " + wks.PathName + "\\" + cTblName);
-            bool weCreate = true;
-            if(!geoUtil.ftrExists(wks,cTblName))
-            {
-                IFields nflds = new FieldsClass();
-                IFieldsEdit nfldsE = (IFieldsEdit)nflds;
-                IField nfld = new FieldClass();
-                IFieldEdit nfldE = (IFieldEdit)nfld;
-                nfldE.Name_2 = "Band";
-                nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfldE);
-                IField nfld2 = new FieldClass();
-                IFieldEdit nfld2E = (IFieldEdit)nfld2;
-                nfld2E.Name_2 = "Zone";
-                nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld2E);
-                IField nfld4 = new FieldClass();
-                IFieldEdit nfld4E = (IFieldEdit)nfld4;
-                nfld4E.Name_2 = "Class";
-                nfld4E.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld4E);
-                IField nfld3 = new FieldClass();
-                IFieldEdit nfld3E = (IFieldEdit)nfld3;
-                nfld3E.Name_2 = "Count";
-                nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
-                nfldsE.AddField(nfld3E);
-                oTbl = geoUtil.createTable(wks,cTblName,nflds);
-            }
-            else
-            {
-                weCreate = false;
-                IFeatureWorkspace ftrWks = (IFeatureWorkspace)wks;
-                oTbl = ftrWks.OpenTable(tblName);
-            }
+           
+            IFields nflds = new FieldsClass();
+            IFieldsEdit nfldsE = (IFieldsEdit)nflds;
+            IField nfld = new FieldClass();
+            IFieldEdit nfldE = (IFieldEdit)nfld;
+            nfldE.Name_2 = "Band";
+            nfldE.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfldE);
+            IField nfld2 = new FieldClass();
+            IFieldEdit nfld2E = (IFieldEdit)nfld2;
+            nfld2E.Name_2 = "Zone";
+            nfld2E.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfld2E);
+            IField nfld4 = new FieldClass();
+            IFieldEdit nfld4E = (IFieldEdit)nfld4;
+            nfld4E.Name_2 = "Class";
+            nfld4E.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfld4E);
+            IField nfld3 = new FieldClass();
+            IFieldEdit nfld3E = (IFieldEdit)nfld3;
+            nfld3E.Name_2 = "Count";
+            nfld3E.Type_2 = esriFieldType.esriFieldTypeDouble;
+            nfldsE.AddField(nfld3E);
+            oTbl2 = geoUtil.createTable(wks,cTblName,nflds);
             IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
             if (wksE.IsBeingEdited())
             {
@@ -462,11 +448,13 @@ namespace esriUtil.FunctionRasters
             //trs.StartTransaction();
             try
             {
-                int bdIndex = oTbl.FindField("Band");
-                int vlIndex = oTbl.FindField("Zone");
-                int cntIndex = oTbl.FindField("Count");
-                int clsIndex = oTbl.FindField("Class");
+                int bdIndex = oTbl2.FindField("Band");
+                int vlIndex = oTbl2.FindField("Zone");
+                int cntIndex = oTbl2.FindField("Count");
+                int clsIndex = oTbl2.FindField("Class");
                 int bndCnt = 1;
+                ICursor cur = oTbl2.Insert(true);
+                IRowBuffer rw = oTbl2.CreateRowBuffer();
                 foreach (Dictionary<double, object[]> zoneValueDicOut in zoneValueDicArr)
                 {
                     foreach (KeyValuePair<double, object[]> kVp in zoneValueDicOut)
@@ -475,45 +463,22 @@ namespace esriUtil.FunctionRasters
                         double key = kVp.Key;
                         object[] vl = kVp.Value;
                         Dictionary<double, int> uDic = (Dictionary<double, int>)vl[5];
-                        IRow rw = null;
                         foreach(KeyValuePair<double,int> uKvp in uDic)
                         {
                             double uDicKey = uKvp.Key;
                             int uDicVl = uKvp.Value;
-                            if (!weCreate)
-                            {
-                            
-                                string qry = "Band = " + bndCnt.ToString() + " and Zone = " + key + " and Class = " + uDicKey;
-                                IQueryFilter qf = new QueryFilterClass();
-                                qf.WhereClause = qry;
-                                ISelectionSet tblSelectionSet = oTbl.Select(qf, esriSelectionType.esriSelectionTypeIDSet, esriSelectionOption.esriSelectionOptionOnlyOne, wks);
-                                if (tblSelectionSet.Count > 0)
-                                {
-                                    int id = tblSelectionSet.IDs.Next();
-                                    rw = oTbl.GetRow(id);
-                                }
-                                else
-                                {
-                                    rw = oTbl.CreateRow();
-                                }
-                            
-
-                            }
-                            else
-                            {
-                                rw = oTbl.CreateRow();
-                            }
-
-                            //Console.WriteLine(key.ToString());
                             rw.set_Value(bdIndex, bndCnt);
                             rw.set_Value(vlIndex, key);
                             rw.set_Value(cntIndex, uDicVl);
                             rw.set_Value(clsIndex, uDicKey);
-                            rw.Store();
+                            cur.InsertRow(rw);
                         }
                     }
                     bndCnt += 1;
                 }
+                cur.Flush();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(rw);
                 //trs.CommitTransaction();
             }
             catch(Exception e)
@@ -636,9 +601,8 @@ namespace esriUtil.FunctionRasters
         private void calcZoneValues()
         {
             bool makeDic = (ZoneClassCount||ZoneTypes.Contains(rasterUtil.zoneType.VARIETY)||ZoneTypes.Contains(rasterUtil.zoneType.ENTROPY)||ZoneTypes.Contains(rasterUtil.zoneType.ASM)||ZoneTypes.Contains(rasterUtil.zoneType.MINORITY)||ZoneTypes.Contains(rasterUtil.zoneType.MODE)||ZoneTypes.Contains(rasterUtil.zoneType.MEDIAN));
-            double zNoDataVl = System.Convert.ToDouble(((System.Array)zProps.NoDataValue).GetValue(0));
-            IPnt zMeanCellSize = zProps.MeanCellSize();
-            IPnt vMeanCellSize = vProps.MeanCellSize();
+            IPnt zMeanCellSize = zRs.RasterInfo.CellSize;
+            IPnt vMeanCellSize = vRs.RasterInfo.CellSize;
             int intersectWidthCells = System.Convert.ToInt32(intEnv.Width / zMeanCellSize.X);
             int intersectHeightCells = System.Convert.ToInt32(intEnv.Height / zMeanCellSize.Y);
             IPoint tl = intEnv.UpperLeft;
@@ -649,8 +613,12 @@ namespace esriUtil.FunctionRasters
             IPnt zPntLoc = new PntClass();
             IPnt vPntLoc = new PntClass();
             IPnt zPntSize = new PntClass();
-            IRaster2 zr = (IRaster2)InZoneRaster;
-            IRaster2 vr = (IRaster2)InValueRaster;
+            IRasterFunctionHelper inZoneHelper = new RasterFunctionHelperClass();
+            inZoneHelper.Bind(InZoneRaster);
+            IRasterFunctionHelper inValueHelper = new RasterFunctionHelperClass();
+            inValueHelper.Bind(InValueRaster);
+            IRaster2 zr = (IRaster2)inZoneHelper.Raster;
+            IRaster2 vr = (IRaster2)inValueHelper.Raster;
             int zclm, zrw, vclm, vrw;
             zr.MapToPixel(tl.X+(zMeanCellSize.X/2), tl.Y-(zMeanCellSize.Y/2), out zclm, out zrw);
             vr.MapToPixel(tl.X + (zMeanCellSize.X / 2), tl.Y - (zMeanCellSize.Y / 2), out vclm, out vrw);
@@ -669,11 +637,10 @@ namespace esriUtil.FunctionRasters
                     int cW = wCellsMax - bclm;//Width of block
                     if (cW > bW) cW = bW;
                     zPntSize.SetCoords(cW, rH);
-                    IPixelBlock zPb = InZoneRaster.CreatePixelBlock(zPntSize);
-                    IPixelBlock vPb = InValueRaster.CreatePixelBlock(zPntSize);
-                    InZoneRaster.Read(zPntLoc, zPb);
-                    InValueRaster.Read(vPntLoc, vPb);
-                    //System.Array zPix = (System.Array)zPb.get_SafeArray(0);
+                    IPixelBlock zPb = ((IRaster)zr).CreatePixelBlock(zPntSize);
+                    IPixelBlock vPb = ((IRaster)vr).CreatePixelBlock(zPntSize);
+                    inZoneHelper.Read(zPntLoc, null, (IRaster)zr, zPb);
+                    inValueHelper.Read(vPntLoc, null, (IRaster)vr, vPb);
                     for (int i = 0; i < vPb.Planes; i++)
                     {
                         zoneValueDic = zoneValueDicArr[i];
@@ -778,8 +745,8 @@ namespace esriUtil.FunctionRasters
         IEnvelope intEnv = null;
         public bool checkExtents()
         {
-            IEnvelope zenv = zProps.Extent;
-            IEnvelope venv = vProps.Extent;
+            IEnvelope zenv = zRs.RasterInfo.Extent;
+            IEnvelope venv = vRs.RasterInfo.Extent;
             IRelationalOperator rsOp = (IRelationalOperator)zenv;
             if (rsOp.Disjoint(venv))
             {
@@ -799,10 +766,10 @@ namespace esriUtil.FunctionRasters
         private bool needToProject = false;
         private bool checkProjections()
         {
-            bool x = (zProps.SpatialReference.FactoryCode == vProps.SpatialReference.FactoryCode);
+            bool x = (zRs.RasterInfo.SpatialReference.FactoryCode == vRs.RasterInfo.SpatialReference.FactoryCode);
             if (!x)
             {
-                InZoneRaster = rsUtil.reprojectRasterFunction(InZoneRaster, vProps.SpatialReference);
+                InZoneRaster = rsUtil.reprojectRasterFunction(InZoneRaster, vRs.RasterInfo.SpatialReference);
             }
             return x;
         }
@@ -810,8 +777,8 @@ namespace esriUtil.FunctionRasters
         public bool checkCellSize()
         {
             bool cS = true;
-            IPnt zPnt = zProps.MeanCellSize();
-            IPnt vPnt = vProps.MeanCellSize();
+            IPnt zPnt = zRs.RasterInfo.CellSize;
+            IPnt vPnt = vRs.RasterInfo.CellSize;
             double zX = zPnt.X;
             double zY = zPnt.Y;
             double vX = vPnt.X;
@@ -821,13 +788,13 @@ namespace esriUtil.FunctionRasters
             {
                 
                 if(vY<vX) ns = vY;
-                InValueRaster = rsUtil.reSampleRasterFunction(vRs, ns, rstResamplingTypes.RSP_NearestNeighbor);
+                InValueRaster = rsUtil.reSampleRasterFunction(vRs, ns);
                 if (rd != null) rd.addMessage("Value dataset cells Width and Height are not the same! Resizing the valueRaster cell width and height to " + ns.ToString()+"!");
             }
             if (Math.Abs(zX-ns)>0.0001)
             {
-                InZoneRaster = rsUtil.reSampleRasterFunction(zRs, ns,rstResamplingTypes.RSP_NearestNeighbor);
-                if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster cell width and height to match the value raster ("+vProps.MeanCellSize().X.ToString()+":"+zProps.MeanCellSize().X.ToString()+")!");
+                InZoneRaster = rsUtil.reSampleRasterFunction(zRs, ns);
+                if (rd != null) rd.addMessage("Zone and value dataset cells are not the same size! Resizing the zoneRaster cell width and height to match the value raster ("+vRs.RasterInfo.CellSize.X.ToString()+":"+zRs.RasterInfo.CellSize.X.ToString()+")!");
             }
             return cS;
         }
@@ -864,13 +831,13 @@ namespace esriUtil.FunctionRasters
                 if (!checkProjectionsFtr())
                 {
                     if (rd != null) rd.addMessage("Re-projecting feature class to match value raster's projection");
-                    InFeatureClass = reprojectInFeatureClass(InFeatureClass, vProps.SpatialReference);
+                    InFeatureClass = reprojectInFeatureClass(InFeatureClass, vRs.RasterInfo.SpatialReference);
                     
                 }
             }
             IWorkspace wksTemp = geoUtil.OpenRasterWorkspace(tempWksStr);
-            IRaster rs = rsUtil.convertFeatureClassToRaster(InFeatureClass, rasterUtil.rasterType.IMAGINE, wksTemp, outRsNm, vProps.MeanCellSize().X, ((IRaster2)vRs).RasterDataset);
-            rs = rsUtil.returnRaster(rs, rstPixelType.PT_FLOAT);
+            IFunctionRasterDataset rs = rsUtil.createIdentityRaster(rsUtil.convertFeatureClassToRaster(InFeatureClass, rasterUtil.rasterType.IMAGINE, wksTemp, outRsNm, vRs.RasterInfo.CellSize.X, (IRasterDataset)vRs));
+            rs = rsUtil.createIdentityRaster(rs, rstPixelType.PT_FLOAT);
             int fieldIndex = InFeatureClass.FindField(fldName);
             if(fieldIndex == -1)
             {
@@ -903,7 +870,6 @@ namespace esriUtil.FunctionRasters
                 }
                 zRs = rsUtil.calcRemapFunction(rs, rFilt);
             }
-            zProps = (IRasterProps)zRs;
         }
 
         public IFeatureClass reprojectInFeatureClass(IFeatureClass InFeatureClass, ISpatialReference SpatialReference)

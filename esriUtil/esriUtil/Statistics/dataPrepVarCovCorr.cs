@@ -15,7 +15,7 @@ namespace esriUtil.Statistics
         public dataPrepVarCovCorr()
         {
         }
-        public dataPrepVarCovCorr(IRaster raster)
+        public dataPrepVarCovCorr(IRaster raster,int MaxN = 10000000)
         {
             inraster = raster;
             IRasterBandCollection bc = (IRasterBandCollection)inraster;
@@ -28,15 +28,17 @@ namespace esriUtil.Statistics
             sumClms = new double[bcCnt];
             sumCross = new double[bcCnt, bcCnt];
             cov = new double[bcCnt, bcCnt];
+            maxn = MaxN;
             buildModel();
         }
-        public dataPrepVarCovCorr(ITable table, string[] variables)
+        public dataPrepVarCovCorr(ITable table, string[] variables, int MaxN = 10000000)
         {
             InTable = table;
             VariableFieldNames = variables;
             sumClms = new double[VariableFieldNames.Length];
             sumCross = new double[VariableFieldNames.Length, VariableFieldNames.Length];
             cov = new double[VariableFieldNames.Length, VariableFieldNames.Length];
+            maxn = MaxN;
             buildModel();
         }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
@@ -160,47 +162,60 @@ namespace esriUtil.Statistics
         {
             n = 0;
             IRaster2 rs2 = (IRaster2)InRaster;
+            IRasterProps rsP = (IRasterProps)rs2;
+            int tCells = rsP.Width * rsP.Height;
+            double selectProp = System.Convert.ToDouble(MaxSampleSize) / System.Convert.ToDouble(tCells);
             IRasterBandCollection rsbc = (IRasterBandCollection)rs2;
             IRasterCursor rsCur = rs2.CreateCursorEx(null);
             IPixelBlock pb=null;
+            Random rn = new Random();
             double[] vlBandArr = new double[rsbc.Count];
             do
             {
                 pb = rsCur.PixelBlock;
-               
-                for (int r = 0; r < pb.Height; r++)
+                int w = pb.Width;
+                int h = pb.Height;
+                tCells = w*h;
+                int nCells = (int)(tCells * selectProp);
+                if (nCells == 0) nCells = 1;
+                for (int z = 0; z < nCells; z++)
                 {
-                    for (int c = 0; c < pb.Width; c++)
+                    int cellloc = rn.Next(1,tCells);
+                    int r = ((cellloc-1) / w);
+                    int c = (cellloc - (r * w))-1;
+                    bool chVl = true;
+                    for (int p = 0; p < pb.Planes; p++)
                     {
-                        bool chVl = true;
-                        for (int p = 0; p < pb.Planes; p++)
+                        object vlobj = pb.GetVal(p, c, r);
+                        if (vlobj == null)
                         {
-                            object vlobj = pb.GetVal(p,c, r);
-                            if (vlobj==null)
-                            {
-                                chVl = false;
-                                break;
-                            }
+                            chVl = false;
+                            break;
+                        }
 
-                            vlBandArr[p] = System.Convert.ToDouble(vlobj);
-                        }
-                        if (chVl)
+                        vlBandArr[p] = System.Convert.ToDouble(vlobj);
+                    }
+                    if (chVl)
+                    {
+                        for (int v = 0; v < vlBandArr.Length; v++)
                         {
-                            for (int v = 0; v < vlBandArr.Length; v++)
+                            sumClms[v] += vlBandArr[v];
+                            sumCross[v, v] += Math.Pow(vlBandArr[v], 2);
+                            for (int j = 0 + v + 1; j < vlBandArr.Length; j++)
                             {
-                                sumClms[v] += vlBandArr[v];
-                                sumCross[v, v] += Math.Pow(vlBandArr[v], 2);
-                                for (int j = 0 + v + 1; j < vlBandArr.Length; j++)
-                                {
-                                    double vl1 = vlBandArr[v];
-                                    double vl2 = vlBandArr[j];
-                                    double p12 = vl1 * vl2;
-                                    sumCross[v, j] += p12;
-                                    sumCross[j, v] += p12;
-                                }
+                                double vl1 = vlBandArr[v];
+                                double vl2 = vlBandArr[j];
+                                double p12 = vl1 * vl2;
+                                sumCross[v, j] += p12;
+                                sumCross[j, v] += p12;
                             }
-                            n++;
                         }
+                        n++;
+                            
+                    }
+                    else
+                    {
+                        continue;
                     }
                 }
                 
@@ -405,6 +420,8 @@ namespace esriUtil.Statistics
         private int n = 0;
         public int N { get { return n; } }
         private double[,] cov = null;
+        private int maxn;
+        public int MaxSampleSize { get { return maxn; } set { maxn = value; } }
         public double[,] Pop_CovarianceMatrix
         {
             get

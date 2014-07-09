@@ -14,7 +14,7 @@ namespace servicesToolBar
 
         protected override void OnClick()
         {
-            string txt = "RMRS Raster Utility\nAuthor: " + servicesToolBar.ThisAddIn.Author + "\nVersion: " + servicesToolBar.ThisAddIn.Version;
+            string txt = "RMRS Raster Utility\nAuthor: " + servicesToolBar.ThisAddIn.Author + "\nVersion: 10.0_" + servicesToolBar.ThisAddIn.Version;// + "\nFor ArcMap " + ESRI.ArcGIS.RuntimeManager.ActiveRuntime.Version;
             System.Windows.Forms.MessageBox.Show(txt,"Toolbar Info",System.Windows.Forms.MessageBoxButtons.OK,System.Windows.Forms.MessageBoxIcon.Information);
         }
 

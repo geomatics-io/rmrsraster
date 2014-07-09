@@ -13,8 +13,9 @@ namespace esriUtil.Statistics
     {
         public dataPrepClusterGaussian()
         {
+            cType = clusterType.GAUSSIANMIXTURE;
         }
-        public dataPrepClusterGaussian(IRaster raster, int numberOfClasses)
+        public dataPrepClusterGaussian(IRaster raster, int numberOfClasses, double maxRec = 10000000d, double prec = 0.0001)
         {
             InRaster = raster;
             IRasterBandCollection bc = (IRasterBandCollection)InRaster;
@@ -26,14 +27,18 @@ namespace esriUtil.Statistics
             }
             K = numberOfClasses;
             cType = esriUtil.Statistics.clusterType.GAUSSIANMIXTURE;
+            MaxRecords = maxRec;
+            Precision = prec;
             buildModel();
         }
-        public dataPrepClusterGaussian(ITable table, string[] variables, int numberOfClasses)
+        public dataPrepClusterGaussian(ITable table, string[] variables, int numberOfClasses, double maxRec = 10000000d, double prec = 0.0001)
         {
             InTable = table;
             VariableFieldNames = variables;
             K = numberOfClasses;
             cType = esriUtil.Statistics.clusterType.GAUSSIANMIXTURE;
+            MaxRecords = maxRec;
+            Precision = prec;
             buildModel();
         }
         public override int computNew(double[] input)

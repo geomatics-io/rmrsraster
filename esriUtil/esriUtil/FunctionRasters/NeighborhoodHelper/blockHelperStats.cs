@@ -9,46 +9,40 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
 {
     public static class blockHelperStats
     {   
-        public static object getBlockSum(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockSum(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
+            
+            float outVlF = 0;
+            int stC = startColumn * numCellsInBlock;
+            int stR = startRows * numCellsInBlock;
+            int height = stR + numCellsInBlock;
+            int width = stC + numCellsInBlock;
+            for (int r = stR; r < height; r++)
             {
-                float outVlF = 0;
-                int stC = startColumn * numCellsInBlock;
-                int stR = startRows * numCellsInBlock;
-                int height = stR + numCellsInBlock;
-                int width = stC + numCellsInBlock;
-                for (int r = stR; r < height; r++)
+                for (int c = stC; c < width; c++)
                 {
-                    for (int c = stC; c < width; c++)
+                    object vlobj = inArr.GetVal(band, c, r);
+                    float vl = 0;
+                    if (vlobj == null)
                     {
-                        object vlobj = inArr.GetVal(band, c, r);
-                        float vl = 0;
-                        if (vlobj == null)
-                        {
-                            vl = 0;
-                        }
-                        else
-                        {
-                            vl = System.Convert.ToSingle(vlobj);
-                        }
-                        outVlF = outVlF + vl;
+                        vl = 0;
                     }
+                    else
+                    {
+                        vl = System.Convert.ToSingle(vlobj);
+                    }
+                    outVlF = outVlF + vl;
                 }
-                outVl = outVlF;
             }
-            else
-            {
-                outVl = noDataVl;
-            }
+            outVl = outVlF;
+            
             return outVl;
         }
-        public static object getBlockMean(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockMean(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 float outVlF = 0;
                 float n = 0;
                 int stC = startColumn * numCellsInBlock;
@@ -74,18 +68,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = outVlF / n;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockVariance(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockVariance(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 float s = 0;
                 float s2 = 0;
                 float n = 0;
@@ -112,27 +101,21 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = (s2 - ((s * s) / n)) / n;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockStd(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockStd(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
-            object objVl = getBlockVariance(inArr, band, startColumn, startRows, numCellsInBlock, noDataVl);
-            if(objVl!=noDataVl)
-            {
+            object objVl = getBlockVariance(inArr, band, startColumn, startRows, numCellsInBlock);
+            
                 objVl= System.Convert.ToSingle(Math.Sqrt(System.Convert.ToDouble(objVl)));
-            }
+            
             return objVl;
         }
-        public static Object getBlockMax(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static Object getBlockMax(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 float outVlF = Single.MinValue;
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -156,19 +139,14 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = outVlF;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockMin(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockMin(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
 
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 float outVlF = Single.MaxValue;
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -192,18 +170,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = outVlF;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockUnique(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockUnique(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 HashSet<float> unq = new HashSet<float>();
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -227,18 +200,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = unq.Count;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockEntropy(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockEntropy(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 Dictionary<float, int> unq = new Dictionary<float, int>();
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -277,18 +245,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     outvl += prob * System.Convert.ToSingle(Math.Log(prob));
                 }
                 outVl= -1 * outvl;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockAsm(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockAsm(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 Dictionary<float, int> unq = new Dictionary<float, int>();
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -327,18 +290,13 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     outvl += prob * prob;
                 }
                 outVl = outvl;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
-        public static object getBlockMedian(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockMedian(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 Dictionary<float, int> unq = new Dictionary<float, int>();
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -385,18 +343,14 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = outvl;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+           
+            
             return outVl;
         }
-        public static object getBlockMode(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock, object noDataVl)
+        public static object getBlockMode(IPixelBlock3 inArr, int band, int startColumn, int startRows, int numCellsInBlock)
         {
             object outVl = 0;
-            if (((IPixelBlock4)inArr).HasData())
-            {
+            
                 Dictionary<float, int> unq = new Dictionary<float, int>();
                 int stC = startColumn * numCellsInBlock;
                 int stR = startRows * numCellsInBlock;
@@ -441,11 +395,7 @@ namespace esriUtil.FunctionRasters.NeighborhoodHelper
                     }
                 }
                 outVl = outvl;
-            }
-            else
-            {
-                outVl = noDataVl;
-            }
+            
             return outVl;
         }
     }

@@ -12,38 +12,32 @@ namespace esriUtil.FunctionRasters
 {
     class localMinBandFunction : localFunctionBase
     {
-        public override void updateOutArr(ref System.Array outArr, ref List<System.Array> pArr)
+        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float minB)
         {
-            int pBWidth = outArr.GetUpperBound(0) + 1;
-            int pBHeight = outArr.GetUpperBound(1) + 1;
-            for (int i = 0; i < pBHeight; i++)
+            bool checkNoData = true;
+            float minVl = float.MaxValue;
+            minB = 0;
+            for (int i = 0; i < coefPb.Planes; i++)
             {
-                for (int k = 0; k < pBWidth; k++)
+                object objVl = coefPb.GetVal(i, c, r);
+                if (objVl == null)
                 {
-                    float min = System.Convert.ToSingle(pArr[0].GetValue(k, i));
-                    float minb = 0;
-                    if (rasterUtil.isNullData(min, System.Convert.ToSingle(noDataValueArr.GetValue(0))))
-                    {
-                        continue;
-                    }
-                    for (int nBand = 1; nBand < pArr.Count; nBand++)
-                    {
-                        float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
-                        float pixelValue = System.Convert.ToSingle(pArr[nBand].GetValue(k, i));
-                        if (rasterUtil.isNullData(pixelValue, noDataValue))
-                        {
-                            minb = noDataVl;
-                            break;
-                        }
-                        if (pixelValue < min)
-                        {
-                            min = pixelValue;
-                            minb = nBand + 1;
-                        }
-                    }
-                    outArr.SetValue(minb, k, i);
+                    checkNoData = false;
+                    minB = 0;
+                    break;
                 }
+                else
+                {
+                    float vl = (float)objVl;
+                    if (vl < minVl)
+                    {
+                        minVl = vl;
+                        minB = i;
+                    }
+                }
+
             }
+            return checkNoData;
         }
     }
 }

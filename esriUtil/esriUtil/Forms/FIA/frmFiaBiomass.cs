@@ -16,7 +16,7 @@ namespace esriUtil.Forms.FIA
 {
     public partial class frmFiaBiomass : Form
     {
-        private enum biomassTypes { BAA, TPA, Total, Stem, Stump, Foliage, Top };
+        //private enum biomassTypes { BAA, TPA, Total, Stem, Stump, Foliage, Top };
         public frmFiaBiomass(IMap map)
         {
             InitializeComponent();
@@ -105,7 +105,7 @@ namespace esriUtil.Forms.FIA
 
                 }
             }
-            foreach(string s in Enum.GetNames(typeof(biomassTypes)))
+            foreach (string s in Enum.GetNames(typeof(fiaIntegration.biomassTypes)))
             {
                 try
                 {
@@ -149,8 +149,8 @@ namespace esriUtil.Forms.FIA
             List<fiaIntegration.biomassTypes> bTypes = new List<fiaIntegration.biomassTypes>();
             foreach (string s in clbBiomassTypes.CheckedItems)
             {
-                int vl = System.Convert.ToInt32(Enum.Parse(typeof(biomassTypes),s));
-                fiaIntegration.biomassTypes bT = (fiaIntegration.biomassTypes)Enum.Parse(typeof(fiaIntegration.biomassTypes),Enum.GetName(typeof(fiaIntegration.biomassTypes),vl));
+                //int vl = System.Convert.ToInt32(Enum.Parse(typeof(biomassTypes),s));
+                fiaIntegration.biomassTypes bT = (fiaIntegration.biomassTypes)Enum.Parse(typeof(fiaIntegration.biomassTypes),s);
                 bTypes.Add(bT);
             }
             this.Visible = false;

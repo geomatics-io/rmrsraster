@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Common;
 using System.Text;
 using ESRI.ArcGIS.esriSystem;
 using System.Data;
@@ -67,184 +68,267 @@ namespace esriUtil
         }
         ~fiaIntegration()
         {
-            dSet.Dispose();
         }
         string av = "0.0";
         string ev = "0.0";
         string oleAccessdbprovider = "12.0";
         string oleExceldbprovider = "12.0";
         private string dbLc = "";
-        public enum biomassTypes { BAA, TPA, J_AGB, J_SAGB, J_BAGB, J_FAGB, J_TPAGB };
+        public enum biomassTypes { BAA, TPA, J_AGB, J_SAGB, J_BAGB, J_FAGB, J_TPAGB, MDBH, MHT };
         public IFeatureClass SampleFeatureClass{get;set;}
         public string PlotCnField{get;set;}
         public string SubPlotField{get;set;}
         private geoDatabaseUtility geoDbUtil = new geoDatabaseUtility();
-        private string[] uniqueSpecies = null;
         private biomassTypes[] fldArr = null;
         public biomassTypes[] BiomassTypes { get { return fldArr; } set { fldArr = value; } }
-        DataSet dSet = new DataSet("AGB");
+        HashSet<int> unSp = new HashSet<int>();
+        Dictionary<string,object[]> vlDic = new Dictionary<string,object[]>();
+        HashSet<string> unPlots = new HashSet<string>();
+        Dictionary<int, object[]> bmDic = new Dictionary<int, object[]>();
         public void summarizeBiomass()
         {
             try
             {
-                HashSet<string> unCn = geoDbUtil.getUniqueValues(SampleFeatureClass, PlotCnField);
-                string ps = "";
-                if (SampleFeatureClass.Fields.get_Field(SampleFeatureClass.FindField(PlotCnField)).Type == esriFieldType.esriFieldTypeString)
+                if (SubPlotField == null) SubPlotField = "";
+                createAndFillPlotsTable();
+                createAndFillTreesRef();
+                addFields();
+                IQueryFilter qryFlt = new QueryFilterClass();
+                string nFldNm = "";
+                string fldNm = "";
+                IFeatureCursor ftrCur = SampleFeatureClass.Update(null,false);
+                IFeature ftr = ftrCur.NextFeature();
+                int cnIndex = ftrCur.FindField(PlotCnField);
+                int subIndex = ftrCur.FindField(SubPlotField);
+                double divs = (43560 / (Math.PI * Math.Pow(24, 2)));
+                if (SubPlotField == "" || SubPlotField == null) divs = divs / 4;
+                List<string> allEstFld = Enum.GetNames(typeof(biomassTypes)).ToList();
+                while (ftr!=null)
                 {
-                    ps = "\"";
-                }
-                string treeWhereClause = "Tree.Plt_CN = " + ps + String.Join(ps + " or Tree.PLT_CN = " + ps, unCn.ToArray()) + ps;
-                string sqlTreeAGB = "SELECT TREE.PLT_CN, TREE.PLOT, TREE.SUBP, TREE.TREE, TREE.INVYR, TREE.STATUSCD, TREE.SPCD, REF_SPECIES.COMMON_NAME, TREE.DIA, TREE.ACTUALHT, Exp(REF_SPECIES.JENKINS_TOTAL_B1+REF_SPECIES.JENKINS_TOTAL_B2*Log(TREE.DIA*2.54))*2.2046 AS J_TBM, J_TBM*Exp(REF_SPECIES.JENKINS_STEM_WOOD_RATIO_B1+(REF_SPECIES.JENKINS_STEM_WOOD_RATIO_B2/(2.54*TREE.DIA))) AS J_SBM, J_TBM*Exp(REF_SPECIES.JENKINS_STEM_BARK_RATIO_B1+(REF_SPECIES.JENKINS_STEM_BARK_RATIO_B2/(2.54*TREE.DIA))) AS J_BBM, J_TBM*Exp(REF_SPECIES.JENKINS_FOLIAGE_RATIO_B1+(REF_SPECIES.JENKINS_FOLIAGE_RATIO_B2/(2.54*TREE.DIA))) AS J_FBM, J_TBM-J_SBM-J_BBM-J_FBM AS J_TPBM, 0.005454*DIA^2 AS BA FROM TREE INNER JOIN REF_SPECIES ON TREE.SPCD = REF_SPECIES.SPCD WHERE (TREE.DIA >= 5 and (" + treeWhereClause + ")) ORDER BY TREE.PLT_CN, TREE.SUBP, TREE.TREE";
-                string sqlAGBPlot = "SELECT qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME, ((Sum([BA]))*(43560/(3.141592654*24^2))) AS BAA, (Count([DIA]))*(43560/(3.141592654*24^2)) AS TPA, ((Sum([J_TBM]))*(43560/(3.141592654*24^2)))/2000 AS J_AGB, (Sum([J_SBM])*(43560/(3.141592654*24^2)))/2000 AS J_SAGB, (Sum([J_BBM])*(43560/(3.141592654*24^2)))/2000 AS J_BAGB, (Sum([J_FBM])*(43560/(3.141592654*24^2)))/2000 AS J_FAGB, (Sum([J_TPBM])*(43560/(3.141592654*24^2)))/2000 AS J_TPAGB FROM (" + sqlTreeAGB + ") AS qryLbsByTree GROUP BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME ORDER BY qryLbsByTree.PLT_CN, qryLbsByTree.SUBP, qryLbsByTree.TREE.INVYR;";
-                if (SubPlotField == "" || SubPlotField == null)
-                {
-                    sqlAGBPlot = "SELECT qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME, ((Sum([BA]))*(43560/(3.141592654*24^2)))/4 AS BAA, (Count([DIA]))*(43560/(3.141592654*24^2))/4 AS TPA, (((Sum([J_TBM]))*(43560/(3.141592654*24^2)))/2000)/4 AS J_AGB, ((Sum([J_SBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_SAGB, ((Sum([J_BBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_BAGB, ((Sum([J_FBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_FAGB, ((Sum([J_TPBM])*(43560/(3.141592654*24^2)))/2000)/4 AS J_TPAGB FROM (" + sqlTreeAGB + ") AS qryLbsByTree GROUP BY qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR, qryLbsByTree.SPCD, qryLbsByTree.COMMON_NAME ORDER BY qryLbsByTree.PLT_CN, qryLbsByTree.TREE.INVYR;";
-                }
-                //esriUtil.Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
-                //rd.addMessage(sqlAGBPlot);
-                //rd.enableClose();
-                //rd.Show();
-                using (System.Data.OleDb.OleDbConnection con = new System.Data.OleDb.OleDbConnection(dbLc))
-                {
-                    //Console.WriteLine(con.ConnectionString);
-                    con.Open();
-                    //Console.WriteLine("opened the database");
-                    System.Data.OleDb.OleDbDataAdapter olDbAdp = new System.Data.OleDb.OleDbDataAdapter(sqlAGBPlot, con);
-                    olDbAdp.TableMappings.Add("Table", "tblAGB");
-                    olDbAdp.Fill(dSet);
-                    string qry = "SELECT DISTINCT TREE.SPCD FROM TREE WHERE (TREE.DIA >= 5 and (" + treeWhereClause + "))";
-                    System.Data.OleDb.OleDbDataAdapter olDbAdpSp = new System.Data.OleDb.OleDbDataAdapter(qry, con);
-                    olDbAdpSp.TableMappings.Add("Table", "tblSp");
-                    olDbAdpSp.Fill(dSet);
-                    con.Close();
-                    getUniqueSpecies(dSet.Tables[1]);
-                    addFields();
-                    updateFetureClass();
-                    dSet.Tables.Remove("tblSp");
+                    string pCn = ftr.get_Value(cnIndex).ToString();
+                    int sPl = 0;
+                    if(subIndex>-1) sPl = System.Convert.ToInt32(ftr.get_Value(subIndex));
+                    foreach (int t in unSp)//(biomassTypes s in fldArr)
+	                {
+                        string ky = pCn+"_"+sPl+"_"+t.ToString();
+                        object[] vls;
+                        if(vlDic.TryGetValue(ky,out vls))
+                        {
+                        }
+                        else
+                        {
+                            vls = new object[12];
+                            vls[0] = pCn;
+                            vls[1] = sPl;
+                            vls[2] = t;
+                            vls[3] = 0;//MDBH
+                            vls[4] = 0;//AGB
+                            vls[5] = 0;//StemAGB
+                            vls[6] = 0;//ButtAGB
+                            vls[7] = 0;//FoliageAGB
+                            vls[8] = 0;//TopAGB
+                            vls[9] = 0;//BAA
+                            vls[10] = 0;//TPA
+                            vls[11] = 0;//MHT
+                        }
+                        foreach (biomassTypes s in fldArr)
+                        {
+                            string btStr = s.ToString();
+                            int arrayIndex = allEstFld.IndexOf(btStr);
+                            double divs2 = divs;
+                            if (arrayIndex <= 1)
+                            {
+                                arrayIndex = 9 + arrayIndex;
+                            }
+                            else
+                            {
+                                if (arrayIndex <= 6)
+                                {
+                                    arrayIndex = 2 + arrayIndex;
+                                    divs2 = divs / 2000;//tons
+                                }
+                                else if (arrayIndex == 7)
+                                {
+                                    arrayIndex = 3;
+                                    double d = System.Convert.ToDouble(vls[10]);
+                                    if (d < 1) divs2 = 1;
+                                    else
+                                    {
+                                        divs2 = 1 / d;
+                                    }
+                                }
+                                else
+                                {
+                                    arrayIndex = 11;
+                                    double d = System.Convert.ToDouble(vls[10]);
+                                    if (d < 1) divs2 = 1;
+                                    else
+                                    {
+                                        divs2 = 1 / d;
+                                    }
+                                }
+                                
+                            }
 
+                            string spCd = vls[2].ToString();
+                            fldNm = s + "_" + spCd;
+                            //Console.WriteLine(fldNm);
+                            int fldIndex = ftrCur.FindField(fldNm);
+                            if (fldIndex == -1)
+                            {
+                                fldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
+                            }
+                            object vl = (System.Convert.ToDouble(vls[arrayIndex]))*divs2;
+                            ftr.set_Value(fldIndex, vl);
+                        }		 
+	                }
+                    ftrCur.UpdateFeature(ftr);
+                    ftr = ftrCur.NextFeature();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
             }
-            catch
+            catch(Exception e)
             {
                 //System.Environment.OSVersion.
                 if (av == "0.0" || ev == "0.0")
                 {
                     System.Windows.Forms.MessageBox.Show("You do not have OleDB 12.0 installed. Please download and install Office 2007 data provider from:\nhttp://www.microsoft.com/en-us/download/confirmation.aspx?id=23734", "No data provider found", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                 }
+                else
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
         }
-        private void getUniqueSpecies(DataTable tbl)
+        private void createAndFillTreesRef()
         {
-            List<string> spLst = new List<string>();
-            int cnt = tbl.Rows.Count;
-            for (int i = 0; i < cnt; i++)
+            //DataTable dtTrees = null;
+            using (System.Data.OleDb.OleDbConnection con = new System.Data.OleDb.OleDbConnection(dbLc))
             {
-                DataRow dr = tbl.Rows[i];
-                spLst.Add(dr[0].ToString());
+                con.Open();
+                //Console.WriteLine("opened the database");
+                string sql = "SELECT SPCD, JENKINS_TOTAL_B1, JENKINS_TOTAL_B2, JENKINS_STEM_WOOD_RATIO_B1, JENKINS_STEM_WOOD_RATIO_B2, JENKINS_STEM_BARK_RATIO_B1, JENKINS_STEM_BARK_RATIO_B2, JENKINS_FOLIAGE_RATIO_B1, JENKINS_FOLIAGE_RATIO_B2 FROM REF_SPECIES";
+                System.Data.OleDb.OleDbCommand oleCom = new System.Data.OleDb.OleDbCommand(sql, con);
+                System.Data.OleDb.OleDbDataReader oleRd = oleCom.ExecuteReader();
+                while (oleRd.Read())
+                {
+                    object[] vls = new object[9];
+                    oleRd.GetValues(vls);
+                    bmDic.Add(System.Convert.ToInt32(vls[0]),vls);
+                }
+                oleRd.Close();
+                sql = "SELECT CN, PLT_CN, SUBP, TREE, SPCD, DIA, HT FROM TREE WHERE DIA >= 5 and SPCD > 0";
+                oleCom.CommandText = sql;
+                oleRd = oleCom.ExecuteReader();
+                while (oleRd.Read())
+                {
+                    object[] vls = new object[7];
+                    oleRd.GetValues(vls);
+                    string pltCn = vls[1].ToString();
+                    string subp = vls[2].ToString();
+                    if(SubPlotField==""||SubPlotField==null)subp="0";
+                    string linkVl = pltCn+"_"+subp;
+                    if(unPlots.Contains(linkVl))
+                    {
+                        int spcd = System.Convert.ToInt32(vls[4]);
+                        object[] bmVls;
+                        if(bmDic.TryGetValue(spcd,out bmVls))
+                        {
+                            unSp.Add(spcd);
+                            string lk = linkVl+"_"+spcd.ToString();
+                            object[] treeVls;
+                            if (vlDic.TryGetValue(lk, out treeVls))
+                            {
+                    
+                            }
+                            else
+                            {
+                                treeVls = new object[12];
+                                treeVls[0] = pltCn;
+                                treeVls[1] = subp;
+                                treeVls[2] = spcd;
+                                treeVls[3] = 0;//dbh
+                                treeVls[4] = 0;//AGB
+                                treeVls[5] = 0;//StemAGB
+                                treeVls[6] = 0;//ButtAGB
+                                treeVls[7] = 0;//FoliageAGB
+                                treeVls[8] = 0;//TopAGB
+                                treeVls[9] = 0;//BAA
+                                treeVls[10] = 0;//TPA
+                                treeVls[11] = 0;//MeanHT
+                                vlDic.Add(lk,treeVls);
+                            }
+                            //Console.WriteLine(System.Convert.ToDouble(vls[5]).ToString());
+                            double diam = System.Convert.ToDouble(vls[5]);//diameter
+                            double ht = System.Convert.ToDouble(vls[6]);//height
+                            treeVls[3] = System.Convert.ToDouble(treeVls[3])+diam;
+                            double j_tbm = Math.Exp(System.Convert.ToDouble(bmVls[1])+System.Convert.ToDouble(bmVls[2])*Math.Log(diam*2.54))*2.2046;//AGB
+                            double j_sbm = j_tbm*Math.Exp(System.Convert.ToDouble(bmVls[3])+System.Convert.ToDouble(bmVls[4])/ (2.54*diam));//SAGB
+                            double j_bbm = j_tbm*Math.Exp(System.Convert.ToDouble(bmVls[5])+System.Convert.ToDouble(bmVls[6])/ (2.54*diam));//BAGB
+                            double j_fbm = j_tbm*Math.Exp(System.Convert.ToDouble(bmVls[7])+System.Convert.ToDouble(bmVls[8])/ (2.54*diam));//FAGB
+                            double j_tpbm = j_tbm - j_sbm - j_bbm - j_fbm;//TPAGB
+                            treeVls[4] = System.Convert.ToDouble(treeVls[4]) + j_tbm;
+                            treeVls[5] = System.Convert.ToDouble(treeVls[5]) + j_sbm;
+                            treeVls[6] = System.Convert.ToDouble(treeVls[6]) + j_bbm;
+                            treeVls[7] = System.Convert.ToDouble(treeVls[7]) + j_fbm;
+                            treeVls[8] = System.Convert.ToDouble(treeVls[8]) + j_tpbm;
+                            treeVls[9] = System.Convert.ToDouble(treeVls[9]) + 0.005454 * Math.Pow(diam, 2);//BA
+                            treeVls[10] = System.Convert.ToDouble(treeVls[10]) + 1.0;//trees
+                            treeVls[11] = System.Convert.ToDouble(treeVls[11]) + ht;
+                        }
+                    }
+                }
+                oleRd.Close();
+                con.Close();
             }
-            uniqueSpecies = spLst.ToArray();
+        }
+
+
+        private void createAndFillPlotsTable()
+        {
+            //DataTable dTblPlots = dSet.Tables.Add("Table", "tblPlots");
+            //dTblPlots.Columns.Add("PLT_CN",System.Type.GetType("System.String"));
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = PlotCnField;
+            if (SubPlotField != "" && SubPlotField != null) qf.SubFields = PlotCnField + "," + SubPlotField;
+            IFeatureCursor fCur = SampleFeatureClass.Search(qf, true);
+            int cnIndex = fCur.FindField(PlotCnField);
+            int subIndex = fCur.FindField(SubPlotField);
+            IFeature ftr = fCur.NextFeature();
+            while (ftr != null)
+            {
+                string plCn = ftr.get_Value(cnIndex).ToString();
+                string subPlt = "0";
+                if (subIndex > -1)
+                {
+                    object subPltObj = ftr.get_Value(subIndex);
+                    if (subPltObj != null)
+                    {
+                        subPlt = subPltObj.ToString();
+                    }
+                }
+                string pltID = plCn+"_"+subPlt;
+                unPlots.Add(pltID);
+                ftr = fCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(fCur);
         }
         private void addFields()
         {
-            foreach (string s in uniqueSpecies)
+            foreach (int s in unSp )
             {
                 foreach (biomassTypes t in fldArr)
                 {
-                    string fldNm = t.ToString() + "_" + s;
+                    string fldNm = t.ToString() + "_" + s.ToString();
                     if (SampleFeatureClass.FindField(fldNm) > -1)
                     {
-                        geoDbUtil.delteField(SampleFeatureClass,fldNm);
                     }
-                   geoDbUtil.createField(SampleFeatureClass, fldNm, esriFieldType.esriFieldTypeDouble);
-
+                    else
+                    {
+                        geoDbUtil.createField(SampleFeatureClass, fldNm, esriFieldType.esriFieldTypeDouble);
+                    }
                 }
             }
         }
-        private void updateFetureClass()
-        {
-            DataTable dTbl = dSet.Tables["tblAGB"];
-            IQueryFilter qryFlt = new QueryFilterClass();
-            int rCnt = dTbl.Rows.Count;
-            string nFldNm = "";
-            string fldNm = "";
-            IFeatureCursor ftrCur = null;
-            IFeature ftr = null;
-            bool subCheck = true;
-            if (SubPlotField == null || SubPlotField == "") subCheck = false;
-            for (int i = 0; i < rCnt; i++)
-            {
-                DataRow dr = dTbl.Rows[i];
-                string spCd = dr["SPCD"].ToString();
-                string pltCn = dr["PLT_CN"].ToString();
-                string subPlt = null;
-                if (subCheck)
-                {
-                    subPlt = dr["SUBP"].ToString();
-                    qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "' and " + SubPlotField + " = " + subPlt;
-                }
-                else
-                {
-                    qryFlt.WhereClause = PlotCnField + " = '" + pltCn + "'";
-                }
-                ftrCur = SampleFeatureClass.Update(qryFlt,false);
-                ftr = ftrCur.NextFeature();
-                foreach (biomassTypes s in fldArr)
-                {
-                    foreach (string t in uniqueSpecies)
-                    {
-                        if (t != spCd)
-                        {
-                            nFldNm = s.ToString() + "_" + t;
-                            int nFldIndex = ftrCur.FindField(nFldNm);
-                            if (nFldIndex == -1)
-                            {
-                                nFldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
-                            }
-                            
-                            object cVl = ftr.get_Value(nFldIndex);
-                            if (Convert.IsDBNull(cVl) || cVl == null || Double.IsNaN(Convert.ToDouble(cVl)))
-                            {
-                                ftr.set_Value(nFldIndex, 0);
-                            }
-                            
-                        }
-                        else
-                        {
-                            fldNm = s + "_" + spCd;
-                            int fldIndex = ftrCur.FindField(fldNm);
-                            if (fldIndex == -1)
-                            {
-                                fldIndex = ftrCur.FindField(nFldNm.Substring(0, 10));
-                            }
-                            object vl = dr[s.ToString()];
-                            ftr.set_Value(fldIndex, vl);
-                        }
-                    }
-                }
-                ftrCur.UpdateFeature(ftr);
-            }
-            qryFlt.WhereClause = fldNm + " is NULL";
-            ftrCur = SampleFeatureClass.Update(qryFlt,false);
-            ftr = ftrCur.NextFeature();
-            while (ftr != null)
-            {
-                foreach (string s in uniqueSpecies)
-                {
-                    foreach (biomassTypes t in fldArr)
-                    {
-                        fldNm = t.ToString() + "_" + s;
-                        //Console.WriteLine(fldNm);
-                        int fldIndex = ftrCur.FindField(fldNm);
-                        ftr.set_Value(fldIndex, 0);
-                    }
-                }
-                ftrCur.UpdateFeature(ftr);
-                ftr = ftrCur.NextFeature();
-            }
-
-
-        }
-
-
     }
 }

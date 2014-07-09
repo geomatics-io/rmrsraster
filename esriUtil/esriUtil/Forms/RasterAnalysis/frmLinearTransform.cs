@@ -74,7 +74,7 @@ namespace esriUtil.Forms.RasterAnalysis
                         for (int r = 0; r < rsBc.Count; r++)
                         {
                             string nNm = outName + "_Band_" + (r + 1).ToString();
-                            IRaster rsB = rsUtil.getBand(rs, r);
+                            IRaster rsB = rsUtil.returnRaster(rsUtil.getBand(rs, r));
                             if (!rstDic.ContainsKey(nNm))
                             {
                                 rstDic.Add(nNm, rsB);
@@ -152,12 +152,12 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (((IRasterBandCollection)rst).Count > 1)
                     {
                         for (int i = 0; i < ((IRasterBandCollection)rst).Count; i++)
                         {
-                            IRaster rsN = rsUtil.getBand(rst, i);
+                            IRaster rsN = rsUtil.returnRaster(rsUtil.getBand(rst, i));
                             string rsNm = lyrNm + "_Band_" + (i+1).ToString();
                             if (!rstDic.ContainsKey(rsNm))
                             {
@@ -222,6 +222,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 slopes.Add(System.Convert.ToSingle(vl));
             }
+            IFunctionRasterDataset comp = rsUtil.compositeBandFunction(rsBc);
             List<float[]> fslopes = new List<float[]>();
             fslopes.Add(slopes.ToArray());
             this.Visible = false;
@@ -230,13 +231,13 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.addMessage("Transforming Rasters. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
             try
             {
-                outraster = rsUtil.calcRegressFunction((IRaster)rsBc,fslopes);
+                outraster = rsUtil.returnRaster(rsUtil.calcRegressFunction(comp,fslopes));
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);

@@ -16,7 +16,7 @@ namespace esriUtil.FunctionRasters
         private rstPixelType myPixeltype = rstPixelType.PT_UNKNOWN; // Pixel Type of the log Function.
         private string myName = "merge Function"; // Name of the log Function.
         private string myDescription = "Transforms a raster using merge transformation"; // Description of the log Function.
-        private IRaster outrs = null;
+        private IFunctionRasterDataset outrs = null;
         private IRaster[] inrs = null;
         private IFeatureClass ftrCls = null;
         //private ITable tbl = null;
@@ -27,7 +27,6 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
-        public object noDataVl = null;
         private int catIndex = -1;
         public void Bind(object pArgument)
         {
@@ -43,7 +42,6 @@ namespace esriUtil.FunctionRasters
                 IRasterProps rsProp = (IRasterProps)outrs;
                 myFunctionHelper.Bind(outrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
-                noDataVl = ((System.Array)myFunctionHelper.RasterInfo.NoData).GetValue(0);
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
             }

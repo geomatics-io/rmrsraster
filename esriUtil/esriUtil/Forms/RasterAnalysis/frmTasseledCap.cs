@@ -108,7 +108,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rstLyr.Raster;
+                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -148,7 +148,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rst = rstDic[rstNm];
-                outraster = rsUtil.calcTasseledCap7Function(rst);
+                outraster = rsUtil.returnRaster(rsUtil.calcTasseledCap7Function(rst));
                 if (mp != null && addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
