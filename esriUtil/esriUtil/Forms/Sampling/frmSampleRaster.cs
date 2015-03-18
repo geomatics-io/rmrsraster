@@ -150,10 +150,16 @@ namespace esriUtil.Forms.Sampling
         {
             string smpFtrNm = cmbSampleFeatureClass.Text;
             string rstNm = cmbRaster.Text;
+            string fldNm = cmbBandField.Text;
             if (smpFtrNm == null || smpFtrNm == "" || rstNm == "" || rstNm == null)
             {
                 MessageBox.Show("sample location or raster are not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
+            }
+            IFeatureClass ftrCls = ftrDic[smpFtrNm];
+            if (ftrCls.Fields.FindField(fldNm) == -1)
+            {
+                fldNm = null;
             }
             this.Visible=false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -166,7 +172,7 @@ namespace esriUtil.Forms.Sampling
             try
             {
 
-                rsUtil.sampleRaster(ftrDic[smpFtrNm], rstDic[rstNm],rstNm);
+                rsUtil.sampleRaster(ftrCls, rstDic[rstNm],rstNm,fldNm);
                 DateTime dt2 = DateTime.Now;
                 TimeSpan ts = dt2.Subtract(dt1);
                 string prcTime = "Time to complete process:\n" + ts.Days.ToString() + " Days " + ts.Hours.ToString() + " Hours " + ts.Minutes.ToString() + " Minutes " + ts.Seconds.ToString() + " Seconds ";
@@ -182,6 +188,23 @@ namespace esriUtil.Forms.Sampling
                 rp.stepPGBar(100);
                 rp.enableClose();
                 this.Close();
+            }
+        }
+
+        private void cmbSampleFeatureClass_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cmbBandField.Items.Clear();
+            cmbBandField.Items.Add(" ");
+            string ftr = cmbSampleFeatureClass.SelectedItem.ToString();
+            IFeatureClass ftrCls = ftrDic[ftr];
+            IFields flds = ftrCls.Fields;
+            for (int i = 0; i < flds.FieldCount; i++)
+            {
+                IField fld = flds.get_Field(i);
+                if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                {
+                    cmbBandField.Items.Add(fld.Name);
+                }
             }
         }
     }

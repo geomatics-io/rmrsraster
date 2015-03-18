@@ -42,11 +42,14 @@
             this.label4 = new System.Windows.Forms.Label();
             this.txtNoDataVl = new System.Windows.Forms.TextBox();
             this.lblNoDataVl = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.nudBS = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBS)).BeginInit();
             this.SuspendLayout();
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(199, 173);
+            this.btnSave.Location = new System.Drawing.Point(199, 199);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(63, 22);
             this.btnSave.TabIndex = 10;
@@ -144,27 +147,65 @@
             // 
             // txtNoDataVl
             // 
-            this.txtNoDataVl.Location = new System.Drawing.Point(14, 175);
+            this.txtNoDataVl.Location = new System.Drawing.Point(139, 173);
             this.txtNoDataVl.Name = "txtNoDataVl";
-            this.txtNoDataVl.Size = new System.Drawing.Size(100, 20);
+            this.txtNoDataVl.Size = new System.Drawing.Size(86, 20);
             this.txtNoDataVl.TabIndex = 18;
             this.txtNoDataVl.Visible = false;
             // 
             // lblNoDataVl
             // 
             this.lblNoDataVl.AutoSize = true;
-            this.lblNoDataVl.Location = new System.Drawing.Point(14, 157);
+            this.lblNoDataVl.Location = new System.Drawing.Point(139, 155);
             this.lblNoDataVl.Name = "lblNoDataVl";
             this.lblNoDataVl.Size = new System.Drawing.Size(74, 13);
             this.lblNoDataVl.TabIndex = 19;
             this.lblNoDataVl.Text = "NoData Value";
             this.lblNoDataVl.Visible = false;
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(11, 156);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(57, 13);
+            this.label5.TabIndex = 21;
+            this.label5.Text = "Block Size";
+            // 
+            // nudBS
+            // 
+            this.nudBS.Increment = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.nudBS.Location = new System.Drawing.Point(14, 174);
+            this.nudBS.Maximum = new decimal(new int[] {
+            2048,
+            0,
+            0,
+            0});
+            this.nudBS.Minimum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.nudBS.Name = "nudBS";
+            this.nudBS.Size = new System.Drawing.Size(119, 20);
+            this.nudBS.TabIndex = 22;
+            this.nudBS.Value = new decimal(new int[] {
+            512,
+            0,
+            0,
+            0});
+            // 
             // frmSaveRaster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(273, 203);
+            this.ClientSize = new System.Drawing.Size(273, 230);
+            this.Controls.Add(this.nudBS);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.lblNoDataVl);
             this.Controls.Add(this.txtNoDataVl);
             this.Controls.Add(this.label4);
@@ -183,6 +224,7 @@
             this.Name = "frmSaveRaster";
             this.Text = "Save Raster";
             this.TopMost = true;
+            ((System.ComponentModel.ISupportInitialize)(this.nudBS)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -203,5 +245,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtNoDataVl;
         private System.Windows.Forms.Label lblNoDataVl;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown nudBS;
     }
 }

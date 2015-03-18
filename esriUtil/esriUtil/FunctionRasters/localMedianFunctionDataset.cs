@@ -12,15 +12,16 @@ namespace esriUtil.FunctionRasters
 {
     class localMedianFunctionDataset : localFunctionBase
     {
-        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float median)
+        public override bool getOutPutVl(System.Array[] inArr, int c, int r, out float median)
         {
+            int bands = inArr.Length;
             bool checkNoData = true;
             Dictionary<float, int> probDic = new Dictionary<float, int>();
             median = 0;
             int cnt = 0;
-            for (int i = 0; i < coefPb.Planes; i++)
+            for (int i = 0; i < bands; i++)
             {
-                object objVl = coefPb.GetVal(i, c, r);
+                object objVl = inArr[i].GetValue(c, r);
                 if (objVl == null)
                 {
                     checkNoData = false;
@@ -28,7 +29,7 @@ namespace esriUtil.FunctionRasters
                 }
                 else
                 {
-                    float vl = (float)objVl;
+                    float vl = System.Convert.ToSingle(objVl);
                     if (probDic.TryGetValue(vl, out cnt))
                     {
                         probDic[vl] = cnt + 1;
@@ -46,7 +47,7 @@ namespace esriUtil.FunctionRasters
                 List<float> kysLst = probDic.Keys.ToList();
                 kysLst.Sort();
                 int sumCnt = 0;
-                int compVl = coefPb.Planes / 2;
+                int compVl = bands / 2;
                 foreach (float kyVl in kysLst)
                 {
                     sumCnt += probDic[kyVl];

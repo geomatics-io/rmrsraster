@@ -27,6 +27,7 @@ namespace esriUtil.FunctionRasters
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
+        private double[] xVls = null;
         public void Bind(object pArgument)
         {
             if (pArgument is softMaxFunctionArguments)
@@ -34,6 +35,7 @@ namespace esriUtil.FunctionRasters
                 softMaxFunctionArguments arg = (softMaxFunctionArguments)pArgument;
                 inrsBandsCoef = arg.InRasterCoefficients;
                 outrs = arg.OutRaster;
+                xVls = new double[((IRasterBandCollection)inrsBandsCoef).Count];
                 //Console.WriteLine("Number of Bands in outrs = " + ((IRasterBandCollection)outrs).Count.ToString());
                 lm = arg.LogitModel;
                 myFunctionHelper.Bind(outrs);
@@ -60,32 +62,19 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                // Call Read method of the Raster Function Helper object.
-
-                //System.Array noDataValueArr = (System.Array)((IRasterProps)inrsBandsCoef).NoDataValue;
-                //Console.WriteLine("Before Read");
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                //Console.WriteLine("After Read");
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
                 IPixelBlock3 outPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);//independent variables  
-                myFunctionHelperCoef.Read(pTlc, null,myFunctionHelperCoef.Raster, (IPixelBlock)outPb);
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)outPb);
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                //System.Array[] pArr = new System.Array[outPb.Planes];
                 System.Array[] cArr = new System.Array[ipPixelBlock.Planes];
-                //for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
-                //{
-                //    System.Array pixelValues = (System.Array)(outPb.get_PixelData(coefnBand));
-                //    pArr[coefnBand] = pixelValues;
-                //}
-
                 for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++)
                 {
-                    //float[,] td = new float[ipPixelBlock.Width, ipPixelBlock.Height];
                     System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);//(System.Array)(td);
                     cArr[outBand] = pixelValues;
                 }
@@ -94,27 +83,37 @@ namespace esriUtil.FunctionRasters
                 {
                     for (int k = pBColIndex; k < pBWidth; k++)
                     {
-                        double[] xVls = new double[outPb.Planes];
                         bool ndT = true;
                         for (int coefnBand = 0; coefnBand < outPb.Planes; coefnBand++)
                         {
-                            //float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(coefnBand));
                             object pObj = outPb.GetVal(coefnBand, k, i);
                             if (pObj==null)
                             {
                                 ndT = false;
                                 break;
                             }
-                            float pixelValue = Convert.ToSingle(pObj);
+                            double pixelValue = Convert.ToDouble(pObj);
                             xVls[coefnBand] = pixelValue;                            
                         }
                         if (ndT)
                         {
-                            double[] pp = lm.computNew(xVls);
-                            for (int p = 0; p < pp.Length; p++)
+                            try
                             {
-                                double pVl = pp[p];
-                                cArr[p].SetValue(System.Convert.ToSingle(pVl), k, i);
+                                double[] pp = lm.computNew(xVls);
+                                for (int p = 0; p < pp.Length; p++)
+                                {
+                                    double pVl = pp[p];
+                                    object spVl = rasterUtil.getSafeValue(pVl,ipPixelBlock.get_PixelType(p));
+                                    cArr[p].SetValue(spVl, k, i);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                                for (int p = 0; p < ipPixelBlock.Planes; p++)
+                                {
+                                    cArr[p].SetValue(0, k, i);
+                                }
                             }
                         }
                         else

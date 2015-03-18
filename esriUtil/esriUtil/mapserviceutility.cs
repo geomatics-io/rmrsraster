@@ -1310,7 +1310,7 @@ namespace esriUtil
                 int xDiff = System.Convert.ToInt32(ext.Width);
                 int yDiff = System.Convert.ToInt32(ext.Height);
                 int tile = 1;
-                IRaster rast = imSvLyr.Raster;
+                IRaster rast = rsUtil.createRaster(((IRaster2)imSvLyr.Raster).RasterDataset);
                 ISaveAs saveas = (ISaveAs)rast;
                 IRasterProps rasterProps = (IRasterProps)rast;
                 imSvLyr.SpatialReference = sr;

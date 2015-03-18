@@ -46,9 +46,9 @@ namespace esriUtil.Forms.RasterAnalysis
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
         private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private Dictionary<string, IFunctionRasterDataset> rstDic = new Dictionary<string, IFunctionRasterDataset>();
         public Dictionary<string, IFeatureClass> FeatureDictionary { get { return ftrDic; } }
-        public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
+        public Dictionary<string, IFunctionRasterDataset> RasterDictionary { get { return rstDic; } }
         private void getFeaturePath()
         {
             string outPath = null;
@@ -69,13 +69,13 @@ namespace esriUtil.Forms.RasterAnalysis
                     outName = gxObj.BaseName;
                     if (!rstDic.ContainsKey(outName))
                     {
-                        rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                        rstDic.Add(outName, rsUtil.createIdentityRaster(outPath));
                         //cmbInRaster1.Items.Add(outName);
                         lsbRaster.Items.Add(outName);
                     }
                     else
                     {
-                        rstDic[outName] = rsUtil.returnRaster(outPath);
+                        rstDic[outName] = rsUtil.createIdentityRaster(outPath);
                     }
                     gxObj = eGxObj.Next();
                 }
@@ -87,7 +87,7 @@ namespace esriUtil.Forms.RasterAnalysis
         public IRaster OutRaster { get { return outraster; } }
         private string outrastername = "";
         public string OutRasterName { get { return outrastername; } }
-        public void addRasterToComboBox(string rstName, IRaster rst)
+        public void addRasterToComboBox(string rstName, IFunctionRasterDataset rst)
         {
             if (!cmbInRaster1.Items.Contains(rstName))
             {
@@ -114,7 +114,7 @@ namespace esriUtil.Forms.RasterAnalysis
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
+                    IFunctionRasterDataset rst = rsUtil.createIdentityRaster(((IRaster2)rstLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, rst);
@@ -160,6 +160,7 @@ namespace esriUtil.Forms.RasterAnalysis
             {
                 rsBc.AppendBands((IRasterBandCollection)rstDic[lsbRaster.Items[i].ToString()]);
             }
+            IFunctionRasterDataset fDset = rsUtil.compositeBandFunction(rsBc);
             rasterUtil.localType op = (rasterUtil.localType)Enum.Parse(typeof(rasterUtil.localType),funNm);
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -170,7 +171,7 @@ namespace esriUtil.Forms.RasterAnalysis
             rp.Show();
             try
             {
-                outraster = rsUtil.createRaster(rsUtil.localStatisticsfunction((IRaster)rsBc,op));
+                outraster = rsUtil.createRaster(rsUtil.localStatisticsfunction(fDset,op));
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");

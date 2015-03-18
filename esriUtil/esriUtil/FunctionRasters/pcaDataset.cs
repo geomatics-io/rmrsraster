@@ -113,8 +113,10 @@ namespace esriUtil.FunctionRasters
                             double[] pp = pca.computNew(xVls);
                             for (int p = 0; p < pp.Length; p++)
                             {
+                                rstPixelType pty = ipPixelBlock.get_PixelType(p);
                                 double pVl = pp[p];
-                                cArr[p].SetValue(System.Convert.ToSingle(pVl), k, i);
+                                object newVl = rasterUtil.getSafeValue(pVl, pty);
+                                cArr[p].SetValue(newVl, k, i);
                             }
                         }
                         else

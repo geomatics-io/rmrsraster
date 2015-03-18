@@ -211,6 +211,7 @@
     <Compile Include="LicenseInitializer.Designer.cs">
       <DependentUpon>LicenseInitializer.cs</DependentUpon>
     </Compile>
+    <Compile Include="RandomForestExample.cs" />
     <Compile Include="testform.cs">
       <SubType>Form</SubType>
     </Compile>

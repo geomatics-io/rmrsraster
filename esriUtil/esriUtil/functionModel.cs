@@ -89,8 +89,9 @@ namespace esriUtil
             try
             {
                 ofd.Title = "Add Function Model to map";
-                ofd.Filter = "Function Dataset|*.fds|Batch Datasets|*.bch";
+                ofd.Filter = "Function Dataset|*.fds|Batch Datasets|*.bch|NetCdf|*.nc";
                 ofd.Multiselect = false;
+                ofd.FilterIndex = 2;
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     FunctionDatasetPath = ofd.FileName;
@@ -104,9 +105,13 @@ namespace esriUtil
                         createFunctionRaster(out outName, out outRs, out outDesc);
                         outobj = outRs;
                     }
-                    else
+                    else if (fIndex == 2)
                     {
                         createBatchRaster(out outName, out outobj, out outDesc);
+                    }
+                    else
+                    {
+                        createNetCdf(out outName, out outobj, out outDesc);
                     }
                     if (outobj is IFunctionRasterDataset)
                     {
@@ -153,6 +158,37 @@ namespace esriUtil
             }
             
 
+        }
+
+        private void createNetCdf(out string outName, out object outobj, out string outDesc)
+        {
+            outName = null;
+            outobj = null;
+            outDesc = null;
+            if (path == "" || !System.IO.File.Exists(path))
+            {
+                return;
+            }
+            try
+            {
+                esriUtil.Forms.FrmNecCdfAttributeSelection netCdfFrm = new Forms.FrmNecCdfAttributeSelection(path,rsUtil);
+                System.Windows.Forms.DialogResult dr = netCdfFrm.ShowDialog();
+                if (dr == System.Windows.Forms.DialogResult.OK)
+                {
+                    outobj = rsUtil.returnFunctionRasterDatasetNetCDF(path, netCdfFrm.variable, netCdfFrm.xdim, netCdfFrm.ydim, netCdfFrm.bands);
+                    outName = System.IO.Path.GetFileNameWithoutExtension(path);
+                    outDesc = "OpenNetCdf";
+                }
+                netCdfFrm.Close();
+                netCdfFrm.Dispose();
+                
+            }
+            catch
+            {
+            }
+            finally
+            {
+            }
         }
 
         private void createBatchRaster(out string nm, out object rs, out string desc)

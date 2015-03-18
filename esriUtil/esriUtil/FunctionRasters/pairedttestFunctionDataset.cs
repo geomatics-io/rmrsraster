@@ -87,6 +87,7 @@ namespace esriUtil.FunctionRasters
                     for (int k = pBColIndex; k < pBWidth; k++)
                     {
                         object pObj = outPb.GetVal(0, k, i);
+                        
                         if (pObj == null)
                         {
                             continue;
@@ -99,8 +100,10 @@ namespace esriUtil.FunctionRasters
                             {
                                 for (int v = 0; v < pArr.Length; v++)
                                 {
+                                    rstPixelType pty = pPixelBlock.get_PixelType(v);
                                     float vl = System.Convert.ToSingle(c[v]);
-                                    pArr[v].SetValue(vl, k, i);
+                                    object newVl = rasterUtil.getSafeValue(vl, pty);
+                                    pArr[v].SetValue(newVl, k, i);
                                 }
                             }
                             else

@@ -12,31 +12,32 @@ namespace esriUtil.FunctionRasters
 {
     class localMeanFunctionDataset : localFunctionBase
     {
-        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float sumVl)
+        public override bool getOutPutVl(System.Array[] inArr, int c, int r, out float sumVl)
         {
+            int bands = inArr.Length;
             sumVl = 0;
             bool checkNoData = true;
-            for (int i = 0; i < coefPb.Planes; i++)
+            for (int i = 0; i < bands; i++)
             {
-                object objVl = coefPb.GetVal(i, c, r);
+                object objVl = inArr[i].GetValue(c, r);
                 if (objVl == null)
                 {
+                    //Console.WriteLine("In object is Null");
                     checkNoData = false;
                     sumVl = 0;
                     break;
                 }
                 else
                 {
-                    float vl = (float)objVl;
+                    float vl = System.Convert.ToSingle(objVl);
                     sumVl += vl;
                 }
-                sumVl = sumVl / coefPb.Planes;
-
             }
-            if (!checkNoData)
+            if (sumVl!=0)
             {
-                sumVl = 0;
+                sumVl = sumVl / bands;
             }
+            //Console.WriteLine(sumVl.ToString());
             return checkNoData;
         }
     }

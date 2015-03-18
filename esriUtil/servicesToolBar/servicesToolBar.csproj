@@ -116,6 +116,9 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="commandBuildAttributeTable.cs" />
+    <Compile Include="commandFocalBandRaster.cs" />
+    <Compile Include="commandLocalRescaleRaster.cs" />
     <Compile Include="commandNdviRaster.cs" />
     <Compile Include="commandRegionGroup.cs" />
     <Compile Include="commandAccuracyAssessment.cs" />
@@ -633,6 +636,15 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <AddInContent Include="Images\commandResampleRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandLocalRescaleRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandBuildAttributeTable.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandFocalBandRaster.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <Content Include="RMRSBatchProcess.exe">

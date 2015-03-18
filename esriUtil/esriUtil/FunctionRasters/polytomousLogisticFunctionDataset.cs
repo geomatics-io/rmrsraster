@@ -62,11 +62,7 @@ namespace esriUtil.FunctionRasters
         {
             try
             {
-                // Call Read method of the Raster Function Helper object.
-
-                //Console.WriteLine("Before Read");
                 myFunctionHelper.Read(pTlc, null, pRaster, pPixelBlock);
-                //Console.WriteLine("After Read");
                 int pBHeight = pPixelBlock.Height;
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
@@ -79,8 +75,7 @@ namespace esriUtil.FunctionRasters
                 System.Array[] cArr = new System.Array[ipPixelBlock.Planes];
                 for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++)
                 {
-                    //float[,] td = new float[ipPixelBlock.Width, ipPixelBlock.Height];
-                    System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);//(System.Array)(td);
+                    System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);
                     cArr[outBand] = pixelValues;
                 }
                 for (int i = pBRowIndex; i < pBHeight; i++)
@@ -105,7 +100,7 @@ namespace esriUtil.FunctionRasters
                                 }
                                 double slp = IntSlpArr[coefnBand + 1];
                                 //Console.WriteLine("x = " + pixelValue.ToString() + " slope = " + slp.ToString());
-                                sumVls += System.Convert.ToSingle(coefnVlObj) * slp;
+                                sumVls += System.Convert.ToDouble(coefnVlObj) * slp;
                             }
                             if (noDataCheck)
                             {
@@ -127,16 +122,20 @@ namespace esriUtil.FunctionRasters
                             catCnts = 1;
                             foreach (double expVl in expArr)
                             {
+                                rstPixelType pTy = ipPixelBlock.get_PixelType(catCnts);
                                 double prob = expVl / sumExp;
                                 //Console.WriteLine("Probability = " + prob.ToString());
                                 sumProb += prob;
-                                cArr[catCnts].SetValue(System.Convert.ToSingle(prob), k, i);
+                                object newVl = rasterUtil.getSafeValue(prob, pTy);
+                                cArr[catCnts].SetValue(newVl, k, i);
                                 //Console.WriteLine("Probability = " + cArr[catCnts].GetValue(k,i).ToString());
                                 catCnts += 1;
 
                             }
+                            rstPixelType pTy2 = ipPixelBlock.get_PixelType(0);
                             double lProb = 1 - sumProb;
-                            cArr[0].SetValue(System.Convert.ToSingle(lProb), k, i);//base category  
+                            object newVl2 = rasterUtil.getSafeValue(lProb, pTy2);
+                            cArr[0].SetValue(newVl2, k, i);//base category  
                         }
                         else
                         {

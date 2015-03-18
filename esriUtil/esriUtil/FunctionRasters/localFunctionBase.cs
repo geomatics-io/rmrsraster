@@ -19,7 +19,7 @@ namespace esriUtil.FunctionRasters
         private IFunctionRasterDataset inrs = null;
         private IFunctionRasterDataset inrsBands = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass();
-        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();// Raster Function Helper object.
+        //private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();// Raster Function Helper object.
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -34,7 +34,7 @@ namespace esriUtil.FunctionRasters
                 inrsBands = arg.InRaster;
                 inrs = arg.outRaster;
                 myFunctionHelper.Bind(inrs);
-                myFunctionHelperCoef.Bind(inrsBands);
+                //myFunctionHelperCoef.Bind(inrsBands);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
@@ -62,10 +62,20 @@ namespace esriUtil.FunctionRasters
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 coefPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
-                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)coefPb);
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
-                System.Array outArr = (System.Array)ipPixelBlock.get_PixelData(0);
+                System.Array[] inArr = new System.Array[inrsBands.RasterInfo.BandCount];
+                IRasterBandCollection rsBc = (IRasterBandCollection)inrsBands;
+                for (int p = 0; p < inArr.Length; p++)
+                {
+                    IRasterBand rsB = rsBc.Item(p);
+                    IRawPixels rP = (IRawPixels)rsB;
+                    IPixelBlock pb = rP.CreatePixelBlock(pbSize);
+                    IPixelBlock3 pb3 = (IPixelBlock3)pb;
+                    rP.Read(pTlc,pb);
+                    inArr[p] = (System.Array)pb3.get_PixelData(0);
+                }
+                System.Array outArr = (System.Array)pPixelBlock.get_SafeArray(0);
+                rstPixelType rsPt = pPixelBlock.get_PixelType(0);
                 for (int r = 0; r < ipPixelBlock.Height; r++)
                 {
                     for (int c = 0; c < ipPixelBlock.Width; c++)
@@ -74,14 +84,12 @@ namespace esriUtil.FunctionRasters
                         if (outVlObj != null)
                         {
                             float outVl;
-                            if(getOutPutVl(coefPb, c, r, out outVl))
+                            if (getOutPutVl(inArr, c, r, out outVl))
                             {
-                                outArr.SetValue(outVl, c, r);
+                                object newVl = rasterUtil.getSafeValue(outVl, rsPt);//convertVl(outVl,rsPt);
+                                outArr.SetValue(newVl, c, r);
                             }
                         }
-
-
-                        
                     }
                 }
                 ipPixelBlock.set_PixelData(0, outArr);
@@ -90,6 +98,7 @@ namespace esriUtil.FunctionRasters
             catch (Exception exc)
             {
                 System.Exception myExc = new System.Exception("Exception caught in Read method of localMean Function. " + exc.Message, exc);
+                Console.Write(exc.ToString());
                 throw myExc;
             }
         }
@@ -105,7 +114,43 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        public abstract bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float outvl);
+        public abstract bool getOutPutVl(System.Array[] inArr, int c, int r, out float outvl);
+        private object convertVl(object outVl, rstPixelType pType)
+        {
+            //Console.WriteLine(myFunctionHelper.RasterInfo.PixelType.ToString());
+            object newVl = 0;
+            switch (pType)
+            {
+                case rstPixelType.PT_CHAR:
+                    newVl = System.Convert.ToSByte(outVl);
+                    break;
+                case rstPixelType.PT_LONG:
+                    newVl = System.Convert.ToInt32(outVl);
+                    break;
+                case rstPixelType.PT_SHORT:
+                    newVl = System.Convert.ToInt16(outVl);
+                    break;
+                case rstPixelType.PT_U1:
+                    newVl = System.Convert.ToBoolean(outVl);
+                    break;
+                case rstPixelType.PT_U2:
+                case rstPixelType.PT_U4:
+                case rstPixelType.PT_UCHAR:
+                    //Console.WriteLine("Converting Values");
+                    newVl = System.Convert.ToByte(outVl);
+                    break;
+                case rstPixelType.PT_ULONG:
+                    newVl = System.Convert.ToUInt32(outVl);
+                    break;
+                case rstPixelType.PT_USHORT:
+                    newVl = System.Convert.ToUInt16(outVl);
+                    break;
+                default:
+                    newVl = outVl;
+                    break;
+            }
+            return newVl;
+        }
 
     }
 }

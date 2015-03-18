@@ -88,6 +88,7 @@ namespace esriUtil.FunctionRasters
                 for (int nBand = 0; nBand < pPixelBlock.Planes; nBand++)
                 {
                     System.Array outArr = (System.Array)ipPixelBlock.get_PixelData(nBand);
+                    rstPixelType pty = ipPixelBlock.get_PixelType(nBand);
                     for (int i = pBRowIndex; i < pBHeight; i++)
                     {
                         for (int k = pBColIndex; k < pBWidth; k++)
@@ -109,7 +110,8 @@ namespace esriUtil.FunctionRasters
                                 sumVls += pixelValue * slp;
                             }
                             if (sumVls < censored) sumVls = censored;
-                            outArr.SetValue(System.Convert.ToSingle(sumVls), k, i);
+                            object newVl = rasterUtil.getSafeValue(sumVls, pty);
+                            outArr.SetValue(newVl, k, i);
                         }
                     }
                     ipPixelBlock.set_PixelData(nBand, outArr);

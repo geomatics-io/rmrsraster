@@ -23,7 +23,7 @@ namespace esriUtil
             if (rp != null) rp = runningDialog;
         }
         featureUtil ftrUtil = new featureUtil();
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS, RENAMEFIELD, FORMATZONAL }
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LOCALFOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, SETVALUESTONULL, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS, RENAMEFIELD, FORMATZONAL, NDVI, RESAMPLE, LOCALRESCALE, OPENNETCDF, CREATERASTERATTRIBUTE, LOAD, OPENRASTER, OPENFEATURECLASS, OPENTABLE, OPENMODEL }
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -215,6 +215,9 @@ namespace esriUtil
                                     case batchGroups.BUILDRASTERVAT:
                                         tblDic[outName] = buildRasterVat(paramArr);
                                         break;
+                                    case batchGroups.CREATERASTERATTRIBUTE:
+                                        tblDic[outName] = createRasterAttribute(paramArr);
+                                        break;
                                     case batchGroups.MOSAIC:
                                         rstDic[outName] = createMosaic(paramArr);
                                         break;
@@ -284,6 +287,39 @@ namespace esriUtil
                                     case batchGroups.FORMATZONAL:
                                         tblDic[outName] = zonalFormatData(paramArr);
                                         break;
+                                    case batchGroups.SETVALUESTONULL:
+                                        rstDic[outName] = setValuesToNull(paramArr);
+                                        break;
+                                    case batchGroups.RESAMPLE:
+                                        rstDic[outName] = resampleRaster(paramArr);
+                                        break;
+                                    case batchGroups.NDVI:
+                                        rstDic[outName] = ndviRaster(paramArr);
+                                        break;
+                                    case batchGroups.LOCALRESCALE:
+                                        rstDic[outName] = localRescale(paramArr);
+                                        break;
+                                    case batchGroups.OPENNETCDF:
+                                        rstDic[outName] = openNetCdf(paramArr);
+                                        break;
+                                    case batchGroups.LOAD:
+                                        lBatch(paramArr, outName);
+                                        break;
+                                    case batchGroups.LOCALFOCALSTATISTICS:
+                                        rstDic[outName] = loadFocalStatistics(paramArr);
+                                        break;
+                                    case batchGroups.OPENRASTER:
+                                        rstDic[outName] = openRaster(paramArr);
+                                        break;
+                                    case batchGroups.OPENFEATURECLASS:
+                                        ftrDic[outName] = openfeatureClass(paramArr);
+                                        break;
+                                    case batchGroups.OPENTABLE:
+                                        tblDic[outName] = openTable(paramArr);
+                                        break;
+                                    case batchGroups.OPENMODEL:
+                                        modelDic[outName] = openModel(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -313,6 +349,126 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IFunctionRasterDataset loadFocalStatistics(string[] paramArr)
+        {
+            IFunctionRasterDataset rsDset = getRaster(paramArr[0]);
+            rasterUtil.localType lt = (rasterUtil.localType)Enum.Parse(typeof(rasterUtil.localType),paramArr[1]);
+            int bBefore = System.Convert.ToInt32(paramArr[2]);
+            int bAfter = System.Convert.ToInt32(paramArr[3]);
+            return rsUtil.focalBandfunction(rsDset, lt, bBefore, bAfter);
+        }
+
+        private string openModel(string[] paramArr)
+        {
+            return paramArr[0];
+        }
+
+        private ITable openTable(string[] paramArr)
+        {
+            return geoUtil.getTable(paramArr[0]);
+        }
+
+        private IFeatureClass openfeatureClass(string[] paramArr)
+        {
+            return geoUtil.getFeatureClass(paramArr[0]);
+        }
+
+        private IFunctionRasterDataset openRaster(string[] paramArr)
+        {
+            return rsUtil.createIdentityRaster(paramArr[0]);
+        }
+
+        private void lBatch(string[] paramArr, string outName)
+        {
+            batchCalculations btch = new batchCalculations(rsUtil, rp);
+            btch.BatchPath = paramArr[0];
+            btch.loadBatchFile();
+            btch.runBatch();
+            string desc;
+            object fObj;
+            btch.getFinalObject(out outName, out fObj, out desc);
+            if (fObj is String)
+            {
+                modelDic[outName] = fObj.ToString();
+            }
+            else if (fObj is Raster)
+            {
+                rstDic[outName] = (IFunctionRasterDataset)fObj;
+            }
+            else if (fObj is FeatureClass)
+            {
+                ftrDic[outName] = (IFeatureClass)fObj;
+            }
+            else
+            {
+                tblDic[outName] = (ITable)fObj;
+            }
+        }
+
+        private ITable createRasterAttribute(string[] paramArr)
+        {
+            string strRsName = paramArr[0];
+            string outTblName = paramArr[1];
+            IFunctionRasterDataset rs = getRaster(strRsName);
+            IWorkspace wks = geoUtil.OpenWorkSpace(geoUtil.getDatabasePath(outTblName));
+            string outName = System.IO.Path.GetFileNameWithoutExtension(outTblName);
+            return rsUtil.calcCombinRasterFunctionTable(rs, wks, outName);
+        }
+
+        private IFunctionRasterDataset openNetCdf(string[] paramArr)
+        {
+            string path = paramArr[0];
+            string var = paramArr[1];
+            string x = paramArr[2];
+            string y = paramArr[3];
+            string band = paramArr[4];
+            return rsUtil.returnFunctionRasterDatasetNetCDF(path, var, x, y, band);
+        }
+
+        private IFunctionRasterDataset localRescale(string[] paramArr)
+        {
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
+            string rsTypeStr = paramArr[1];
+            rasterUtil.localRescaleType rsType = (rasterUtil.localRescaleType)Enum.Parse(typeof(rasterUtil.localRescaleType), rsTypeStr);
+            return rsUtil.localRescalefunction(inRs, rsType);
+        }
+
+        private IFunctionRasterDataset ndviRaster(string[] paramArr)
+        {
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
+            int bR = System.Convert.ToInt32(paramArr[1]);
+            int bIR = System.Convert.ToInt32(paramArr[2]);
+            return rsUtil.calcNDVIFunction(inRs,bR,bIR);
+        }
+
+        private IFunctionRasterDataset resampleRaster(string[] paramArr)
+        {
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
+            double cellSize = System.Convert.ToDouble(paramArr[1]);
+            return rsUtil.reSampleRasterFunction(inRs,cellSize);
+        }
+
+        private IFunctionRasterDataset setValuesToNull(string[] paramArr)
+        {
+            IFunctionRasterDataset inRs = getRaster(paramArr[0]);
+            string[] bmm = paramArr[1].Split(new char[]{':'});
+            IStringArray sArr = new ESRI.ArcGIS.esriSystem.StrArrayClass();
+            foreach (string s in bmm)
+            {
+                string[] mm = s.Split(new char[] { ',' });
+                int min = System.Convert.ToInt32(mm[1]);
+                int max = System.Convert.ToInt32(mm[2]);
+                List<string> sLst = new List<string>();
+                for (int j = min; j < max; j++)
+                {
+                    sLst.Add(j.ToString());
+                }
+                string ln = String.Join(" ", sLst.ToArray());
+                sArr.Add(ln);
+            } 
+            return rsUtil.setValueRangeToNodata(inRs, sArr);
         }
 
         private ITable zonalFormatData(string[] paramArr)
@@ -1000,7 +1156,9 @@ namespace esriUtil
             {
                 inName = null;
             }
-            rsUtil.sampleRaster(inFtrCls, sampleRst, inName);
+            string bndFldName = null;
+            if (paramArr.Length > 3) bndFldName = paramArr[3];
+            rsUtil.sampleRaster(inFtrCls, sampleRst, inName, bndFldName);
             return inFtrCls;
         }
 
@@ -1077,7 +1235,21 @@ namespace esriUtil
             string outName = paramArr[1];
             IWorkspace wks = geoUtil.OpenRasterWorkspace(paramArr[2]);
             rasterUtil.rasterType rastertype = (rasterUtil.rasterType)Enum.Parse(typeof(rasterUtil.rasterType),paramArr[3].ToUpper());
-            return rsUtil.createIdentityRaster(rsUtil.saveRasterToDataset(rs2, outName, wks, rastertype));
+            object noDataVl = null;
+            int Bwidth = 512;
+            int Bheigth = 512;
+            if (paramArr.Length > 4)
+            {
+                double tD;
+                if (Double.TryParse(paramArr[4], out tD))
+                {
+                    noDataVl = tD;
+                }
+                else noDataVl = null;
+            }
+            if(paramArr.Length>5)Bwidth = System.Convert.ToInt32(paramArr[5]);
+            if(paramArr.Length>6)Bheigth = System.Convert.ToInt32(paramArr[6]);
+            return rsUtil.createIdentityRaster(rsUtil.saveRasterToDatasetM(rs2, outName, wks, rastertype,noDataVl,Bwidth,Bheigth));
         }
 
         private IFunctionRasterDataset createLandscapeFunction(string[] paramArr)
@@ -1500,7 +1672,7 @@ namespace esriUtil
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;in_Raster2;logicalOperator)";
                     break;
                 case batchGroups.CLIP:
-                    msg = "outRS = " + batchFunction.ToString() + "(in_Raster;inFeatureClass;logicalOperator)";
+                    msg = "outRS = " + batchFunction.ToString() + "(in_Raster;inFeatureClass)";
                     break;
                 case batchGroups.CONDITIONAL:
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster1;in_Raster2;in_Raster3)";
@@ -1584,7 +1756,7 @@ namespace esriUtil
                     msg = "outTable = " + batchFunction.ToString() + "(inTable;modelPath)";
                     break;
                 case batchGroups.BUILDMODEL:
-                    msg = "outModel = " + batchFunction.ToString() + "(modelType;model parameters)";
+                    msg = "outModel = " + batchFunction.ToString() + "(modelType;model parameters)\nRandomForest Example:\n\toutModel = " + batchFunction.ToString() + "(RandomForest;featureClassPath;DependentField;IndependentFields(comma separated);categoricalFields(comma separated);Trees;Ratio;NumberOfSplitVariables;outputModelPath)";
                     break;
                 case batchGroups.COMBINE:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;inRaster2;inRaster3)";
@@ -1618,6 +1790,39 @@ namespace esriUtil
                     break;
                 case batchGroups.FORMATZONAL:
                     msg = "outTbl = " + batchFunction.ToString() + "(inZoneTable;linkFieldName;inZonalSummaryTable;FieldPrefix)";
+                    break;
+                case batchGroups.SETVALUESTONULL:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;Band1,min1,max1:Band2,min2,max2:Band3,min3,max3)";
+                    break;
+                case batchGroups.RESAMPLE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;cellSizeInMapUnits)";
+                    break;
+                case batchGroups.NDVI:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;redBand;irBand)";
+                    break;
+                case batchGroups.LOCALRESCALE:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;rasterUtil.localRescaleType)";
+                    break;
+                case batchGroups.CREATERASTERATTRIBUTE:
+                    msg = "outTBL = " + batchFunction.ToString() + "(inRaster;outTablePath)";
+                    break;
+                case batchGroups.LOCALFOCALSTATISTICS:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;statistic;bandsBefore;bandsAfter)";
+                    break;
+                case batchGroups.LOAD:
+                    msg = "outObject = " + batchFunction.ToString() + "(BatchPath)";
+                    break;
+                case batchGroups.OPENRASTER:
+                    msg = "outRs = " + batchFunction.ToString() + "(RasterPath)";
+                    break;
+                case batchGroups.OPENFEATURECLASS:
+                    msg = "outFtr = " + batchFunction.ToString() + "(FeatureClassPath)";
+                    break;
+                case batchGroups.OPENTABLE:
+                    msg = "outTBL = " + batchFunction.ToString() + "(TablePath)";
+                    break;
+                case batchGroups.OPENMODEL:
+                    msg = "outMDL = " + batchFunction.ToString() + "(ModelPath)";
                     break;
                 default:
                     break;
@@ -1689,6 +1894,22 @@ namespace esriUtil
                 desc = lnLst[lnLst.Count - 1];
             }
             
+        }
+        public void ClearRasters()
+        {
+            rstDic.Clear();
+        }
+        public void ClearTables()
+        {
+            tblDic.Clear();
+        }
+        public void ClearFeatureClass()
+        {
+            ftrDic.Clear();
+        }
+        public void ClearModels()
+        {
+            modelDic.Clear();
         }
     }
 }

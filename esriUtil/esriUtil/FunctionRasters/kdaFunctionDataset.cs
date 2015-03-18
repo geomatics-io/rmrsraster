@@ -73,6 +73,7 @@ namespace esriUtil.FunctionRasters
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                 System.Array outArr = (System.Array)ipPixelBlock.get_PixelData(0);
+                rstPixelType pty = ipPixelBlock.get_PixelType(0);
                 double[] vArr = new double[outPb.Planes];
                 for (int i = pBRowIndex; i < pBHeight; i++)
                 {
@@ -92,7 +93,8 @@ namespace esriUtil.FunctionRasters
                         if(checkVl)
                         {
                             double tVl = kda.computeNew(vArr);
-                            outArr.SetValue(System.Convert.ToSingle(tVl), k, i);
+                            object newVl = rasterUtil.getSafeValue(tVl, pty);
+                            outArr.SetValue(newVl, k, i);
                         }
                         
                     }

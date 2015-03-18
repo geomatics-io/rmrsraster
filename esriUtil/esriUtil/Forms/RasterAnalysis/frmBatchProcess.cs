@@ -278,6 +278,9 @@ namespace esriUtil.Forms.RasterAnalysis
                 case batchCalculations.batchGroups.SURFACE:
                     nm = Enum.GetNames(typeof(rasterUtil.surfaceType));
                     break;
+                case batchCalculations.batchGroups.LOCALRESCALE:
+                    nm = Enum.GetNames(typeof(rasterUtil.localRescaleType));
+                    break;
                 default:
                     break;
             }

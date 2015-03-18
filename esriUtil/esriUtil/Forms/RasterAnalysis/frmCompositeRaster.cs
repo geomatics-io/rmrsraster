@@ -180,11 +180,12 @@ namespace esriUtil.Forms.RasterAnalysis
             {
                 if (this.Text == "Create Composite Raster")
                 {
-                    outraster = rsUtil.returnRaster(rsUtil.compositeBandFunction(rsBc));
+                    outraster = rsUtil.createRaster(rsUtil.compositeBandFunction(rsBc));
                 }
                 else
                 {
-                    //outraster = rsUtil.calcCombineRasterFunction(rsLst.ToArray());
+                    
+                    outraster = rsUtil.createRaster(rsUtil.calcCombineRasterFunction(rsBc));
                 }
                 if (mp != null && addToMap)
                 {

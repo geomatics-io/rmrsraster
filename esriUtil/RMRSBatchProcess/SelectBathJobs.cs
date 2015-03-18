@@ -34,7 +34,6 @@ namespace RMRSBatchProcess
             }
            
         }
-        private esriUtil.batchCalculations btc = new esriUtil.batchCalculations();
         private void btnMinus_Click(object sender, EventArgs e)
         {
             lsbStats.Items.Remove(lsbStats.SelectedItem);
@@ -60,10 +59,18 @@ namespace RMRSBatchProcess
             this.Visible = false;
             for (int i = 0; i < lsbStats.Items.Count; i++)
             {
-                string fl = lsbStats.Items[0].ToString();
+                esriUtil.batchCalculations btc = new esriUtil.batchCalculations();
+                string fl = lsbStats.Items[i].ToString();
                 btc.BatchPath = fl;
                 btc.loadBatchFile();
                 btc.runBatch();
+
+                //System.Diagnostics.Process bproc = new System.Diagnostics.Process();
+                //System.Diagnostics.ProcessStartInfo bpSInfo = bproc.StartInfo;
+                //bpSInfo.Arguments = fl;
+                //bpSInfo.FileName = "RMRSBatchProcess.exe";
+                //bproc.Start();
+                //System.Reflection.Assembly.GetExecutingAssembly().Location
 
             }
             this.Close();

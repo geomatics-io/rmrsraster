@@ -31,8 +31,9 @@ namespace esriUtil.FunctionRasters
              set 
              {
 
-                 inrs = rsUtil.createIdentityRaster(value,rstPixelType.PT_FLOAT);
-                 otrs = rsUtil.getBand(inrs,0);
+                 inrs = value;
+                 IFunctionRasterDataset tr = rsUtil.createIdentityRaster(inrs, rstPixelType.PT_FLOAT);
+                 otrs = rsUtil.getBand(tr, 0);
              } 
          }
          private IFunctionRasterDataset otrs = null;

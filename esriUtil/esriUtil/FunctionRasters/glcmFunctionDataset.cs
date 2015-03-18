@@ -90,6 +90,7 @@ namespace esriUtil.FunctionRasters
                 noDataValue = float.MinValue;//System.Convert.ToSingle(noDataValueArr.GetValue(0));                
                 for (int nBand = 0; nBand < ipPixelBlock.Planes; nBand++)
                 {
+                    rstPixelType pbt = ipPixelBlock.get_PixelType(nBand);
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
@@ -104,7 +105,8 @@ namespace esriUtil.FunctionRasters
                             {
                                 updateGLCMDic(pbBig, c, r, nBand);
                                 float outVl = System.Convert.ToSingle(getTransformedValue(countDic));
-                                pixelValues.SetValue(outVl,c,r);
+                                object newVl = rasterUtil.getSafeValue(outVl, pbt);
+                                pixelValues.SetValue(newVl,c,r);
                             }
                         }
 
@@ -178,6 +180,7 @@ namespace esriUtil.FunctionRasters
                 }
                 catch(Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                 }
                 #endregion
                 #region add values to dicitonary
@@ -218,6 +221,7 @@ namespace esriUtil.FunctionRasters
                 }
                 catch(Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                 }
                 #endregion    
 

@@ -22,6 +22,7 @@ namespace esriUtil.FunctionRasters
         }
         private IFunctionRasterDataset inrs = null;
         private rasterUtil rsUtil = null;
+        public rasterUtil RasterUtility { get { return rsUtil; } }
         public IFunctionRasterDataset InRasterCoefficients 
         { 
             get 

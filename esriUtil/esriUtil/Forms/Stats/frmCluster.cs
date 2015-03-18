@@ -58,7 +58,7 @@ namespace esriUtil.Forms.Stats
                 {
                     string lyrNm = lyr.Name;
                     IRasterLayer ftrLyr = (IRasterLayer)lyr;
-                    IRaster ftrCls = ftrLyr.Raster;
+                    IRaster ftrCls = rsUtil.createRaster(((IRaster2)ftrLyr.Raster).RasterDataset);
                     if (!rstDic.ContainsKey(lyrNm))
                     {
                         rstDic.Add(lyrNm, ftrCls);

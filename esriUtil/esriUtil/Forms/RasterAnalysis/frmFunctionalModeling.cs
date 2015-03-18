@@ -420,7 +420,7 @@ namespace esriUtil.Forms.RasterAnalysis
                     }
                     foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
                     {
-                        frmSm.addRasterToComboBox(kVp.Key, kVp.Value);
+                        frmSm.addRasterToComboBox(kVp.Key, rsUtil.createIdentityRaster(kVp.Value));
                     }
                     dRslt = frmSm.ShowDialog(this);
                     mo = frmSm.OutRaster;

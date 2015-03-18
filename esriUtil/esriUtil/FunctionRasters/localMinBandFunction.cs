@@ -12,14 +12,15 @@ namespace esriUtil.FunctionRasters
 {
     class localMinBandFunction : localFunctionBase
     {
-        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float minB)
+        public override bool getOutPutVl(System.Array[] inArr, int c, int r, out float minB)
         {
+            int bands = inArr.Length;
             bool checkNoData = true;
             float minVl = float.MaxValue;
             minB = 0;
-            for (int i = 0; i < coefPb.Planes; i++)
+            for (int i = 0; i < bands; i++)
             {
-                object objVl = coefPb.GetVal(i, c, r);
+                object objVl = inArr[i].GetValue(c, r);
                 if (objVl == null)
                 {
                     checkNoData = false;
@@ -28,13 +29,14 @@ namespace esriUtil.FunctionRasters
                 }
                 else
                 {
-                    float vl = (float)objVl;
+                    float vl = System.Convert.ToSingle(objVl);
                     if (vl < minVl)
                     {
                         minVl = vl;
                         minB = i;
                     }
                 }
+                
 
             }
             return checkNoData;

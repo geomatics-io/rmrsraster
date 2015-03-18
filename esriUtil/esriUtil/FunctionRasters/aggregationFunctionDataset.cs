@@ -81,6 +81,7 @@ namespace esriUtil.FunctionRasters
                     //Console.WriteLine(ipPixelBlock.get_PixelType(nBand).ToString());
                     //object noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
+                    rstPixelType pTy = pbBig.get_PixelType(nBand);
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
@@ -90,8 +91,9 @@ namespace esriUtil.FunctionRasters
                             if (objVl != null)
                             {
                                 object outVl = getTransformedValue(pbBig, nBand, c, r, cells);
+                                object newVl = rasterUtil.getSafeValue(outVl, pTy);
                                 //System.Windows.Forms.MessageBox.Show(outVl.ToString());
-                                pixelValues.SetValue(outVl, c, r);
+                                pixelValues.SetValue(newVl, c, r);
 
                             }
                         }

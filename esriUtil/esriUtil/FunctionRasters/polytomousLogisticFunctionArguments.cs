@@ -51,11 +51,11 @@ namespace esriUtil.FunctionRasters
             get
             {
                 
-                IFunctionRasterDataset rs = rsUtil.getBand(inrs, 0);
+                IFunctionRasterDataset rs = rsUtil.getBand(inrs,0);
                 IRasterBandCollection rsBc = new RasterClass();
                 for (int i = 0; i < slopes.Length+1; i++)
                 {
-                    rsBc.AppendBand(rsBc.Item(0));
+                    rsBc.AppendBands((IRasterBandCollection)rs);
                 }
                 
                 return rsUtil.compositeBandFunction(rsBc);

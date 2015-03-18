@@ -110,6 +110,7 @@ namespace esriUtil.FunctionRasters
                 {
                     
                     System.Array pixelValues = (System.Array)(ipPixelBlock.get_PixelData(nBand));
+                    rstPixelType rsp = ipPixelBlock.get_PixelType(nBand);
                     //System.Array pixelValuesBig = (System.Array)(pbBig.get_PixelData(nBand));
                     for (int r = 0; r < pBHeight; r++)
                     {
@@ -123,8 +124,9 @@ namespace esriUtil.FunctionRasters
                             else
                             {
                                 float outVl = System.Convert.ToSingle(getTransformedValue(pbBig, c+l, r+t,nBand));
+                                object newVl = rasterUtil.getSafeValue(outVl, rsp);
                                 //Console.WriteLine(outVl.ToString());
-                                pixelValues.SetValue(outVl,c, r);
+                                pixelValues.SetValue(newVl,c, r);
                             }
                         }
 

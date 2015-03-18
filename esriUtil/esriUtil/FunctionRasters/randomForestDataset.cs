@@ -21,6 +21,7 @@ namespace esriUtil.FunctionRasters
         private Statistics.dataPrepRandomForest df = null;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass();
         private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();// Raster Function Helper object.
+        //private IRaster coefRaster = null;
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
@@ -34,9 +35,10 @@ namespace esriUtil.FunctionRasters
             {
                 randomForestArguments arg = (randomForestArguments)pArgument;
                 inrsBandsCoef = arg.InRasterCoefficients;
+                //coefRaster = arg.RasterUtility.createRaster(inrsBandsCoef);
                 outrs = arg.OutRaster;
                 xVls = new double[((IRasterBandCollection)inrsBandsCoef).Count];
-                //Console.WriteLine("Number of Bands in outrs = " + ((IRasterBandCollection)outrs).Count.ToString());
+                Console.WriteLine("Number of Bands in outrs = " + ((IRasterBandCollection)outrs).Count.ToString());
                 df = arg.RandomForestModel;
                 myFunctionHelper.Bind(outrs);
                 myFunctionHelperCoef.Bind(inrsBandsCoef);
@@ -68,12 +70,12 @@ namespace esriUtil.FunctionRasters
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
                 IPixelBlock3 outPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);//independent variables  
-                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelper.Raster, (IPixelBlock)outPb);
+                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)outPb);
                 int pBRowIndex = 0;
                 int pBColIndex = 0;
                 IPixelBlock3 ipPixelBlock = (IPixelBlock3)pPixelBlock;
                 System.Array[] cArr = new System.Array[ipPixelBlock.Planes];
-                for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++)
+                for (int outBand = 0; outBand < ipPixelBlock.Planes; outBand++) //gets all the pixel block values
                 {
                     System.Array pixelValues = (System.Array)ipPixelBlock.get_PixelData(outBand);
                     cArr[outBand] = pixelValues;
@@ -90,30 +92,22 @@ namespace esriUtil.FunctionRasters
                             if (pObj==null)
                             {
                                 ndT = false;
-                                //Console.WriteLine("Pixel Value = null for band " + coefnBand.ToString());
                                 break;
                             }
                             double pixelValue = Convert.ToDouble(pObj);
-                            //Console.WriteLine("Pixel Value = " + pixelValue.ToString());
                             xVls[coefnBand] = pixelValue;
                         }
                         if (ndT)
                         {
-                            try
+                            
+                            double[] pp = df.computNew(xVls);
+                            for (int p = 0; p < pp.Length; p++)
                             {
-                                double[] pp = df.computNew(xVls);
-                                for (int p = 0; p < pp.Length; p++)
-                                {
-                                    double pVl = pp[p];
-                                    float spVl = System.Convert.ToSingle(pVl);
-                                    //Console.WriteLine("Computed Value = " + spVl.ToString());
-                                    cArr[p].SetValue(spVl, k, i);
-                                }
+                                double pVl = pp[p];
+                                object spVl = rasterUtil.getSafeValue(pVl,ipPixelBlock.get_PixelType(p));
+                                cArr[p].SetValue(spVl, k, i);
                             }
-                            catch(Exception e)
-                            {
-                                Console.WriteLine(e.ToString());
-                            }
+                           
                         }
 
                     }
@@ -126,7 +120,8 @@ namespace esriUtil.FunctionRasters
             catch (Exception exc)
             {
                 System.Exception myExc = new System.Exception("Exception caught in Read method of the forest function Function. " + exc.Message, exc);
-                Console.WriteLine(exc.ToString());
+                //Console.WriteLine(exc.ToString());
+                throw myExc;
             }
         }
         public void Update()

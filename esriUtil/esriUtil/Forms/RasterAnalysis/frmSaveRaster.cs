@@ -139,6 +139,7 @@ namespace esriUtil.Forms.RasterAnalysis
             string wksNm = txtWorkspace.Text;
             string outNm = txtOutName.Text;
             string outType = cmbType.Text;
+            int blSize = System.Convert.ToInt32(nudBS.Value);
             if (outWks == null || wksNm == "" || wksNm == null || rstNm == "" || rstNm == null || outNm==""||outNm==null)
             {
                 MessageBox.Show("Raster, Workspace, or Output Name are not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -159,7 +160,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rs = rstDic[rstNm];
-                IRasterDataset rsDset = rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl);//rsUtil.saveRasterToDataset(rs, outNm, outWks);
+                IRasterDataset rsDset = rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl,blSize,blSize);//rsUtil.saveRasterToDataset(rs, outNm, outWks);
                 DateTime dt2 = DateTime.Now;
                 IRasterLayer rsLyr = new RasterLayerClass();
                 rsLyr.CreateFromDataset(rsDset);

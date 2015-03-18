@@ -126,6 +126,12 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ESRI.ArcGIS.ConversionTools, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="ESRI.ArcGIS.DataManagementTools, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.DataSourcesFile, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -237,6 +243,24 @@
     <Compile Include="Forms\frmAttributeQuery.Designer.cs">
       <DependentUpon>frmAttributeQuery.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FrmNecCdfAttributeSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FrmNecCdfAttributeSelection.Designer.cs">
+      <DependentUpon>FrmNecCdfAttributeSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmCreateAttributeTable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmCreateAttributeTable.Designer.cs">
+      <DependentUpon>frmCreateAttributeTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmLocalBinTimeRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmLocalBinTimeRaster.Designer.cs">
+      <DependentUpon>frmLocalBinTimeRaster.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmNDVIRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -267,6 +291,12 @@
     <Compile Include="Forms\RasterAnalysis\frmTasseledCap.Designer.cs">
       <DependentUpon>frmTasseledCap.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmLocalRescaleAnalysis.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmLocalRescaleAnalysis.Designer.cs">
+      <DependentUpon>frmLocalRescaleAnalysis.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Stats\frmChart.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -291,14 +321,28 @@
     <Compile Include="FunctionRasters\clusterFunctionGaussianDataset.cs" />
     <Compile Include="FunctionRasters\combineFunctionArguments.cs" />
     <Compile Include="FunctionRasters\combineFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\convertPixelTypeFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\convertPixelTypeFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\focalBandFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\focalBandFunctionDatasetBase.cs" />
+    <Compile Include="FunctionRasters\focalBandFunctionDatasetMean.cs" />
+    <Compile Include="FunctionRasters\focalBandFunctionDatasetStd.cs" />
+    <Compile Include="FunctionRasters\focalBandFunctionDatasetSum.cs" />
     <Compile Include="FunctionRasters\glmFunctionArguments.cs" />
     <Compile Include="FunctionRasters\glmFunctionDataset.cs" />
     <Compile Include="FunctionRasters\kdaFunctionArguments.cs" />
     <Compile Include="FunctionRasters\kdaFunctionDataset.cs" />
     <Compile Include="FunctionRasters\ldaFunctionArguments.cs" />
     <Compile Include="FunctionRasters\ldaFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\localPrctileDataset.cs" />
+    <Compile Include="FunctionRasters\LocalRescaleFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\localRescaleFunctionBase.cs" />
+    <Compile Include="FunctionRasters\meanShiftFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\meanShiftFunctionDataset.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionArguments.cs" />
     <Compile Include="FunctionRasters\pairedttestFunctionDataset.cs" />
+    <Compile Include="FunctionRasters\PixelBlockToRasterFunctionArguments.cs" />
+    <Compile Include="FunctionRasters\PixelBlockToRasterFunctionDataset.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionDataset.cs" />
     <Compile Include="normalization.cs" />
@@ -915,6 +959,9 @@
     <EmbeddedResource Include="Forms\frmAttributeQuery.resx">
       <DependentUpon>frmAttributeQuery.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FrmNecCdfAttributeSelection.resx">
+      <DependentUpon>FrmNecCdfAttributeSelection.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\MapServices\frmAddProjectLayers.resx">
       <DependentUpon>frmAddProjectLayers.cs</DependentUpon>
     </EmbeddedResource>
@@ -957,6 +1004,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmConvolutionRaster.resx">
       <DependentUpon>frmConvolutionRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmCreateAttributeTable.resx">
+      <DependentUpon>frmCreateAttributeTable.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmCreateConstant.resx">
       <DependentUpon>frmCreateConstant.cs</DependentUpon>
     </EmbeddedResource>
@@ -983,6 +1033,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmLinearTransform.resx">
       <DependentUpon>frmLinearTransform.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmLocalBinTimeRaster.resx">
+      <DependentUpon>frmLocalBinTimeRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmLogicalRaster.resx">
       <DependentUpon>frmLogicalRaster.cs</DependentUpon>
@@ -1037,6 +1090,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmZonalStats.resx">
       <DependentUpon>frmZonalStats.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmLocalRescaleAnalysis.resx">
+      <DependentUpon>frmLocalRescaleAnalysis.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RunningProcess\frmRunningProcessDialog.resx">
       <DependentUpon>frmRunningProcessDialog.cs</DependentUpon>

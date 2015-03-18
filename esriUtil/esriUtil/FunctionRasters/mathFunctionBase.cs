@@ -50,8 +50,8 @@ namespace esriUtil.FunctionRasters
         /// <param name="pPixelBlock">PixelBlock to be filled in</param>
         public void Read(IPnt pTlc, IRaster pRaster, IPixelBlock pPixelBlock)
         {
-            double vl = 0;
-            float pixelValue = 0f;
+            //double vl = 0;
+            //float pixelValue = 0f;
             try
             {
                 //System.Array noDataValueArr = (System.Array)((IRasterProps)pRaster).NoDataValue;
@@ -63,6 +63,7 @@ namespace esriUtil.FunctionRasters
                 {
                     //float noDataValue = System.Convert.ToSingle(noDataValueArr.GetValue(nBand));
                     System.Array dArr = (System.Array)pb3.get_PixelData(nBand);
+                    rstPixelType pbT = pb3.get_PixelType(nBand);
                     for (int r = 0; r < pPixelBlock.Height; r++)
                     {
                         for (int c = 0; c < pPixelBlock.Width; c++)
@@ -74,9 +75,11 @@ namespace esriUtil.FunctionRasters
                             }
                             else
                             {
-                                vl = System.Convert.ToSingle(objVl);
-                                pixelValue = (float)getFunctionValue(vl);
-                                dArr.SetValue(pixelValue, c, r);
+                                //vl = System.Convert.ToSingle(objVl);
+                                //pixelValue = (float)getFunctionValue(vl);
+                                double objVl2 = getFunctionValue(System.Convert.ToDouble(objVl));
+                                object newVl = rasterUtil.getSafeValue(objVl2, pbT);
+                                dArr.SetValue(newVl, c, r);
                             }
                         }
                     }

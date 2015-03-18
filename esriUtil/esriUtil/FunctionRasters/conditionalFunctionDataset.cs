@@ -81,7 +81,7 @@ namespace esriUtil.FunctionRasters
                             }
                             else
                             {
-                                vlObj = CoefPb.GetVal(1, c, r);
+                                vlObj = CoefPb.GetVal(2, c, r);
                             }
                             if (vlObj != null)
                             {

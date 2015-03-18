@@ -12,15 +12,16 @@ namespace esriUtil.FunctionRasters
 {
     class localStandardDeviationFunctionDataset : localFunctionBase
     {
-        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float std)
+        public override bool getOutPutVl(System.Array[] inArr, int c, int r, out float std)
         {
+            int bands = inArr.Length;
             bool checkNoData = true;
             std = 0;
             double sumVl = 0;
             double sumVl2 = 0;
-            for (int i = 0; i < coefPb.Planes; i++)
+            for (int i = 0; i < bands; i++)
             {
-                object objVl = coefPb.GetVal(i, c, r);
+                object objVl = inArr[i].GetValue(c, r);
                 if (objVl == null)
                 {
                     checkNoData = false;
@@ -29,7 +30,7 @@ namespace esriUtil.FunctionRasters
                 }
                 else
                 {
-                    float vl = (float)objVl;
+                    float vl = System.Convert.ToSingle(objVl);
                     sumVl += vl;
                     sumVl2 += vl * vl;
                 }
@@ -37,7 +38,7 @@ namespace esriUtil.FunctionRasters
             }
             if (checkNoData)
             {
-                std = System.Convert.ToSingle(Math.Sqrt((sumVl2 - ((sumVl * sumVl) / coefPb.Planes)) / coefPb.Planes));
+                std = System.Convert.ToSingle(Math.Sqrt((sumVl2 - ((sumVl * sumVl) / bands)) / bands));
             }
             return checkNoData;
         }

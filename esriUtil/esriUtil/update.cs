@@ -16,7 +16,7 @@ namespace esriUtil
         {
             toolbarVersion = ToolBarVersion;
         }
-        private string baseVersion = "10.0";
+        private string baseVersion = "10.2";
         private string HelpFileName = "RmrsRasterUtilityToolbarHelp.chm";
         private string HelpFileVersion = "helpVersion.txt";
         private string toolbarVersion = "";
@@ -50,7 +50,7 @@ namespace esriUtil
             {
                 try
                 {
-                    removeRMRSRasterUtility(curDir,curVer);
+                    //removeRMRSRasterUtility(curDir,curVer);
                     System.Diagnostics.Process pc = new System.Diagnostics.Process();
                     
                     string lcInstall = rmrsDir + "\\" + appFileName;

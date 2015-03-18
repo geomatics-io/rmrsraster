@@ -12,15 +12,16 @@ namespace esriUtil.FunctionRasters
 {
     class localEntropyFunctionDataset : localFunctionBase
     {
-        public override bool getOutPutVl(IPixelBlock3 coefPb, int c, int r, out float sProbability)
+        public override bool getOutPutVl(System.Array[] inArr, int c, int r, out float sProbability)
         {
+            int bands = inArr.Length;
             bool checkNoData = true;
             Dictionary<float, int> probDic = new Dictionary<float, int>();
             sProbability = 0;
             int cnt = 0;
-            for (int i = 0; i < coefPb.Planes; i++)
+            for (int i = 0; i < bands; i++)
             {
-                object objVl = coefPb.GetVal(i, c, r);
+                object objVl = inArr[i].GetValue(c, r);
                 if (objVl == null)
                 {
                     checkNoData = false;
@@ -28,7 +29,7 @@ namespace esriUtil.FunctionRasters
                 }
                 else
                 {
-                    float vl = (float)objVl;
+                    float vl = System.Convert.ToSingle(objVl);
                     if (probDic.TryGetValue(vl, out cnt))
                     {
                         probDic[vl] = cnt + 1;
@@ -45,7 +46,7 @@ namespace esriUtil.FunctionRasters
             {
                 foreach (int prbCnt in probDic.Values)
                 {
-                    float prob = System.Convert.ToSingle(prbCnt) / coefPb.Planes;
+                    float prob = System.Convert.ToSingle(prbCnt) / bands;
                     sProbability += sProbability + (prob * System.Convert.ToSingle(Math.Log(prob)));
                 }
                 sProbability = -1 * sProbability;

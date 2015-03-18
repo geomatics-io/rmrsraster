@@ -228,7 +228,7 @@ namespace esriUtil
                         break;
                     default:
                         wsFact = (IWorkspaceFactory2)new ESRI.ArcGIS.DataSourcesRaster.RasterWorkspaceFactoryClass();
-                        //Console.WriteLine(dir);
+                        //Console.WriteLine("Net Cdf file = "+dir);
                         wks = wsFact.OpenFromFile(dir, 0);
                         break;
                 }

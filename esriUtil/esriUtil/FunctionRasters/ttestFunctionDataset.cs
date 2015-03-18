@@ -101,8 +101,9 @@ namespace esriUtil.FunctionRasters
                             {
                                 for (int v = 0; v < pArr.Length; v++)
                                 {
-                                    float vl = System.Convert.ToSingle(c[v]);
-                                    pArr[v].SetValue(vl, k, i);
+                                    double vl = c[v];
+                                    object newVl = rasterUtil.getSafeValue(vl, ipPixelBlock.get_PixelType(v));
+                                    pArr[v].SetValue(newVl, k, i);
                                 }
                             }
                             else

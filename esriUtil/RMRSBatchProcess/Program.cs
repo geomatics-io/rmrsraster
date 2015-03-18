@@ -13,7 +13,7 @@ namespace RMRSBatchProcess
         static void Main(string[] args)
         {
             //ESRI License Initializer generated code.
-            m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[]{},new esriLicenseExtensionCode[] { });
+            m_AOLicenseInitializer.InitializeApplication(new esriLicenseProductCode[]{ esriLicenseProductCode.esriLicenseProductCodeBasic, esriLicenseProductCode.esriLicenseProductCodeStandard, esriLicenseProductCode.esriLicenseProductCodeAdvanced},new esriLicenseExtensionCode[] { });
             //ESRI License Initializer generated code.
             //Do not make any call to ArcObjects after ShutDownApplication()
             if (args.Length < 1)
@@ -23,9 +23,9 @@ namespace RMRSBatchProcess
             }
             else
             {
-                esriUtil.batchCalculations btc = new esriUtil.batchCalculations();
                 foreach (string s in args)
                 {
+                    esriUtil.batchCalculations btc = new esriUtil.batchCalculations();
                     btc.BatchPath = s;
                     btc.loadBatchFile();
                     btc.runBatch();

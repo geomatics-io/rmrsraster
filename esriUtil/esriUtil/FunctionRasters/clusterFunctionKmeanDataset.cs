@@ -82,6 +82,7 @@ namespace esriUtil.FunctionRasters
                 //    pArr[coefnBand] = pixelValues;
                 //}
                 System.Array pValues = (System.Array)ipPixelBlock.get_PixelData(0);//(System.Array)(td);
+                rstPixelType pTy = ipPixelBlock.get_PixelType(0);
                 for (int i = pBRowIndex; i < pBHeight; i++)
                 {
                     for (int k = pBColIndex; k < pBWidth; k++)
@@ -98,13 +99,14 @@ namespace esriUtil.FunctionRasters
                                 ndT = false;
                                 break;
                             }
-                            float pixelValue = Convert.ToSingle(pObj);
+                            double pixelValue = Convert.ToDouble(pObj);
                             xVls[coefnBand] = pixelValue;
                         }
                         if (ndT)
                         {
                             int c = cluster.computNew(xVls);
-                            pValues.SetValue(c, k, i);
+                            object newVl = rasterUtil.getSafeValue(c, pTy);
+                            pValues.SetValue(newVl, k, i);
                         }
 
                     }

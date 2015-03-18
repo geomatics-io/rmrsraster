@@ -2,13 +2,13 @@
   <Name>servicesToolBar</Name>
   <AddInID>{00ebf4c7-7068-4ef2-a175-a79568a85cb9}</AddInID>
   <Description>Toolbar for Raster Processing</Description>
-  <Version>1.8</Version>
+  <Version>2</Version>
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>2/18/2014</Date>
+  <Date>3/10/2015</Date>
   <Targets>
-    <Target name="Desktop" version="10.0" />
+    <Target name="Desktop" version="10.2" />
   </Targets>
   <AddIn language="CLR" library="servicesToolBar.dll" namespace="servicesToolBar">
     <ArcMap>
@@ -102,6 +102,9 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandNdviRaster" class="commandNdviRaster" message="Performs NDVI transformation to a given image" caption="NDVI" tip="Click to open NDVI form" category="rasterUtilities" image="Images\commandNdviRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandTasseledCapETM7" class="commandTasseledCapETM7" message="Performs Tasseled Cap transformation on a Landsat ETM+ image." caption="Tasseled Cap" tip="click to open Tasseled Cap form" category="rasterUtilities" image="Images\commandTasseledCapETM7.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandResampleRaster" class="commandResampleRaster" message="resamples raster cellsize" caption="Resample Raster" tip="click to open resample form" category="rasterUtilities" image="Images\commandResampleRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandLocalRescaleRaster" class="commandLocalRescaleRaster" message="Rescales Rasters" caption="Local Rescale Raster" tip="click to open raster utility form" category="rasterUtilities" image="Images\commandLocalRescaleRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandBuildAttributeTable" class="commandBuildAttributeTable" message="Creates a multiband raster attribute table. Similar to the attribute table created by ESRI's combine command. Also works with single band rasters" caption="Build Raster Attribute Table" tip="click to open form" category="rasterUtilities" image="Images\commandBuildAttributeTable.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_FocalBand" class="commandFocalBandRaster" message="Calculates focal time series analysis" caption="Focal Band" tip="Click to open user form" category="rasterUtilities" image="Images\commandFocalBandRaster.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

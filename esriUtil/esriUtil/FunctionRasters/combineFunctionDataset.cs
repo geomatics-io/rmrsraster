@@ -22,13 +22,14 @@ namespace esriUtil.FunctionRasters
         private Dictionary<string,int> uniqueDic = new Dictionary<string,int>();
         private int uniqueCounter = 0;
         private IRasterFunctionHelper myFunctionHelper = new RasterFunctionHelperClass(); // Raster Function Helper object.
-        private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
+        //private IRasterFunctionHelper myFunctionHelperCoef = new RasterFunctionHelperClass();
         public IRasterInfo RasterInfo { get { return myRasterInfo; } }
         public rstPixelType PixelType { get { return myPixeltype; } set { myPixeltype = value; } }
         public string Name { get { return myName; } set { myName = value; } }
         public string Description { get { return myDescription; } set { myDescription = value; } }
         public bool myValidFlag = false;
         public bool Valid { get { return myValidFlag; } }
+        object noDataVl = null;
         public void Bind(object pArgument)
         {
             if (pArgument is combineFunctionArguments)
@@ -38,10 +39,19 @@ namespace esriUtil.FunctionRasters
                 inrs = args.InRasterDataset;
                 outRs = args.OutRaster;
                 myFunctionHelper.Bind(outRs);
-                myFunctionHelperCoef.Bind(inrs);
+                //myFunctionHelperCoef.Bind(inrs);
                 myRasterInfo = myFunctionHelper.RasterInfo;
                 myPixeltype = myRasterInfo.PixelType;
                 myValidFlag = true;
+                object tnd = myRasterInfo.NoData;
+                if(tnd==null)
+                {
+                }
+                else
+                {
+                    noDataVl = ((System.Array)myRasterInfo.NoData).GetValue(0);
+                }
+                
             }
             else
             {
@@ -66,11 +76,21 @@ namespace esriUtil.FunctionRasters
                 int pBWidth = pPixelBlock.Width;
                 IPnt pbSize = new PntClass();
                 pbSize.SetCoords(pBWidth, pBHeight);
-                IPixelBlock3 inVlsPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
-                myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)inVlsPb);
+                //IPixelBlock3 inVlsPb = (IPixelBlock3)myFunctionHelperCoef.Raster.CreatePixelBlock(pbSize);
+                //myFunctionHelperCoef.Read(pTlc,null,myFunctionHelperCoef.Raster, (IPixelBlock)inVlsPb);
                 IPixelBlock3 outPixelBlock = (IPixelBlock3)pPixelBlock;
                 System.Array outArr = (System.Array)outPixelBlock.get_PixelData(0);
-                updateOutArr(ref outArr, ref inVlsPb);
+                System.Array[] inArr = new System.Array[inrs.RasterInfo.BandCount];
+                IRasterBandCollection rsBc = (IRasterBandCollection)inrs;
+                for (int b = 0; b < inrs.RasterInfo.BandCount; b++)
+			    {
+                    IRasterBand rsB = rsBc.Item(b);
+                    IRawPixels rPix = (IRawPixels)rsB;
+                    IPixelBlock pb = rPix.CreatePixelBlock(pbSize);
+                    rPix.Read(pTlc,pb);
+                    inArr[b] = (System.Array)pb.get_SafeArray(b);
+			    }
+                updateOutArr(outPixelBlock, inArr, outArr);
                 outPixelBlock.set_PixelData(0, outArr);
                 
             }
@@ -80,41 +100,46 @@ namespace esriUtil.FunctionRasters
             }
         }
 
-        private void updateOutArr(ref System.Array outArr, ref IPixelBlock3 inVlsPb)
+        private void updateOutArr(IPixelBlock3 outPb, System.Array[] inArr, System.Array outArr)
         {
-            string[] sArr = new string[inVlsPb.Planes];
-            for (int r = 0; r < inVlsPb.Height; r++)
+            
+            int bands = inArr.Length;
+            string[] sArr = new string[bands];
+            System.Array[] vlArr = new System.Array[bands];
+            rstPixelType pTy = outPb.get_PixelType(0);
+            for (int r = 0; r < outPb.Height; r++)
             {
-                for (int c = 0; c < inVlsPb.Width; c++)
+                for (int c = 0; c < outPb.Width; c++)
                 {
-                    for (int p = 0; p < inVlsPb.Planes; p++)
+                    bool ch = true;
+                    for (int p = 0; p < bands; p++)
                     {
-                        object inObj = inVlsPb.GetVal(p, c, r);
+                        object inObj = inArr[p].GetValue(c, r);
                         if (inObj == null)
                         {
-                            sArr[p] = "null";
+                            ch = false;
+                            break;
                         }
                         else
                         {
                             sArr[p] = inObj.ToString();
                         }
                     }
-                    
-                    int vl = uniqueCounter;
-                    string sVls = String.Join(",",sArr);
-                    if(!uniqueDic.TryGetValue(sVls,out vl))
+                    if (ch)
                     {
-                        uniqueCounter+=1;
-                        vl = uniqueCounter;
-                        uniqueDic.Add(sVls,vl);
+                        int vl = uniqueCounter;
+                        string sVls = String.Join(",", sArr);
+                        if (!uniqueDic.TryGetValue(sVls, out vl))
+                        {
+                            uniqueCounter += 1;
+                            vl = uniqueCounter;
+                            uniqueDic.Add(sVls, vl);
+                        }
+                        object newVl = rasterUtil.getSafeValue(vl, pTy);
+                        outArr.SetValue(newVl, c, r);
                     }
-                    outArr.SetValue(vl,c,r);
-                    
-
                 }
-                
             }
-            
         }
 
         public void Update()
