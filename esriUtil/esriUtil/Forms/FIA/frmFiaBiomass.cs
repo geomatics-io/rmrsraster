@@ -123,7 +123,7 @@ namespace esriUtil.Forms.FIA
         {
             getFeaturePath();
         }
-
+        private Dictionary<string, string> grpDic = new Dictionary<string, string>();
         private void btnExecute_Click(object sender, EventArgs e)
         {
             string ftrNm = cmbSampleFeatureClass.Text;
@@ -164,6 +164,7 @@ namespace esriUtil.Forms.FIA
             try
             {
                 fiaIntegration fiaInt = new fiaIntegration(fiaDbNm);
+                fiaInt.GroupDic = grpDic;
                 fiaInt.PlotCnField = plotFldNm;
                 fiaInt.SubPlotField = subPlotFldNm;
                 IFeatureClass ftrCls = ftrDic[ftrNm];
@@ -223,6 +224,46 @@ namespace esriUtil.Forms.FIA
                 else
                 {
                 }
+            }
+        }
+
+        private void btnGrp_Click(object sender, EventArgs e)
+        {
+            string fiaDbNm = txtAccessDb.Text;
+            string fiaFtrClsNm = cmbSampleFeatureClass.Text;
+            string fiaPlCnNm = cmbPlot.Text;
+            if(fiaDbNm==null||fiaDbNm=="")
+            {
+                MessageBox.Show("You need to specify an FIA database before you can select groups!","Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                return;
+            }
+            else if (fiaFtrClsNm == null || fiaFtrClsNm == "")
+            {
+                MessageBox.Show("You need to specify a plot feature class before you can select groups!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            else if (fiaPlCnNm == null || fiaPlCnNm == "")
+            {
+                MessageBox.Show("You need to specify a link field before you can select groups!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            else
+            {
+                frmGroupSpecies frmGp = new frmGroupSpecies(fiaDbNm);
+                frmGp.GroupDictionary = grpDic;
+                frmGp.PLT_CN_FieldName = fiaPlCnNm;
+                frmGp.PlotFeatureClass = ftrDic[fiaFtrClsNm];
+                if (DialogResult.OK == frmGp.ShowDialog())
+                {
+                    grpDic = frmGp.GroupDictionary;
+                    //MessageBox.Show(String.Join(", ", grpDic.Values.ToArray()));
+                }
+                else
+                {
+                    MessageBox.Show("Result not ok");
+                }
+                frmGp.Dispose();
             }
         }
     }

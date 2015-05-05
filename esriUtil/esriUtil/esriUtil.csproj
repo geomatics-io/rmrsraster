@@ -237,6 +237,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
+    <Compile Include="Forms\FIA\frmGroupSpecies.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FIA\frmGroupSpecies.Designer.cs">
+      <DependentUpon>frmGroupSpecies.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\frmAttributeQuery.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -955,6 +961,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\FIA\frmFiaBiomass.resx">
       <DependentUpon>frmFiaBiomass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FIA\frmGroupSpecies.resx">
+      <DependentUpon>frmGroupSpecies.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\frmAttributeQuery.resx">
       <DependentUpon>frmAttributeQuery.cs</DependentUpon>

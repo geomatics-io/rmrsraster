@@ -39,54 +39,43 @@ namespace TestConsole
             TimeSpan ts;
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            //string rsStr1 = @"C:\Users\jshogland\Documents\JOHN\Requests\JasonDrake\LongleafProbabilityGrids.gdb\CoastalLL";
-            //string rsStr2 = @"C:\Users\jshogland\Documents\JOHN\Requests\JasonDrake\LongleafProbabilityGrids.gdb\Deciduous";
-            //string rsStr3 = @"C:\Users\jshogland\Documents\JOHN\Requests\JasonDrake\LongleafProbabilityGrids.gdb\Evergreen";
-            //IRasterBandCollection rsBC = new RasterClass();
-            //IFunctionRasterDataset rDset1 = rsUtil.createIdentityRaster(rsStr1);
-            //IFunctionRasterDataset rDset2 = rsUtil.createIdentityRaster(rsStr2);
-            //IFunctionRasterDataset rDset3 = rsUtil.createIdentityRaster(rsStr3);
-            //rsBC.AppendBands((IRasterBandCollection)rDset1);
-            //rsBC.AppendBands((IRasterBandCollection)rDset2);
-            //rsBC.AppendBands((IRasterBandCollection)rDset3);
-            //IFunctionRasterDataset comp = rsUtil.compositeBandFunction(rsBC);
+            string fiaDbNm = @"C:\Users\jshogland\Documents\JOHN\projects\BANR\HelenaNationalForest\data\fromFIA\MT_FIA_DATA\FIADB_version5_1.accdb";
+            string plotFldNm = "CNtxt";
+            string subPlotFldNm = "";
+            string ftrClsStr = @"C:\Users\jshogland\Documents\FiaData\HelenaFiaData.gdb\FiaPlots";
+            List<fiaIntegration.biomassTypes> bTypes = new List<fiaIntegration.biomassTypes>();
+            bTypes.Add(fiaIntegration.biomassTypes.BAA);
+            bTypes.Add(fiaIntegration.biomassTypes.TPA);
+            bTypes.Add(fiaIntegration.biomassTypes.J_AGB);
+            IFeatureClass ftrCls = geoUtil.getFeatureClass(ftrClsStr);
+            fiaIntegration fiaInt = new fiaIntegration(fiaDbNm);
+            fiaInt.PlotCnField = plotFldNm;
+            fiaInt.SubPlotField = subPlotFldNm;
+            fiaInt.BiomassTypes = bTypes.ToArray();
+            fiaInt.SampleFeatureClass = ftrCls;
+            fiaInt.summarizeBiomass();
 
 
-            ////IFunctionRasterDataset fDset = rsUtil.createIdentityRaster(rsStr);
-            //IFunctionRasterDataset fDset2 = rsUtil.localStatisticsfunction(comp, rasterUtil.localType.MAXBAND);
-            ////IFunctionRasterDataset fDset3 = rsUtil.constantRasterFunction(fDset2, 0, rstPixelType.PT_UCHAR);
-            //IFunctionRasterDataset fDset1 = rsUtil.convertToDifFormatFunction(fDset2, rstPixelType.PT_UCHAR);
-            //Console.WriteLine("Pixel Type of fdset 1" + fDset1.RasterInfo.PixelType.ToString());
-            //IPnt pntSize = new PntClass();
-            //IPnt pLoc = new PntClass();
-            //pntSize.SetCoords(6000, 6000);
-            //pLoc.SetCoords(10000, 10000);
-            ////Console.WriteLine("Running dataset 1");
-            ////runRasterPb(fDset, pntSize, pLoc, rsUtil);
-            //Console.WriteLine("Running dataset 2");
-            //runRasterPb(fDset1, pntSize, pLoc, rsUtil);
-
-
-            string ftpSite = @"ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/NAIP/mt_2013/";
-            List<string> fNames = getFileNames(ftpSite);
-            string outDir = @"E:\Helena\NAIP\Bulk Order 421750\NAIP JPG2000";
-            List<string> exNames = getExistingNames(outDir);
-            List<string> tiles = getTiles();
-            for (int i = 0; i < fNames.Count; i++)
-            {
-                string fName = fNames[i];
-                string lfn = fName.Substring(0, 7);
-                if (tiles.Contains(lfn.ToLower()))
-                {
-                    if (!exNames.Contains(fName))
-                    {
-                        //Console.WriteLine("Total number of files = " + fNames.Count.ToString());
-                        Console.WriteLine("Downloading " + fName);
-                        bool gotFile = Download(ftpSite, outDir, fName);
-                        Console.WriteLine("Got File " + fName + " " + gotFile.ToString());
-                    }
-                }
-            }
+            //string ftpSite = @"ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/NAIP/mt_2013/";
+            //List<string> fNames = getFileNames(ftpSite);
+            //string outDir = @"E:\Helena\NAIP\Bulk Order 421750\NAIP JPG2000";
+            //List<string> exNames = getExistingNames(outDir);
+            //List<string> tiles = getTiles();
+            //for (int i = 0; i < fNames.Count; i++)
+            //{
+            //    string fName = fNames[i];
+            //    string lfn = fName.Substring(0, 7);
+            //    if (tiles.Contains(lfn.ToLower()))
+            //    {
+            //        if (!exNames.Contains(fName))
+            //        {
+            //            //Console.WriteLine("Total number of files = " + fNames.Count.ToString());
+            //            Console.WriteLine("Downloading " + fName);
+            //            bool gotFile = Download(ftpSite, outDir, fName);
+            //            Console.WriteLine("Got File " + fName + " " + gotFile.ToString());
+            //        }
+            //    }
+            //}
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Total Seconds RawBlock= " + ts.TotalSeconds.ToString());

@@ -81,17 +81,25 @@ namespace esriUtil
         private geoDatabaseUtility geoDbUtil = new geoDatabaseUtility();
         private biomassTypes[] fldArr = null;
         public biomassTypes[] BiomassTypes { get { return fldArr; } set { fldArr = value; } }
-        HashSet<int> unSp = new HashSet<int>();
+        HashSet<string> unSp = new HashSet<string>();
         Dictionary<string,object[]> vlDic = new Dictionary<string,object[]>();
+        //Dictionary<string, object[]> grVlDic = new Dictionary<string, object[]>();
+        Dictionary<string,string> grpDic = new Dictionary<string,string>();
+        bool grp = false;
+        public Dictionary<string,string> GroupDic { get { return grpDic; } set { grp = true; grpDic = value; } }
         HashSet<string> unPlots = new HashSet<string>();
-        Dictionary<int, object[]> bmDic = new Dictionary<int, object[]>();
+        Dictionary<string, object[]> bmDic = new Dictionary<string, object[]>();
         public void summarizeBiomass()
         {
             try
             {
                 if (SubPlotField == null) SubPlotField = "";
+                //Console.WriteLine("Creating FIlling Plots Table");
                 createAndFillPlotsTable();
+                //Console.WriteLine("Creating And Filling Tree Ref Table");
                 createAndFillTreesRef();
+                //Console.WriteLine("Adding fields");
+                //need to add in groups and update unSp
                 addFields();
                 IQueryFilter qryFlt = new QueryFilterClass();
                 string nFldNm = "";
@@ -108,9 +116,9 @@ namespace esriUtil
                     string pCn = ftr.get_Value(cnIndex).ToString();
                     int sPl = 0;
                     if(subIndex>-1) sPl = System.Convert.ToInt32(ftr.get_Value(subIndex));
-                    foreach (int t in unSp)//(biomassTypes s in fldArr)
+                    foreach (string t in unSp)//(biomassTypes s in fldArr)
 	                {
-                        string ky = pCn+"_"+sPl+"_"+t.ToString();
+                        string ky = pCn+"_"+sPl+"_"+t;//CN_SubPlot_species
                         object[] vls;
                         if(vlDic.TryGetValue(ky,out vls))
                         {
@@ -189,6 +197,7 @@ namespace esriUtil
             }
             catch(Exception e)
             {
+                Console.WriteLine(e.ToString());
                 //System.Environment.OSVersion.
                 if (av == "0.0" || ev == "0.0")
                 {
@@ -200,6 +209,8 @@ namespace esriUtil
                 }
             }
         }
+
+        
         private void createAndFillTreesRef()
         {
             //DataTable dtTrees = null;
@@ -214,7 +225,7 @@ namespace esriUtil
                 {
                     object[] vls = new object[9];
                     oleRd.GetValues(vls);
-                    bmDic.Add(System.Convert.ToInt32(vls[0]),vls);
+                    bmDic.Add(vls[0].ToString(),vls);
                 }
                 oleRd.Close();
                 sql = "SELECT CN, PLT_CN, SUBP, TREE, SPCD, DIA, HT FROM TREE WHERE DIA >= 5 and SPCD > 0";
@@ -230,10 +241,11 @@ namespace esriUtil
                     string linkVl = pltCn+"_"+subp;
                     if(unPlots.Contains(linkVl))
                     {
-                        int spcd = System.Convert.ToInt32(vls[4]);
+                        string spcd = vls[4].ToString();
                         object[] bmVls;
                         if(bmDic.TryGetValue(spcd,out bmVls))
                         {
+                            if (grp) spcd = findGrp(spcd);
                             unSp.Add(spcd);
                             string lk = linkVl+"_"+spcd.ToString();
                             object[] treeVls;
@@ -283,6 +295,19 @@ namespace esriUtil
             }
         }
 
+        private string findGrp(string spcd)
+        {
+            string outVl;
+            if(grpDic.TryGetValue(spcd,out outVl))
+            {
+                return outVl;
+            }
+            else
+            {
+                return spcd;
+            }
+        }
+
 
         private void createAndFillPlotsTable()
         {
@@ -315,11 +340,11 @@ namespace esriUtil
         }
         private void addFields()
         {
-            foreach (int s in unSp )
+            foreach (string s in unSp )
             {
                 foreach (biomassTypes t in fldArr)
                 {
-                    string fldNm = t.ToString() + "_" + s.ToString();
+                    string fldNm = t.ToString() + "_" + s;
                     if (SampleFeatureClass.FindField(fldNm) > -1)
                     {
                     }

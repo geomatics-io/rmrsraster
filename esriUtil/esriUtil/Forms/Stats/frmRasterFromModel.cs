@@ -69,37 +69,17 @@ namespace esriUtil.Forms.Stats
                     outPath = gxObj.FullName;
                     outName = gxObj.BaseName;
                     IRaster rs = rsUtil.returnRaster(outPath);
-                    if (((IRasterBandCollection)rs).Count > 1)
+                    
+                    if (!rstDic.ContainsKey(outName))
                     {
-                        IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-                        for (int r = 0; r < rsBc.Count; r++)
-                        {
-                            string nNm = outName + "_Band_" + (r + 1).ToString();
-                            IRaster rsB = rsUtil.returnRaster(rsUtil.getBand(rs, r));
-                            if (!rstDic.ContainsKey(nNm))
-                            {
-                                rstDic.Add(nNm, rsB);
-                                lsbRaster.Items.Add(nNm);
-                                //cmbInRaster1.Items.Add(nNm);
-                            }
-                            else
-                            {
-                                rstDic[nNm] = rsB;
-                            }
-                        }
+                        rstDic.Add(outName, rs);
+                        lsbRaster.Items.Add(outName);
                     }
                     else
                     {
-                        if (!rstDic.ContainsKey(outName))
-                        {
-                            rstDic.Add(outName, rs);
-                            lsbRaster.Items.Add(outName);
-                        }
-                        else
-                        {
-                            rstDic[outName] = rs;
-                        }
+                        rstDic[outName] = rs;
                     }
+                    
                     gxObj = eGxObj.Next();
                 }
             }
@@ -136,35 +116,17 @@ namespace esriUtil.Forms.Stats
                     string lyrNm = lyr.Name;
                     IRasterLayer rstLyr = (IRasterLayer)lyr;
                     IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
-                    if (((IRasterBandCollection)rst).Count > 1)
+                    
+                    if (!rstDic.ContainsKey(lyrNm))
                     {
-                        for (int i = 0; i < ((IRasterBandCollection)rst).Count; i++)
-                        {
-                            IRaster rsN = rsUtil.returnRaster(rsUtil.getBand(rst, i));
-                            string rsNm = lyrNm + "_Band_" + (i + 1).ToString();
-                            if (!rstDic.ContainsKey(rsNm))
-                            {
-                                rstDic.Add(rsNm, rsN);
-                                cmbInRaster1.Items.Add(rsNm);
-                            }
-                            else
-                            {
-                                rstDic[rsNm] = rsN;
-                            }
-                        }
+                        rstDic.Add(lyrNm, rst);
+                        cmbInRaster1.Items.Add(lyrNm);
                     }
                     else
                     {
-                        if (!rstDic.ContainsKey(lyrNm))
-                        {
-                            rstDic.Add(lyrNm, rst);
-                            cmbInRaster1.Items.Add(lyrNm);
-                        }
-                        else
-                        {
-                            rstDic[lyrNm] = rst;
-                        }
+                        rstDic[lyrNm] = rst;
                     }
+                    
                     lyr = rstLyrs.Next();
                 }
             }

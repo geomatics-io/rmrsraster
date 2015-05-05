@@ -29,10 +29,8 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmFiaBiomass));
-            this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cmbSampleFeatureClass = new System.Windows.Forms.ComboBox();
-            this.btnAccessDb = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.clbBiomassTypes = new System.Windows.Forms.CheckedListBox();
             this.btnExecute = new System.Windows.Forms.Button();
@@ -41,17 +39,10 @@
             this.label4 = new System.Windows.Forms.Label();
             this.cmbSubPlot = new System.Windows.Forms.ComboBox();
             this.txtAccessDb = new System.Windows.Forms.TextBox();
+            this.btnGrp = new System.Windows.Forms.Button();
+            this.btnAccessDb = new System.Windows.Forms.Button();
+            this.btnOpenFeatureClass = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // btnOpenFeatureClass
-            // 
-            this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(233, 26);
-            this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
-            this.btnOpenFeatureClass.Size = new System.Drawing.Size(27, 28);
-            this.btnOpenFeatureClass.TabIndex = 17;
-            this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
-            this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeatureClass_Click);
             // 
             // label1
             // 
@@ -70,16 +61,6 @@
             this.cmbSampleFeatureClass.Size = new System.Drawing.Size(210, 21);
             this.cmbSampleFeatureClass.TabIndex = 15;
             this.cmbSampleFeatureClass.SelectedIndexChanged += new System.EventHandler(this.cmbSampleFeatureClass_SelectedIndexChanged);
-            // 
-            // btnAccessDb
-            // 
-            this.btnAccessDb.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnAccessDb.Location = new System.Drawing.Point(233, 161);
-            this.btnAccessDb.Name = "btnAccessDb";
-            this.btnAccessDb.Size = new System.Drawing.Size(27, 28);
-            this.btnAccessDb.TabIndex = 20;
-            this.btnAccessDb.UseVisualStyleBackColor = true;
-            this.btnAccessDb.Click += new System.EventHandler(this.btnAccessDb_Click);
             // 
             // label2
             // 
@@ -149,11 +130,42 @@
             this.txtAccessDb.Size = new System.Drawing.Size(209, 20);
             this.txtAccessDb.TabIndex = 27;
             // 
+            // btnGrp
+            // 
+            this.btnGrp.Location = new System.Drawing.Point(12, 354);
+            this.btnGrp.Name = "btnGrp";
+            this.btnGrp.Size = new System.Drawing.Size(49, 23);
+            this.btnGrp.TabIndex = 28;
+            this.btnGrp.Text = "Group";
+            this.btnGrp.UseVisualStyleBackColor = true;
+            this.btnGrp.Click += new System.EventHandler(this.btnGrp_Click);
+            // 
+            // btnAccessDb
+            // 
+            this.btnAccessDb.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnAccessDb.Location = new System.Drawing.Point(233, 161);
+            this.btnAccessDb.Name = "btnAccessDb";
+            this.btnAccessDb.Size = new System.Drawing.Size(27, 28);
+            this.btnAccessDb.TabIndex = 20;
+            this.btnAccessDb.UseVisualStyleBackColor = true;
+            this.btnAccessDb.Click += new System.EventHandler(this.btnAccessDb_Click);
+            // 
+            // btnOpenFeatureClass
+            // 
+            this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(233, 26);
+            this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
+            this.btnOpenFeatureClass.Size = new System.Drawing.Size(27, 28);
+            this.btnOpenFeatureClass.TabIndex = 17;
+            this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
+            this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeatureClass_Click);
+            // 
             // frmFiaBiomass
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(268, 382);
+            this.Controls.Add(this.btnGrp);
             this.Controls.Add(this.txtAccessDb);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbSubPlot);
@@ -190,5 +202,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ComboBox cmbSubPlot;
         private System.Windows.Forms.TextBox txtAccessDb;
+        private System.Windows.Forms.Button btnGrp;
     }
 }
