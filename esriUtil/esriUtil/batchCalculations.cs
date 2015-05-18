@@ -393,7 +393,7 @@ namespace esriUtil
             {
                 modelDic[outName] = fObj.ToString();
             }
-            else if (fObj is Raster)
+            else if (fObj is RasterDataset)
             {
                 rstDic[outName] = (IFunctionRasterDataset)fObj;
             }

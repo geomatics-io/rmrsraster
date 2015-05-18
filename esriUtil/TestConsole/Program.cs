@@ -39,21 +39,11 @@ namespace TestConsole
             TimeSpan ts;
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            string fiaDbNm = @"C:\Users\jshogland\Documents\JOHN\projects\BANR\HelenaNationalForest\data\fromFIA\MT_FIA_DATA\FIADB_version5_1.accdb";
-            string plotFldNm = "CNtxt";
-            string subPlotFldNm = "";
-            string ftrClsStr = @"C:\Users\jshogland\Documents\FiaData\HelenaFiaData.gdb\FiaPlots";
-            List<fiaIntegration.biomassTypes> bTypes = new List<fiaIntegration.biomassTypes>();
-            bTypes.Add(fiaIntegration.biomassTypes.BAA);
-            bTypes.Add(fiaIntegration.biomassTypes.TPA);
-            bTypes.Add(fiaIntegration.biomassTypes.J_AGB);
-            IFeatureClass ftrCls = geoUtil.getFeatureClass(ftrClsStr);
-            fiaIntegration fiaInt = new fiaIntegration(fiaDbNm);
-            fiaInt.PlotCnField = plotFldNm;
-            fiaInt.SubPlotField = subPlotFldNm;
-            fiaInt.BiomassTypes = bTypes.ToArray();
-            fiaInt.SampleFeatureClass = ftrCls;
-            fiaInt.summarizeBiomass();
+            string rsStr = @"C:\Users\jshogland\Documents\JOHN\projects\Code\RMRSRasterUtility\esriUtil\RmrsUtilitywebsite\DOWNLOADS\Accuracy Assessment\AccuracyAssessment.gdb\CCCD";
+            IWorkspace rsWks = geoUtil.OpenRasterWorkspace(@"C:\Users\jshogland\Documents\JOHN\projects\Code\RMRSRasterUtility\esriUtil\RmrsUtilitywebsite\DOWNLOADS\Accuracy Assessment\AccuracyAssessment.gdb");
+
+            IRaster rs = rsUtil.returnRaster(rsStr);
+            rsUtil.createRandomSampleLocationsByClass(rsWks, rs, new int[] { 30 }, 1, "srSmTest");
 
 
             //string ftpSite = @"ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/NAIP/mt_2013/";

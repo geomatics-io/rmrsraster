@@ -336,16 +336,31 @@ namespace esriUtil
                 return cnts;
             }
             ICursor scur = rst2.AttributeTable.Search(null, false);
-            int vlIndex = scur.Fields.FindField("VALUE");
-            int cntIndex = scur.Fields.FindField("COUNT");
-
-            IRow srow = scur.NextRow();
-            while (srow != null)
+            if (scur == null)
             {
-                string vl = srow.get_Value(vlIndex).ToString();
-                int cnt = System.Convert.ToInt32(srow.get_Value(cntIndex));
-                cnts.Add(vl, cnt);
-                srow = scur.NextRow();
+                Console.WriteLine("Creating VAT...");
+                IFunctionRasterDataset fd = createIdentityRaster(rst);
+                Dictionary<int,int> cntsInt = BuildVatFromScratch(fd);
+                foreach (KeyValuePair<int,int> kvp in cntsInt)
+                {
+                    cnts.Add(kvp.Key.ToString(), kvp.Value);
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Reading VAT...");
+                int vlIndex = scur.Fields.FindField("VALUE");
+                int cntIndex = scur.Fields.FindField("COUNT");
+
+                IRow srow = scur.NextRow();
+                while (srow != null)
+                {
+                    string vl = srow.get_Value(vlIndex).ToString();
+                    int cnt = System.Convert.ToInt32(srow.get_Value(cntIndex));
+                    cnts.Add(vl, cnt);
+                    srow = scur.NextRow();
+                }
             }
             return cnts;
         }
@@ -422,6 +437,7 @@ namespace esriUtil
                     {
                         string vl = vlTobject.ToString();
                         int vlint = System.Convert.ToInt32(vlTobject);
+                        //Console.WriteLine(vlint.ToString());
                         double xC = rst2.ToMapX(x);
                         double yC = rst2.ToMapY(y);
                         string tStr = x.ToString() + ";" + y.ToString();
@@ -431,7 +447,7 @@ namespace esriUtil
                         {
                             int spc=spcInt[0];
                             if (spcInt.Contains(vlint)) spc = spcInt[vlint];
-                            if (tCoor.Count < spcInt[vlint] && !selectRowsColums.Contains(tStr))
+                            if (tCoor.Count < spc && !selectRowsColums.Contains(tStr))
                             {
                                 tCoor.Add(xy);
                                 selectRowsColums.Add(tStr);
