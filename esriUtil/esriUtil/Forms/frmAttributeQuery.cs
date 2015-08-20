@@ -37,6 +37,7 @@ namespace esriUtil.Forms
             lblSelect.Text = "SELECT * FROM " + dset.BrowseName + " WHERE ";
         }
         public string qry = "";
+        public string Query { get { return qry; } set { qry = value; rctQry.Text = qry; } }
         private ITable tbl = null;
         private IFields flds = null;
         private char pr = '"';

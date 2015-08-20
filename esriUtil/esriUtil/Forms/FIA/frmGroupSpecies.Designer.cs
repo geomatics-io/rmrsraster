@@ -40,6 +40,7 @@
             this.btnMin = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
+            this.chbStatusCode = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSp)).BeginInit();
             this.SuspendLayout();
             // 
@@ -149,11 +150,22 @@
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
             // 
+            // chbStatusCode
+            // 
+            this.chbStatusCode.AutoSize = true;
+            this.chbStatusCode.Location = new System.Drawing.Point(13, 340);
+            this.chbStatusCode.Name = "chbStatusCode";
+            this.chbStatusCode.Size = new System.Drawing.Size(210, 17);
+            this.chbStatusCode.TabIndex = 10;
+            this.chbStatusCode.Text = "Group By Status Code (Live and Dead)";
+            this.chbStatusCode.UseVisualStyleBackColor = true;
+            // 
             // frmGroupSpecies
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(394, 365);
+            this.Controls.Add(this.chbStatusCode);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnMin);
@@ -189,5 +201,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn clmSp;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnLoad;
+        public System.Windows.Forms.CheckBox chbStatusCode;
     }
 }

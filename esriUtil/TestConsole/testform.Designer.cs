@@ -1,4 +1,4 @@
-﻿namespace TestConsole
+﻿namespace DownloadData
 {
     partial class testform
     {

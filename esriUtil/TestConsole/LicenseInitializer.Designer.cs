@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TestConsole
+namespace DownloadData
 {
     using System;
     using System.Collections.Generic;

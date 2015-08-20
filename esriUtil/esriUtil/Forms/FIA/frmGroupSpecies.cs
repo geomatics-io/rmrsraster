@@ -109,12 +109,16 @@ namespace esriUtil.Forms.FIA
         {
             dgvSp.Rows.Clear();
             Dictionary<string, string> tblDic = new Dictionary<string, string>();
+            bool chbox = false;
             foreach (KeyValuePair<string,string> kvp in grpDic)
             {
-                string spc = kvp.Key;
+                string[] spcArr = kvp.Key.Split(new char[]{'_'});
+                string spc = spcArr[0];
                 string vlStr = spc + " | " + spDic[spc];
                 lstSpecies.Items.Remove(vlStr);
-                string grp = kvp.Value;
+                string[] grpArr = kvp.Value.Split(new char[]{'_'});
+                string grp = grpArr[0];
+                if (grpArr.Length > 1) chbox = true;
                 string outVl;
                 if (tblDic.TryGetValue(grp, out outVl))
                 {
@@ -125,6 +129,7 @@ namespace esriUtil.Forms.FIA
                     tblDic.Add(grp, spc);
                 }
             }
+            chbStatusCode.Checked = chbox;
             foreach (KeyValuePair<string,string> kvp in tblDic)
             {
                 string[] rVl = {kvp.Key,kvp.Value};
@@ -272,7 +277,15 @@ namespace esriUtil.Forms.FIA
                 string[] spcArr = cls[1].Value.ToString().Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string s in spcArr)
                 {
-                    grpDic[s] = grpVl;
+                    if (chbStatusCode.Checked)
+                    {
+                        grpDic[s + "_1"] = grpVl + "_1";
+                        grpDic[s + "_2"] = grpVl + "_2";
+                    }
+                    else
+                    {
+                        grpDic[s] = grpVl;
+                    }
                 }
                 
             } 

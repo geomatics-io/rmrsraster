@@ -31,6 +31,7 @@ namespace esriUtil.Forms.RunningProcess
         {
             rtbMessages.AppendText(msg + "\n");
             this.Refresh();
+            rtbMessages.ScrollToCaret();
         }
         public string[] getMessages()
         {
@@ -52,6 +53,7 @@ namespace esriUtil.Forms.RunningProcess
             }
             //pgbProcess.Style = ProgressBarStyle.Marquee;
             this.Refresh();
+            rtbMessages.ScrollToCaret();
 
         }
         public void enableClose()

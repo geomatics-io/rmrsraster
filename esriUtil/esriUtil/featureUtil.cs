@@ -19,6 +19,537 @@ namespace esriUtil
     public class featureUtil
     {
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+        public void weightFieldValuesByAreaLength(IFeatureClass strataFtr, string[] fldNames, IFeatureClass standsFtr, bool length = false)
+        {
+            int[] meanFldIndex = new int[fldNames.Length];
+            int[] fldNamesIndex = new int[fldNames.Length];
+            for (int i = 0; i < fldNames.Length; i++)
+            {
+                string mName = geoUtil.createField(standsFtr, "m_" + fldNames[i], ESRI.ArcGIS.Geodatabase.esriFieldType.esriFieldTypeDouble, false);
+                meanFldIndex[i] = standsFtr.FindField(mName);
+                fldNamesIndex[i] = strataFtr.FindField(fldNames[i]);
+            }
+            IFeatureCursor uCur = standsFtr.Update(null, true);
+            IFeature uFtr = uCur.NextFeature();
+            while (uFtr != null)
+            {
+                ESRI.ArcGIS.Geometry.IGeometry geo = uFtr.Shape;
+                ISpatialFilter spFlt = new SpatialFilter();
+                spFlt.Geometry = geo;
+                spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+                double totalVl = 0;
+                IFeatureCursor sCur = strataFtr.Search(spFlt, true);
+                IFeature sFtr = sCur.NextFeature();
+                double[] vlArr = new double[meanFldIndex.Length];
+                while (sFtr != null)
+                {
+                    ESRI.ArcGIS.Geometry.IGeometry sgeo = sFtr.Shape;
+                    ESRI.ArcGIS.Geometry.ITopologicalOperator4 topo = (ESRI.ArcGIS.Geometry.ITopologicalOperator4)sgeo;
+                    ESRI.ArcGIS.Geometry.IGeometry sgeo2 = topo.Intersect(geo, ESRI.ArcGIS.Geometry.esriGeometryDimension.esriGeometry2Dimension);
+                    double subArea = 0;
+                    if (length)
+                    {
+                        subArea = (((ESRI.ArcGIS.Geometry.IPolygon)sgeo2).Length);
+                        totalVl += subArea;
+                    }
+                    else
+                    {
+                        subArea = ((ESRI.ArcGIS.Geometry.IArea)sgeo2).Area;
+                        totalVl += subArea;
+                    }
+
+                    for (int i = 0; i < meanFldIndex.Length; i++)
+                    {
+                        vlArr[i] += System.Convert.ToDouble(sFtr.get_Value(fldNamesIndex[i])) * subArea;
+                    }
+                    sFtr = sCur.NextFeature();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
+                if (totalVl != 0)
+                {
+                    for (int i = 0; i < meanFldIndex.Length; i++)
+                    {
+                        uFtr.set_Value(meanFldIndex[i], vlArr[i] / totalVl);
+                    }
+                    uCur.UpdateFeature(uFtr);
+                }
+                uFtr = uCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(uCur);
+
+        }
+        public void summarizeAcrossFields(ITable ftrCls, string[] fieldNames, esriUtil.rasterUtil.localType[] stats, string qWhere="", string prefix="")
+        {
+            int[] fldIndex = new int[fieldNames.Length];
+            int[] updateFldsIndex =  new int[stats.Length];
+            string[] updateNames = new string[stats.Length];
+            for (int i = 0; i < fieldNames.Length; i++)
+			{
+                fldIndex[i]=ftrCls.FindField(fieldNames[i]);
+			}
+            for (int i = 0; i < stats.Length; i++)
+			{
+                string nm = stats[i].ToString();
+                if(prefix!="" && prefix!=null) nm = prefix+"_"+nm;
+                updateNames[i] = geoUtil.createField(ftrCls,nm,esriFieldType.esriFieldTypeDouble,false);
+                updateFldsIndex[i] = ftrCls.FindField(updateNames[i]);
+			}
+            bool catStat = false;
+            if(stats.Contains(rasterUtil.localType.ASM)||stats.Contains(rasterUtil.localType.ENTROPY)||stats.Contains(rasterUtil.localType.UNIQUE)||stats.Contains(rasterUtil.localType.MEDIAN)||stats.Contains(rasterUtil.localType.MODE)) catStat = true;
+            //Console.WriteLine("Updating Categories = " + catStat.ToString());
+            IQueryFilter qf = new QueryFilterClass();
+            if (!String.IsNullOrEmpty(qWhere)) qf.WhereClause = qWhere;
+            //qf.SubFields = String.Join(",", fieldNames)+","+String.Join(",",updateNames);
+            ICursor uCur = ftrCls.Update(qf, true);
+            IRow ftr = uCur.NextRow();
+            while (ftr != null)
+            {
+                double[] vlArr = new double[10];//cnt, min, max, sum, sum2, minfield, maxfield, subtract, multiply, divide
+                Dictionary<string, int> dic = new Dictionary<string,int>();
+                vlArr[1]=double.MaxValue;
+                vlArr[2]=double.MinValue;
+                for (int i = 0; i < fldIndex.Length; i++)
+                {
+                    object vlObj = ftr.get_Value(fldIndex[i]);
+                    if(vlObj!=null)
+                    {
+                        double vl = System.Convert.ToDouble(vlObj);
+                        vlArr[0] = vlArr[0] + 1;
+                        if (vl < vlArr[1])
+                        {
+                            vlArr[1] = vl;
+                            vlArr[5]=i;
+                        }
+                        if (vl > vlArr[2])
+                        {
+                            vlArr[2] = vl;
+                            vlArr[6] = i;
+                        }
+                        vlArr[3] = vlArr[3] + vl;
+                        vlArr[4] = vlArr[4] + (vl * vl);
+                        vlArr[7] = vlArr[7] - vl;
+                        vlArr[8] = vlArr[8] * vl;
+                        vlArr[9] = vlArr[9] / vl;
+                        if(catStat)
+                        {
+                            int cntVl;
+                            string vlStr = vl.ToString();
+                            if(dic.TryGetValue(vlStr,out cntVl))
+                            {
+                                dic[vlStr] = cntVl+1;
+                            }
+                            else
+                            {
+                                dic.Add(vlStr,1);
+                            }
+                        }
+                    }
+                }
+                for (int i = 0; i < stats.Length; i++)
+			    {
+                    rasterUtil.localType st = stats[i];
+                    double sVl = 0;
+                    switch (st)
+	                {
+		                case rasterUtil.localType.MAX:
+                            sVl = vlArr[2];
+                         break;
+                        case rasterUtil.localType.MIN:
+                            sVl = vlArr[1];
+                         break;
+                        case rasterUtil.localType.MAXBAND:
+                            sVl = vlArr[6];
+                         break;
+                        case rasterUtil.localType.MINBAND:
+                            sVl = vlArr[5];
+                         break;
+                        case rasterUtil.localType.SUM:
+                            sVl = vlArr[3];
+                         break;
+                        case rasterUtil.localType.MULTIPLY:
+                            sVl = vlArr[8];
+                         break;
+                        case rasterUtil.localType.DIVIDE:
+                            sVl = vlArr[9];
+                         break;
+                        case rasterUtil.localType.SUBTRACT:
+                            sVl = vlArr[7];
+                         break;
+                        case rasterUtil.localType.MEAN:
+                            sVl = vlArr[3]/vlArr[0];
+                         break;
+                        case rasterUtil.localType.VARIANCE:
+                            sVl = (vlArr[4] - (Math.Pow(vlArr[3], 2) / vlArr[0])) / (vlArr[0] - 1);
+                         break;
+                        case rasterUtil.localType.STD:
+                            sVl = Math.Sqrt((vlArr[4] - (Math.Pow(vlArr[3], 2) / vlArr[0])) / (vlArr[0] - 1));
+                         break;
+                        case rasterUtil.localType.MODE:
+                            sVl = getMode(dic);
+                         break;
+                        case rasterUtil.localType.MEDIAN:
+                            sVl = getMedian(dic);
+                         break;
+                        case rasterUtil.localType.UNIQUE:
+                            sVl = dic.Keys.Count;
+                         break;
+                        case rasterUtil.localType.ENTROPY:
+                            sVl = getEntropy(dic);
+                         break;
+                        case rasterUtil.localType.ASM:
+                            sVl = getASM(dic);
+                         break;
+                        default:
+                         break;
+	                }
+                    //Console.WriteLine("Setting value " + updateNames[i] + " to " + sVl.ToString());
+                    ftr.set_Value(updateFldsIndex[i],sVl);
+
+			    }
+                uCur.UpdateRow(ftr);
+                ftr = uCur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(uCur);
+
+        }
+        public void summarizeRelatedTable(ITable pTable, ITable rTable, string plinkField, string rlinkField, string[] summaryFlds, string[] groupFlds, rasterUtil.focalType[] stats,string pWhere="", string rWhere="")
+        {
+            bool needCatDic = false;
+            if(stats.Contains(rasterUtil.focalType.ASM)||stats.Contains(rasterUtil.focalType.ENTROPY)||stats.Contains(rasterUtil.focalType.MEDIAN)||stats.Contains(rasterUtil.focalType.MODE)||stats.Contains(rasterUtil.focalType.UNIQUE))needCatDic=true;
+            HashSet<string> uGroups;
+            //Console.WriteLine("Summarizing values");
+            Dictionary<string,Dictionary<string, object[][]>> sumDic = getRelatedSummary(pTable, rTable, plinkField, rlinkField, summaryFlds, groupFlds, needCatDic, pWhere, rWhere, out uGroups);//<link,<group,[6][number of fields to summarize]>
+            foreach (string s in sumDic.Keys)
+            {
+                //Console.WriteLine("ID key:" + s);
+            }
+            foreach (string s in uGroups)
+            {
+                //Console.WriteLine("Group:" + s);
+            }
+            //Console.WriteLine("Updating parent");
+            int[] newFldNameIndex = new int[summaryFlds.Length * uGroups.Count * (stats.Length+1)];
+            string[] newFldNameString = new string[summaryFlds.Length * uGroups.Count * (stats.Length+1)];
+            int IndexCnt = 0;
+            //int nIndex = pTable.FindField(geoUtil.createField(pTable,"n",esriFieldType.esriFieldTypeDouble,false));
+            int linkIndex = pTable.FindField(plinkField);
+            for (int i = 0; i < summaryFlds.Length; i++)
+            {
+                string fldNm = summaryFlds[i];
+                foreach(string k in uGroups)
+                {
+                    string fldNm2 = fldNm + "_" + k;
+                    string newFldName = geoUtil.createField(pTable, fldNm2 + "_N", esriFieldType.esriFieldTypeInteger, false);
+                    newFldNameString[IndexCnt] = newFldName;
+                    newFldNameIndex[IndexCnt] = pTable.FindField(newFldName);
+                    IndexCnt += 1;
+                    for (int j = 0; j < stats.Length; j++)
+                    {
+                        string fldNm3 = fldNm2 + "_" + stats[j];
+                        newFldName = geoUtil.createField(pTable, fldNm3, esriFieldType.esriFieldTypeDouble, false);
+                        newFldNameString[IndexCnt]=newFldName;
+                        newFldNameIndex[IndexCnt] = pTable.FindField(newFldName);
+                        IndexCnt += 1;
+                    }
+                } 
+            }
+            IQueryFilter pQf = new QueryFilterClass();
+            if (!String.IsNullOrEmpty(pWhere)) pQf.WhereClause = pWhere;
+            ICursor cur = pTable.Update(pQf, true);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                string lnk = rw.get_Value(linkIndex).ToString();
+                Dictionary<string,object[][]> d;
+                if (sumDic.TryGetValue(lnk, out d))
+                {
+                    //Console.WriteLine("Found dictionary value " + lnk);
+                    object n = 0;
+                    for (int i = 0; i < newFldNameString.Length; i++)
+                    {
+                        string fldNameC = newFldNameString[i];
+                        string[] fldnameArr = fldNameC.Split(new char[] { '_' });
+                        string fld = fldnameArr[0];
+                        string grp = fldnameArr[1];
+                        for (int k = 1; k < groupFlds.Length; k++)
+                        {
+                            grp = grp + "_" + fldnameArr[1 + k];
+                        }
+                        string st = fldnameArr[fldnameArr.Length-1];
+                        object[][] vlFldArr;
+                        if (d.TryGetValue(grp, out vlFldArr))
+                        {
+                            //Console.WriteLine("Found Group value " + grp);
+                            object uVl = 0;
+                            int clIndex = System.Array.IndexOf(summaryFlds, fld);
+                            object[] vlArr = vlFldArr[clIndex];
+                            n = vlArr[0];
+                            if (st != "N")
+                            {
+                                rasterUtil.focalType sType = (rasterUtil.focalType)Enum.Parse(typeof(rasterUtil.focalType), st);
+                                //Console.WriteLine(sType.ToString());
+                                switch (sType)
+                                {
+                                    case rasterUtil.focalType.SUM:
+                                        uVl = vlArr[1];
+                                        break;
+                                    case rasterUtil.focalType.MIN:
+                                        uVl = vlArr[3];
+                                        break;
+                                    case rasterUtil.focalType.MAX:
+                                        uVl = vlArr[4];
+                                        break;
+                                    case rasterUtil.focalType.MEAN:
+                                        uVl = System.Convert.ToDouble(vlArr[1]) / System.Convert.ToDouble(n);
+                                        break;
+                                    case rasterUtil.focalType.STD:
+                                        uVl = Math.Sqrt((System.Convert.ToDouble(vlArr[2]) - (System.Convert.ToDouble(vlArr[1]) / System.Convert.ToDouble(n))) / (System.Convert.ToDouble(n) - 1));
+                                        break;
+                                    case rasterUtil.focalType.MODE:
+                                        uVl = getMode((Dictionary<string, int>)vlArr[5]);
+                                        break;
+                                    case rasterUtil.focalType.MEDIAN:
+                                        uVl = getMedian((Dictionary<string, int>)vlArr[5]);
+                                        break;
+                                    case rasterUtil.focalType.VARIANCE:
+                                        uVl = (System.Convert.ToDouble(vlArr[2]) - (System.Convert.ToDouble(vlArr[1]) / System.Convert.ToDouble(n))) / (System.Convert.ToDouble(n) - 1);
+                                        break;
+                                    case rasterUtil.focalType.UNIQUE:
+                                        uVl = ((Dictionary<string, int>)vlArr[5]).Keys.Count;
+                                        break;
+                                    case rasterUtil.focalType.ENTROPY:
+                                        uVl = getEntropy((Dictionary<string, int>)vlArr[5]);
+                                        break;
+                                    case rasterUtil.focalType.ASM:
+                                        uVl = getASM((Dictionary<string, int>)vlArr[5]);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                
+                            }
+                            else
+                            {
+                                uVl = n;
+                            }
+                            rw.set_Value(newFldNameIndex[i], uVl);
+                        }
+                        else
+                        {
+                            //Console.WriteLine("Could not find Group " + grp);
+                            rw.set_Value(newFldNameIndex[i], 0);
+                        }                      
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < newFldNameString.Length; i++)
+                    {
+                        rw.set_Value(newFldNameIndex[i], 0);
+                    }
+                }
+                cur.UpdateRow(rw);
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);  
+        }
+
+        private Dictionary<string, Dictionary<string, object[][]>> getRelatedSummary(ITable pTable, ITable rTable, string plinkField, string rlinkField, string[] summaryFlds, string[] groupFlds, bool needCatDic, string pWhere, string rWhere, out HashSet<string> uGroups)
+        {
+            HashSet<string> uLink = new HashSet<string>();
+            uGroups = new HashSet<string>();
+            Dictionary<string, Dictionary<string, object[][]>> outDic = new Dictionary<string, Dictionary<string, object[][]>>();
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = plinkField;
+            if (!String.IsNullOrEmpty(pWhere)) qf.WhereClause = pWhere;
+            ICursor cur = pTable.Search(qf, true);
+            int linkIndex = cur.FindField(plinkField);
+            IRow rw = cur.NextRow();
+            while (rw != null)
+            {
+                object vlObj = rw.get_Value(linkIndex);
+                if(vlObj!=null)
+                {
+                    string vl = vlObj.ToString();
+                    if (uLink.Add(vl))
+                    {
+                        outDic.Add(vl, new Dictionary<string, object[][]>());
+                    }
+                }
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            qf.SubFields = rlinkField + "," + String.Join(",", summaryFlds);
+            if (groupFlds != null && groupFlds.Length > 0) qf.SubFields = qf.SubFields + "," + String.Join(",", groupFlds);
+            if (!String.IsNullOrEmpty(rWhere)) qf.WhereClause = rWhere;
+            else qf.WhereClause = "";
+            ICursor curR = rTable.Search(qf, true);
+            linkIndex = curR.FindField(rlinkField);
+            int[] grpIndex = null;
+            if (groupFlds != null && groupFlds.Length > 0)
+            {
+                grpIndex = new int[groupFlds.Length];
+                for (int i = 0; i < grpIndex.Length; i++)
+                {
+                    grpIndex[i] = curR.FindField(groupFlds[i]);
+                }
+            }
+            int[] sumIndex = new int[summaryFlds.Length];
+            for (int i = 0; i < summaryFlds.Length; i++)
+            {
+                sumIndex[i] = curR.FindField(summaryFlds[i]);
+            }
+            IRow rwR = curR.NextRow();
+            while (rwR != null)
+            {
+                object rlObj = rwR.get_Value(linkIndex);
+                if (rlObj != null)
+                {
+                    string rl = rlObj.ToString();
+                    Dictionary<string, object[][]> dic;
+                    if(outDic.TryGetValue(rl,out dic))
+                    {
+                        string grpVl = "All";
+                        if (grpIndex != null)
+                        {
+                            string[] grpVlArr = new string[grpIndex.Length];
+                            for (int i = 0; i < grpIndex.Length; i++)
+                            {
+                                object vlObj = rwR.get_Value(grpIndex[i]);
+                                if (vlObj != null)
+                                {
+                                    grpVlArr[i] = vlObj.ToString();
+                                }
+                                else
+                                {
+                                    grpVlArr[i] = "_";
+                                }
+                            }
+
+                            grpVl = String.Join("_", grpVlArr);
+                        }
+                        uGroups.Add(grpVl);
+                        object[][] statObj;
+                        if (dic.TryGetValue(grpVl, out statObj))
+                        {
+                           
+                        }
+                        else
+                        {
+                            statObj = new object[summaryFlds.Length][];
+                            for (int i = 0; i < summaryFlds.Length; i++)
+                            {
+                                statObj[i] = new object[6];
+                                statObj[i][0] = 0;
+                                statObj[i][1] = 0;
+                                statObj[i][2] = 0;
+                                statObj[i][3] = double.MaxValue;
+                                statObj[i][4] = double.MinValue;
+                                statObj[i][5] = new Dictionary<string,int>();
+                            }
+                        }
+                        for (int i = 0; i < summaryFlds.Length; i++)
+                        {
+                            object fVlObj = rwR.get_Value(sumIndex[i]);
+                            if (fVlObj != null && !System.Convert.IsDBNull(fVlObj))
+                            {
+                                double fvl = System.Convert.ToDouble(fVlObj);
+                                statObj[i][0] = System.Convert.ToInt32(statObj[i][0]) + 1;
+                                statObj[i][1] = System.Convert.ToDouble(statObj[i][1]) + fvl;
+                                statObj[i][2] = System.Convert.ToDouble(statObj[i][2]) + fvl*fvl;
+                                double min = System.Convert.ToDouble(statObj[i][3]);
+                                if (fvl < min) statObj[i][3] = fvl;
+                                double max = System.Convert.ToDouble(statObj[i][4]);
+                                if (fvl < max) statObj[i][4] = fvl;
+                                if (needCatDic)
+                                {
+                                    int dCnt = 0;
+                                    string vlStr = fVlObj.ToString();
+                                    Dictionary<string,int> vlDic = (Dictionary<string,int>)statObj[i][5];
+                                    if (vlDic.TryGetValue(vlStr, out dCnt))
+                                    {
+                                        vlDic[vlStr] = dCnt + 1;
+                                    }
+                                    else
+                                    {
+                                        vlDic.Add(vlStr, 1);
+                                    }
+                                }
+                            }
+
+                        }
+                        dic[grpVl] = statObj;
+
+                    }
+                }
+                rwR = curR.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(curR);
+            return outDic;
+        }
+        private double getASM(Dictionary<string, int> dic)
+        {
+            double outVl = 0;
+            double cnt = dic.Values.Sum();
+            double pSum = 0;
+            foreach (KeyValuePair<string, int> kvp in dic)
+            {
+                double p = kvp.Value / cnt;
+                pSum += (p * p);
+            }
+            outVl = pSum;
+            return outVl;
+        }
+
+        private double getEntropy(Dictionary<string, int> dic)
+        {
+            double outVl = 0;
+            double cnt = dic.Values.Sum();
+            double pSum = 0;
+            foreach (KeyValuePair<string,int> kvp in dic)
+            {
+                double p = kvp.Value / cnt;
+                pSum += (p * Math.Log(p));
+            }
+            outVl = -1 * pSum;
+            return outVl;
+        }
+
+        private double getMedian(Dictionary<string, int> dic)
+        {
+
+            double outVl = 0;
+            int mCnt = dic.Values.Sum()/2;
+            string[] sKey = dic.Keys.ToArray();
+            System.Array.Sort(sKey);
+            int cnt = 0;
+            foreach (string k in sKey)
+            {
+                cnt += 1;
+                if (cnt > mCnt)
+                {
+                    outVl = System.Convert.ToDouble(k);
+                    break;
+                }
+            }
+            return outVl;
+        }
+
+        private double getMode(Dictionary<string, int> dic)
+        {
+            double outVl = 0;
+            int mCnt = 0;
+            foreach (KeyValuePair<string, int> kvp in dic)
+            {
+                int cnt = kvp.Value;
+                if (cnt > mCnt)
+                {
+                    mCnt = cnt;
+                    outVl = System.Convert.ToDouble(kvp.Key);
+                }
+            }
+            return outVl;
+        }
         /// <summary>
         /// creates a new field called sample and populates yes or no depending on whether that feature should be sampled based on a previously ran cluster analysis
         /// </summary>
@@ -119,6 +650,98 @@ namespace esriUtil
             
         }
 
+        public void selectStrataFeaturesToSample(ITable inputTable, string strataModelPath, string strataFieldName = "Cluster", double proportionOfMean = 0.1, double alpha = 0.05, bool weightsEqual = false)
+        {
+            IObjectClassInfo2 objInfo2 = (IObjectClassInfo2)inputTable;
+            if (!objInfo2.CanBypassEditSession())
+            {
+                System.Windows.Forms.MessageBox.Show("Input Table participates in a composite relationship. Please export this table as a new table and try again!");
+                return;
+            }
+            esriUtil.Statistics.dataPrepStrata dpC = new Statistics.dataPrepStrata();
+            dpC.buildModel(strataModelPath);
+            List<string> labels = dpC.Labels;
+            HashSet<string> unqVls = geoUtil.getUniqueValues(inputTable, strataFieldName);
+            System.Random rd = new Random();
+            int[] samplesPerCluster = esriUtil.Statistics.dataPrepSampleSize.sampleSizeMaxCluster(strataModelPath, proportionOfMean, alpha);
+            double[] propPerCluster = esriUtil.Statistics.dataPrepSampleSize.clusterProportions(strataModelPath);
+            double[] weightsPerCluster = new double[propPerCluster.Length];
+            double sSamp = System.Convert.ToDouble(samplesPerCluster.Sum());
+            for (int i = 0; i < weightsPerCluster.Length; i++)
+            {
+                weightsPerCluster[i] = propPerCluster[i] / (samplesPerCluster[i] / sSamp);
+            }
+            if (weightsEqual)
+            {
+                double minProp = weightsPerCluster.Min();
+                for (int i = 0; i < samplesPerCluster.Length; i++)
+                {
+                    samplesPerCluster[i] = System.Convert.ToInt32(samplesPerCluster[i] * (weightsPerCluster[i] / minProp));
+                    weightsPerCluster[i] = 1;
+                }
+            }
+            int[] tsPerCluster = new int[propPerCluster.Length];
+            double[] randomRatioPerClust = new double[propPerCluster.Length];
+            if (samplesPerCluster.Length != unqVls.Count)
+            {
+                System.Windows.Forms.MessageBox.Show("Unique Values in cluster field do not match the number of cluster models!");
+                return;
+            }
+            string sampleFldName = geoUtil.createField(inputTable, "sample", esriFieldType.esriFieldTypeSmallInteger, false);
+            string weightFldName = geoUtil.createField(inputTable, "weight", esriFieldType.esriFieldTypeDouble, false);
+            IQueryFilter qf0 = new QueryFilterClass();
+            qf0.SubFields = strataFieldName;
+            string h = "";
+            IField fld = inputTable.Fields.get_Field(inputTable.FindField(strataFieldName));
+            if (fld.Type == esriFieldType.esriFieldTypeString) h = "'";
+            for (int i = 0; i < samplesPerCluster.Length; i++)
+            {
+
+                qf0.WhereClause = strataFieldName + " = " + h + labels[i] + h;
+                int tCnt = inputTable.RowCount(qf0);
+                tsPerCluster[i] = tCnt;
+                randomRatioPerClust[i] = System.Convert.ToDouble(samplesPerCluster[i]) / tCnt;
+            }
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = strataFieldName + "," + sampleFldName + "," + weightFldName;
+            IWorkspace wks = ((IDataset)inputTable).Workspace;
+            IWorkspaceEdit wksE = (IWorkspaceEdit)wks;
+            if (wksE.IsBeingEdited())
+            {
+                wksE.StopEditing(true);
+            }
+            try
+            {
+                ICursor cur = inputTable.Update(qf, false);
+                int sIndex = cur.FindField(sampleFldName);
+                int cIndex = cur.FindField(strataFieldName);
+                int wIndex = cur.FindField(weightFldName);
+                IRow rw = cur.NextRow();
+                while (rw != null)
+                {
+                    string clustStr = rw.get_Value(cIndex).ToString();
+                    int clust = labels.IndexOf(clustStr);
+                    double w = weightsPerCluster[clust];
+                    double rNum = rd.NextDouble();
+                    int ss = 0;
+                    double r = randomRatioPerClust[clust];
+                    if (rNum < r)
+                    {
+                        ss = 1;
+                    }
+                    rw.set_Value(sIndex, ss);
+                    rw.set_Value(wIndex, w);
+                    cur.UpdateRow(rw);
+                    rw = cur.NextRow();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.ToString());
+            }
+
+        }
         public void selectAccuracyFeaturesToSample(ITable inputTable, string AccuracyAssessmentModelPath, string mapField, double proportionOfMean, double alpha, bool weightsEqual=false)
         {
             esriUtil.Statistics.dataGeneralConfusionMatirx dGc = new Statistics.dataGeneralConfusionMatirx();

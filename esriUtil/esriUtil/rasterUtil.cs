@@ -2456,7 +2456,7 @@ namespace esriUtil
             spFlt.Geometry = geo;
             spFlt.GeometryField = inFtrCls.ShapeFieldName;
             spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
-            IFeatureCursor sCur = inFtrCls.Search(spFlt, true);   
+            IFeatureCursor sCur = inFtrCls.Update(spFlt, true);   
             int bandFldIndex=0;
             if(bandFldName!=null)
             {
@@ -2494,12 +2494,12 @@ namespace esriUtil
                     {
                         sRow.set_Value(fldIndex, rsVl);
                     }
-                    catch
+                    catch(Exception e)
                     {
-                        Console.WriteLine(rsVl.ToString());
+                        Console.WriteLine(e.ToString());
                     }
                 }
-                sRow.Store();
+                sCur.UpdateFeature(sRow);
                 sRow = sCur.NextFeature();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
@@ -2554,7 +2554,7 @@ namespace esriUtil
             spFlt.Geometry = geo;
             spFlt.GeometryField = inFtrCls.ShapeFieldName;
             spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
-            IFeatureCursor sCur = inFtrCls.Search(spFlt, true);
+            IFeatureCursor sCur = inFtrCls.Update(spFlt, true);
             IFeature sRow = sCur.NextFeature();
             while (sRow != null)
             {
@@ -2626,7 +2626,7 @@ namespace esriUtil
                     }
 
                 }
-                sRow.Store();
+                sCur.UpdateFeature(sRow);
                 sRow = sCur.NextFeature();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);

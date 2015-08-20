@@ -160,7 +160,7 @@ namespace esriUtil
 
         }
 
-        private void createNetCdf(out string outName, out object outobj, out string outDesc)
+        public void createNetCdf(out string outName, out object outobj, out string outDesc)
         {
             outName = null;
             outobj = null;
@@ -191,7 +191,7 @@ namespace esriUtil
             }
         }
 
-        private void createBatchRaster(out string nm, out object rs, out string desc)
+        public void createBatchRaster(out string nm, out object rs, out string desc)
         {
             nm = null;
             rs = null;

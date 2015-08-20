@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace TestConsole
+namespace DownloadData
 {
     public partial class testform : Form
     {

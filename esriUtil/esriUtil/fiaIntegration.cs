@@ -6,7 +6,9 @@ using System.Text;
 using ESRI.ArcGIS.esriSystem;
 using System.Data;
 using ESRI.ArcGIS.Geodatabase;
-
+using ESRI.ArcGIS.DataSourcesRaster;
+using ESRI.ArcGIS.Geometry;
+using ESRI.ArcGIS.Geodatabase;
 namespace esriUtil
 {
     public class fiaIntegration
@@ -89,6 +91,328 @@ namespace esriUtil
         public Dictionary<string,string> GroupDic { get { return grpDic; } set { grp = true; grpDic = value; } }
         HashSet<string> unPlots = new HashSet<string>();
         Dictionary<string, object[]> bmDic = new Dictionary<string, object[]>();
+        public static void summarizeBiomassPolygon(IFeatureClass pointFtr, IField[] fldsToSummarize, IFunctionRasterDataset strataRaster, IFeatureClass standsFtr, geoDatabaseUtility geoUtil = null, rasterUtil rsUtil = null)
+        {
+            if (geoUtil == null) geoUtil = new geoDatabaseUtility();
+            if(rsUtil == null) rsUtil = new rasterUtil();
+            int cnt = 0;
+        //need to work on calculating N
+            Dictionary<string,double[][]> vlDic = getDictionaryValues(pointFtr, fldsToSummarize, strataRaster, geoUtil, rsUtil); //Strata: SummaryFields [{sum,sum2,cnt},...]
+            int[] meanFldIndex = new int[fldsToSummarize.Length];
+            int[] varFldIndex = new int[fldsToSummarize.Length];
+            int[] cntFldIndex = new int[fldsToSummarize.Length];
+            //string cntName = geoUtil.createField(standsFtr, "n", esriFieldType.esriFieldTypeInteger, false);
+            //int cntIndex = standsFtr.FindField(cntName);
+            foreach (IField fld in fldsToSummarize)
+            {
+                string sName = geoUtil.createField(standsFtr, "v_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                varFldIndex[cnt] = standsFtr.FindField(sName);
+                string mName = geoUtil.createField(standsFtr, "m_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                meanFldIndex[cnt] = standsFtr.FindField(mName);
+                string cntName = geoUtil.createField(standsFtr, "n_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                cntFldIndex[cnt] = standsFtr.FindField(cntName);
+                cnt++;
+            }
+            IFeatureCursor uCur = standsFtr.Update(null, true);
+            IFeature uFtr = uCur.NextFeature();
+            while (uFtr != null)
+            {
+                ESRI.ArcGIS.Geometry.IGeometry geo = uFtr.Shape;
+                IFunctionRasterDataset cRs = rsUtil.clipRasterFunction(strataRaster, geo, esriRasterClippingType.esriRasterClippingOutside);
+                //Console.WriteLine("Clipping raster");
+                Dictionary<string, double> rsStrataPropDic = getStrataProportion(cRs,rsUtil); //Strata: proportion of area
+                //int tn = 0;
+                //double[] tn = new double[meanFldIndex.Length];
+                double[][] updateValuesArr = new double[meanFldIndex.Length][];
+                for (int i = 0; i < meanFldIndex.Length; i++)
+			    {
+                    updateValuesArr[i] = new double[3];
+			    }
+                foreach (KeyValuePair<string, double> kvp in rsStrataPropDic)
+                {
+                    string stratum = kvp.Key;
+                    double proportion = kvp.Value;
+                    //Console.WriteLine(stratum + " = " + proportion.ToString());
+                    double[][] vlDicArr;
+                    if (vlDic.TryGetValue(stratum, out vlDicArr))
+                    {
+                        //double n = vlDicArr[0][2];
+                        //tn += System.Convert.ToInt32(n);
+                        for (int i = 0; i < meanFldIndex.Length; i++)
+                        {
+                            double[] dArr = vlDicArr[i];
+                            double n = dArr[2];
+                            //tn[i] += n;
+                            double s=dArr[0];
+                            double s2=dArr[1];
+                            updateValuesArr[i][0] += (s/n) * proportion;//mean
+                            updateValuesArr[i][1] += (s2-Math.Pow(s,2)/n)/(n-1) * proportion;//variance
+                            updateValuesArr[i][2] += n;
+                        }
+
+                    }
+                }
+                //uFtr.set_Value(cntIndex, tn);
+                for (int i = 0; i < meanFldIndex.Length; i++)
+                {
+                    uFtr.set_Value(meanFldIndex[i], updateValuesArr[i][0]);
+                    uFtr.set_Value(varFldIndex[i], updateValuesArr[i][1]);
+                    uFtr.set_Value(cntFldIndex[i], updateValuesArr[i][2]);
+                }
+                uCur.UpdateFeature(uFtr);
+                uFtr = uCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(uCur);
+        }
+
+        private static Dictionary<string, double> getStrataProportion(IFunctionRasterDataset strataRaster,rasterUtil rsUtil)
+        {
+            IRaster2 rs2 = (IRaster2)rsUtil.createRaster(strataRaster);
+            Dictionary<string, double> outDic = new Dictionary<string, double>();
+            IRasterCursor rsCur = rs2.CreateCursorEx(null);
+            //Console.WriteLine(((IRasterProps)rs2).Height.ToString() + ((IRasterProps)rs2).Height.ToString());
+            int n = 0;
+            do
+            {
+                IPixelBlock pb = rsCur.PixelBlock;
+                //Console.WriteLine("PixelBLock w_h = " + pb.Width.ToString() + "_" + pb.Height.ToString());
+                for (int r = 0; r < pb.Height; r++)
+                {
+                    for (int c = 0; c < pb.Width; c++)
+                    {
+                        object vlObj = pb.GetVal(0, c, r);
+                        if (vlObj != null)
+                        {
+                            string vl = vlObj.ToString();
+                            double vlCnt;
+                            if (outDic.TryGetValue(vl, out vlCnt))
+                            {
+                                outDic[vl] = vlCnt + 1;
+                            }
+                            else
+                            {
+                                outDic.Add(vl, 1);
+                            }
+                            n += 1;
+                        }
+                        else
+                        {
+                            //Console.WriteLine("VL Null");
+                        }
+
+                    }
+                }
+            } while (rsCur.Next() == true);
+            //Console.WriteLine("OutDic Count = " + outDic.Count.ToString());
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(rsCur);
+            foreach (string s in outDic.Keys.ToArray())
+            {
+                double vl = outDic[s];
+                outDic[s] = vl / n;
+            }
+            return outDic;
+        }
+
+        private static Dictionary<string, double[][]> getDictionaryValues(ESRI.ArcGIS.Geodatabase.IFeatureClass pointFtr, ESRI.ArcGIS.Geodatabase.IField[] fldsToSummarize, IFunctionRasterDataset strataRaster, geoDatabaseUtility geoUtil, rasterUtil rsUtil)
+        {
+            IRaster2 rs2 = (IRaster2)rsUtil.createRaster(strataRaster);
+            int[] ptfldIndex = new int[fldsToSummarize.Length];
+            for (int i = 0; i < ptfldIndex.Length; i++)
+            {
+                ptfldIndex[i] = pointFtr.FindField(fldsToSummarize[i].Name);
+            }
+            Dictionary<string, double[][]> outDic = new Dictionary<string, double[][]>();
+            IFeatureCursor sCur = pointFtr.Search(null, true);
+            IFeature sFtr = sCur.NextFeature();
+            while (sFtr != null)
+            {
+                IGeometry geo = sFtr.Shape;
+                IPoint pnt = (IPoint)geo;
+                int clm, rw;
+                rs2.MapToPixel(pnt.X, pnt.Y,out clm, out rw);
+                object strataVlObj = rs2.GetPixelValue(0, clm, rw);
+                if(strataVlObj!=null)
+                {
+                    string strataVl = strataVlObj.ToString();
+                    double[][] vlArr;
+                    if (outDic.TryGetValue(strataVl, out vlArr))
+                    {
+                        for (int i = 0; i < ptfldIndex.Length; i++)
+                        {
+                            object vlObj = sFtr.get_Value(ptfldIndex[i]);
+                            if (vlObj != null)
+                            {
+                                double vl = System.Convert.ToDouble(vlObj);
+                                vlArr[i][0] += vl;
+                                vlArr[i][1] += (vl * vl);
+                                vlArr[i][2] += 1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        vlArr = new double[fldsToSummarize.Length][];
+                        for (int i = 0; i < ptfldIndex.Length; i++)
+                        {
+                            double[] vlSumArr = new double[3];
+                            object vlObj =sFtr.get_Value(ptfldIndex[i]);
+                            if (vlObj != null)
+                            {
+                                double vl =  System.Convert.ToDouble(vlObj);
+                                vlSumArr[0] = vl;
+                                vlSumArr[1] = (vl * vl);
+                                vlSumArr[2] = 1;
+                            }
+                            vlArr[i] = vlSumArr;
+                        }
+                        outDic[strataVl] = vlArr;
+                    }
+                }
+                sFtr = sCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
+            return outDic;
+        }
+        public static void summarizeBiomassPolygon(IFeatureClass pointFtr, IField[] fldsToSummarize, IFeatureClass strataFtr, IFeatureClass standsFtr = null, geoDatabaseUtility geoUtil=null )
+        {
+            if(geoUtil==null) geoUtil = new geoDatabaseUtility();
+            int cnt = 0;
+            int[] ptFldIndex = new int[fldsToSummarize.Length];
+            int[] meanFldIndex = new int[fldsToSummarize.Length];
+            int[] varFldIndex = new int[fldsToSummarize.Length];
+            int[] cntFldIndex = new int[fldsToSummarize.Length];
+            foreach (IField fld in fldsToSummarize)
+            {
+
+                ptFldIndex[cnt] = pointFtr.FindField(fld.Name);
+                string sName = geoUtil.createField(strataFtr, "v_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                varFldIndex[cnt] = strataFtr.FindField(sName);
+                string mName = geoUtil.createField(strataFtr, "m_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                meanFldIndex[cnt] = strataFtr.FindField(mName);
+                string cntName = geoUtil.createField(strataFtr, "n_" + fld.Name, esriFieldType.esriFieldTypeInteger, false);
+                cntFldIndex[cnt] = strataFtr.FindField(cntName);
+                cnt++;
+            }
+            IFeatureCursor uCur = strataFtr.Update(null, true);
+            IFeature uFtr = uCur.NextFeature();
+            while (uFtr != null)
+            {
+                ISpatialFilter sFilt = new SpatialFilter();
+                sFilt.Geometry = uFtr.Shape;
+                sFilt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+                double[][] fldVlsArr = new double[fldsToSummarize.Length][];
+                for (int i = 0; i < fldsToSummarize.Length; i++)
+                {
+                    fldVlsArr[i] = new double[3];
+                }
+                IFeatureCursor psCur = pointFtr.Search(sFilt, true);
+                IFeature psFtr = psCur.NextFeature();
+                
+                while (psFtr != null)
+                {
+                    for (int i = 0; i < ptFldIndex.Length; i++)
+                    {
+                        int indexVl = ptFldIndex[i];
+                        object objVl = psFtr.get_Value(indexVl);
+                        if (objVl != null)
+                        {
+                            double vl = System.Convert.ToDouble(objVl);
+                            double vl2 = vl*vl;
+                            fldVlsArr[i][0] += vl;
+                            fldVlsArr[i][1] += vl2;
+                            fldVlsArr[i][2] += 1;
+                        }
+                    }
+                    psFtr = psCur.NextFeature();
+                }
+
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(psCur);
+                for (int i = 0; i < ptFldIndex.Length; i++)
+                {
+                    double s = fldVlsArr[i][0];
+                    double s2 = fldVlsArr[i][1];
+                    double n = fldVlsArr[i][2];
+                    double mean = s / n;//mean
+                    double var = (s2 - (Math.Pow(s, 2) / n)) / (n - 1);//variance
+                    int mIndex = meanFldIndex[i];
+                    int vIndex = varFldIndex[i];
+                    int cntIndex = cntFldIndex[i];
+                    uFtr.set_Value(mIndex, mean);
+                    uFtr.set_Value(vIndex, var);
+                    uFtr.set_Value(cntIndex, n);
+                }
+                uCur.UpdateFeature(uFtr);
+                uFtr = uCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(uCur);
+            if (standsFtr != null)
+            {
+                calcStandMeans(strataFtr, standsFtr, meanFldIndex, varFldIndex, cntFldIndex, fldsToSummarize,geoUtil);
+            }
+        }
+        private static void calcStandMeans(IFeatureClass strataFtr, IFeatureClass standsFtr, int[] meanStrataFldIndex, int[] varStrataFldIndex, int[] countFldStrataIndex, IField[] fldsToSummarize, geoDatabaseUtility geoUtil)
+        {
+            int cnt = 0;
+            int[] ptFldIndex = new int[fldsToSummarize.Length];
+            int[] meanFldIndex = new int[fldsToSummarize.Length];
+            int[] varFldIndex = new int[fldsToSummarize.Length];
+            int[] cntFldIndex = new int[fldsToSummarize.Length];
+            foreach (IField fld in fldsToSummarize)
+            {
+                string sName = geoUtil.createField(standsFtr, "v_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                varFldIndex[cnt] = standsFtr.FindField(sName);
+                string mName = geoUtil.createField(standsFtr, "m_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                meanFldIndex[cnt] = standsFtr.FindField(mName);
+                string cName = geoUtil.createField(standsFtr, "n_" + fld.Name, esriFieldType.esriFieldTypeDouble, false);
+                cntFldIndex[cnt] = standsFtr.FindField(cName);
+                cnt++;
+            }
+            IFeatureCursor uCur = standsFtr.Update(null, true);
+            IFeature uFtr = uCur.NextFeature();
+            while (uFtr != null)
+            {
+                ESRI.ArcGIS.Geometry.IGeometry geo = uFtr.Shape;
+                ISpatialFilter spFlt = new SpatialFilter();
+                spFlt.Geometry = geo;
+                spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+                double totalArea = 0;
+                IFeatureCursor sCur = strataFtr.Search(spFlt, true);
+                IFeature sFtr = sCur.NextFeature();
+                double[][] vlArr = new double[meanFldIndex.Length][];
+                for (int i = 0; i < meanFldIndex.Length; i++)
+                {
+                    vlArr[i] = new double[3];
+                }
+                while (sFtr != null)
+                {
+                    ESRI.ArcGIS.Geometry.IGeometry sgeo = sFtr.Shape;
+                    ESRI.ArcGIS.Geometry.ITopologicalOperator4 topo = (ESRI.ArcGIS.Geometry.ITopologicalOperator4)sgeo;
+                    ESRI.ArcGIS.Geometry.IGeometry sgeo2 = topo.Intersect(geo, ESRI.ArcGIS.Geometry.esriGeometryDimension.esriGeometry2Dimension);
+                    double subArea = (((ESRI.ArcGIS.Geometry.IArea)sgeo2).Area);
+                    totalArea += subArea;
+                    for (int i = 0; i < meanFldIndex.Length; i++)
+                    {
+                        vlArr[i][0] += System.Convert.ToDouble(sFtr.get_Value(meanStrataFldIndex[i])) * subArea;
+                        vlArr[i][1] += System.Convert.ToDouble(sFtr.get_Value(varStrataFldIndex[i])) * subArea;
+                        vlArr[i][2] += System.Convert.ToDouble(sFtr.get_Value(countFldStrataIndex[i]));
+                    }
+                    sFtr = sCur.NextFeature();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
+                if (totalArea != 0)
+                {
+                    for (int i = 0; i < meanFldIndex.Length; i++)
+                    {
+                        uFtr.set_Value(meanFldIndex[i], vlArr[i][0]/totalArea);
+                        uFtr.set_Value(varFldIndex[i], vlArr[i][1]/totalArea);
+                        uFtr.set_Value(cntFldIndex[i], vlArr[i][2]);
+                    }
+                    uCur.UpdateFeature(uFtr);
+                }
+                uFtr = uCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(uCur);
+        }
         public void summarizeBiomass()
         {
             try
@@ -104,7 +428,7 @@ namespace esriUtil
                 IQueryFilter qryFlt = new QueryFilterClass();
                 string nFldNm = "";
                 string fldNm = "";
-                IFeatureCursor ftrCur = SampleFeatureClass.Update(null,false);
+                IFeatureCursor ftrCur = SampleFeatureClass.Update(null,true);
                 IFeature ftr = ftrCur.NextFeature();
                 int cnIndex = ftrCur.FindField(PlotCnField);
                 int subIndex = ftrCur.FindField(SubPlotField);
@@ -209,8 +533,8 @@ namespace esriUtil
                 }
             }
         }
-
-        
+        private bool groupstatuscode = false;
+        public bool GroupStatusCode { get { return groupstatuscode; } set { groupstatuscode = value; } }
         private void createAndFillTreesRef()
         {
             //DataTable dtTrees = null;
@@ -228,12 +552,12 @@ namespace esriUtil
                     bmDic.Add(vls[0].ToString(),vls);
                 }
                 oleRd.Close();
-                sql = "SELECT CN, PLT_CN, SUBP, TREE, SPCD, DIA, HT FROM TREE WHERE DIA >= 5 and SPCD > 0";
+                sql = "SELECT CN, PLT_CN, SUBP, TREE, SPCD, DIA, HT, STATUSCD FROM TREE WHERE DIA >= 5 and SPCD > 0";
                 oleCom.CommandText = sql;
                 oleRd = oleCom.ExecuteReader();
                 while (oleRd.Read())
                 {
-                    object[] vls = new object[7];
+                    object[] vls = new object[8];
                     oleRd.GetValues(vls);
                     string pltCn = vls[1].ToString();
                     string subp = vls[2].ToString();
@@ -242,10 +566,14 @@ namespace esriUtil
                     if(unPlots.Contains(linkVl))
                     {
                         string spcd = vls[4].ToString();
+                        //adding in live and dead
+                        string stcd = vls[7].ToString();
+                        string grpCd = spcd;
+                        if (groupstatuscode) grpCd = spcd + "_" + stcd;
                         object[] bmVls;
                         if(bmDic.TryGetValue(spcd,out bmVls))
                         {
-                            if (grp) spcd = findGrp(spcd);
+                            if (grp) spcd = findGrp(grpCd);//findGrp(spcd);
                             unSp.Add(spcd);
                             string lk = linkVl+"_"+spcd.ToString();
                             object[] treeVls;

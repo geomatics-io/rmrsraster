@@ -165,6 +165,7 @@ namespace esriUtil.Forms.FIA
             {
                 fiaIntegration fiaInt = new fiaIntegration(fiaDbNm);
                 fiaInt.GroupDic = grpDic;
+                fiaInt.GroupStatusCode = grpStatCode;
                 fiaInt.PlotCnField = plotFldNm;
                 fiaInt.SubPlotField = subPlotFldNm;
                 IFeatureClass ftrCls = ftrDic[ftrNm];
@@ -226,7 +227,7 @@ namespace esriUtil.Forms.FIA
                 }
             }
         }
-
+        private bool grpStatCode = false;
         private void btnGrp_Click(object sender, EventArgs e)
         {
             string fiaDbNm = txtAccessDb.Text;
@@ -257,6 +258,7 @@ namespace esriUtil.Forms.FIA
                 if (DialogResult.OK == frmGp.ShowDialog())
                 {
                     grpDic = frmGp.GroupDictionary;
+                    grpStatCode = frmGp.chbStatusCode.Checked;
                     //MessageBox.Show(String.Join(", ", grpDic.Values.ToArray()));
                 }
                 else

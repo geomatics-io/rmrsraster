@@ -190,6 +190,9 @@ namespace esriUtil.Forms.Sampling
                         case esriUtil.Statistics.dataPrepBase.modelTypes.CovCorr:
                             ftrUtil.selectCovCorrFeaturesToSample(ftrCls, outModelPath, prop, alpha);
                             break;
+                        case esriUtil.Statistics.dataPrepBase.modelTypes.StrataCovCorr:
+                            ftrUtil.selectClusterFeaturesToSample(ftrCls, outModelPath, mapFld, prop, alpha, chbEqual.Checked);
+                            break;
                         case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
                             ftrUtil.selectPcaFeaturesToSample(ftrCls, outModelPath, prop, alpha);
                             break;

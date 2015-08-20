@@ -8,7 +8,7 @@
     <ProjectGuid>{03E4D743-9242-425D-8FDA-0EB6FDD94945}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestConsole</RootNamespace>
+    <RootNamespace>DownloadData</RootNamespace>
     <AssemblyName>TestConsole</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

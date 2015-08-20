@@ -84,6 +84,20 @@ namespace esriUtil.Statistics
             }
             return maxN;
         }
+        public static int[] sampleSizeMaxStrata(string strataModelPath, double proportionOfMean = 0.1, double alpha = 0.05)
+        {
+            dataPrepStrata strata = new dataPrepStrata();
+            strata.buildModel(strataModelPath);
+            int nStrata = strata.Labels.Count;
+            int[] maxN = new int[nStrata];
+            for (int i = 0; i < nStrata; i++)
+            {
+                Accord.MachineLearning.KMeansCluster k = ((Accord.MachineLearning.KMeans)strata.Model).Clusters[i];
+                int mx = sampleSizeMaxMean(k.Covariance, k.Mean, proportionOfMean, alpha)[0];
+                maxN[i] = mx;
+            }
+            return maxN;
+        }
         public static double[] clusterProportions(string clusterModelPath)
         {
             dataPrepClusterKmean cls = new dataPrepClusterKmean();
@@ -134,6 +148,9 @@ namespace esriUtil.Statistics
                     case dataPrepBase.modelTypes.Cluster:
                         fillCluserReport(modelPath, rp, proportion, alpha);
                         break;
+                    case dataPrepBase.modelTypes.StrataCovCorr:
+                        fillStrataReport(modelPath, rp, proportion, alpha);
+                        break;
                     default:
                         rp.addMessage("Can't estimate sample size for this type of model!");
                         break;
@@ -150,6 +167,23 @@ namespace esriUtil.Statistics
             }
 
 
+        }
+
+        private static void fillStrataReport(string modelPath, Forms.RunningProcess.frmRunningProcessDialog rp, double proportion, double alpha)
+        {
+            dataPrepStrata strata = new dataPrepStrata();
+            strata.buildModel(modelPath);
+            List<string> lbl = strata.Labels;
+            rp.addMessage("Samples by strata (Stratum; number of samples)");
+            rp.addMessage("-".PadRight(45, '-'));
+            int[] samples = sampleSizeMaxStrata(modelPath, proportion, alpha);
+            for (int i = 0; i < samples.Length; i++)
+            {
+                rp.addMessage("\t" + lbl[i] + "; " + samples[i].ToString());
+
+            }
+            rp.addMessage("-".PadRight(45, '-'));
+            rp.addMessage("Total number of samples = " + samples.Sum().ToString()); 
         }
 
         private static void fillCluserReport(string modelPath, Forms.RunningProcess.frmRunningProcessDialog rp, double proportion = 0.1, double alpha = 0.05)

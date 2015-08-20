@@ -22,12 +22,12 @@ using System.Net;
 
 
 
-namespace TestConsole
+namespace DownloadData
 {
     class Program
     {
 
-        private static LicenseInitializer m_AOLicenseInitializer = new TestConsole.LicenseInitializer();
+        private static LicenseInitializer m_AOLicenseInitializer = new DownloadData.LicenseInitializer();
         [STAThread()]
         static void Main(string[] args)
         {
@@ -39,11 +39,17 @@ namespace TestConsole
             TimeSpan ts;
             rasterUtil rsUtil = new rasterUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            string rsStr = @"C:\Users\jshogland\Documents\JOHN\projects\Code\RMRSRasterUtility\esriUtil\RmrsUtilitywebsite\DOWNLOADS\Accuracy Assessment\AccuracyAssessment.gdb\CCCD";
-            IWorkspace rsWks = geoUtil.OpenRasterWorkspace(@"C:\Users\jshogland\Documents\JOHN\projects\Code\RMRSRasterUtility\esriUtil\RmrsUtilitywebsite\DOWNLOADS\Accuracy Assessment\AccuracyAssessment.gdb");
+            featureUtil ftrUtil = new featureUtil();
+            string zones = @"C:\Users\jshogland\Documents\JOHN\Requests\TaceyFrescino\forFIESTA\test.gdb\utcobnd";
+            string values = @"C:\Users\jshogland\Documents\JOHN\Requests\TaceyFrescino\forFIESTA\test.gdb\AdminBoundary";
+            string[] flds = { "m_BAA_all_1" };
+            IFeatureClass zonesFtr = geoUtil.getFeatureClass(zones);
+            IFeatureClass valuesFtr = geoUtil.getFeatureClass(values);
+            ftrUtil.weightFieldValuesByAreaLength(valuesFtr, flds, zonesFtr);
+            
 
-            IRaster rs = rsUtil.returnRaster(rsStr);
-            rsUtil.createRandomSampleLocationsByClass(rsWks, rs, new int[] { 30 }, 1, "srSmTest");
+
+
 
 
             //string ftpSite = @"ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/NAIP/mt_2013/";
@@ -59,7 +65,7 @@ namespace TestConsole
             //    {
             //        if (!exNames.Contains(fName))
             //        {
-            //            //Console.WriteLine("Total number of files = " + fNames.Count.ToString());
+            //            Console.WriteLine("Total number of files = " + fNames.Count.ToString());
             //            Console.WriteLine("Downloading " + fName);
             //            bool gotFile = Download(ftpSite, outDir, fName);
             //            Console.WriteLine("Got File " + fName + " " + gotFile.ToString());

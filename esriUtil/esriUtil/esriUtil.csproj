@@ -224,6 +224,8 @@
     <Reference Include="ESRI.ArcGIS.Version, Version=10.1.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -237,6 +239,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
+    <Compile Include="Forms\FIA\frmFiaSummarizePoly.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FIA\frmFiaSummarizePoly.Designer.cs">
+      <DependentUpon>frmFiaSummarizePoly.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FIA\frmGroupSpecies.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -320,6 +328,24 @@
     </Compile>
     <Compile Include="Forms\Stats\frmGlm.Designer.cs">
       <DependentUpon>frmGlm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSummarizeByField.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSummarizeByField.Designer.cs">
+      <DependentUpon>frmSummarizeByField.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSummarizeRelatedTable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmSummarizeRelatedTable.Designer.cs">
+      <DependentUpon>frmSummarizeRelatedTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Stats\frmWeightedAverageByAreaOrLength.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Stats\frmWeightedAverageByAreaOrLength.Designer.cs">
+      <DependentUpon>frmWeightedAverageByAreaOrLength.cs</DependentUpon>
     </Compile>
     <Compile Include="FunctionRasters\clipFunctionArgument.cs" />
     <Compile Include="FunctionRasters\clipFunctionDataset.cs" />
@@ -962,6 +988,9 @@
     <EmbeddedResource Include="Forms\FIA\frmFiaBiomass.resx">
       <DependentUpon>frmFiaBiomass.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FIA\frmFiaSummarizePoly.resx">
+      <DependentUpon>frmFiaSummarizePoly.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FIA\frmGroupSpecies.resx">
       <DependentUpon>frmGroupSpecies.cs</DependentUpon>
     </EmbeddedResource>
@@ -1181,6 +1210,12 @@
     <EmbeddedResource Include="Forms\Stats\frmStratifiedVarCov.resx">
       <DependentUpon>frmStratifiedVarCov.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmSummarizeByField.resx">
+      <DependentUpon>frmSummarizeByField.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmSummarizeRelatedTable.resx">
+      <DependentUpon>frmSummarizeRelatedTable.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmTTest.resx">
       <DependentUpon>frmTTest.cs</DependentUpon>
     </EmbeddedResource>
@@ -1189,6 +1224,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Stats\frmViewModelSampleSize.resx">
       <DependentUpon>frmViewModelSampleSize.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Stats\frmWeightedAverageByAreaOrLength.resx">
+      <DependentUpon>frmWeightedAverageByAreaOrLength.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Texture\frmCreateGlcmSurface.resx">
       <DependentUpon>frmCreateGlcmSurface.cs</DependentUpon>

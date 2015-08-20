@@ -1,7 +1,7 @@
 using System;
 using ESRI.ArcGIS;
 
-namespace TestConsole
+namespace DownloadData
 {
     internal partial class LicenseInitializer
     {

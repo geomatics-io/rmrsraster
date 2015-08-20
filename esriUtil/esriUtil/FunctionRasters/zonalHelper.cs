@@ -139,7 +139,7 @@ namespace esriUtil.FunctionRasters
                 }
                 calcZoneValues();
             }
-            if (ZoneTypes==null||ZoneTypes.Length>0)
+            if (ZoneTypes!=null&&ZoneTypes.Length>0)
             {
                 fillFields();
             }

@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>3/10/2015</Date>
+  <Date>8/7/2015</Date>
   <Targets>
     <Target name="Desktop" version="10.2" />
   </Targets>
@@ -105,6 +105,10 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandLocalRescaleRaster" class="commandLocalRescaleRaster" message="Rescales Rasters" caption="Local Rescale Raster" tip="click to open raster utility form" category="rasterUtilities" image="Images\commandLocalRescaleRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandBuildAttributeTable" class="commandBuildAttributeTable" message="Creates a multiband raster attribute table. Similar to the attribute table created by ESRI's combine command. Also works with single band rasters" caption="Build Raster Attribute Table" tip="click to open form" category="rasterUtilities" image="Images\commandBuildAttributeTable.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_FocalBand" class="commandFocalBandRaster" message="Calculates focal time series analysis" caption="Focal Band" tip="Click to open user form" category="rasterUtilities" image="Images\commandFocalBandRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandFiaPolygonSummary" class="commandFiaPolygonSummary" message="click to open polyton plot summary" caption="Polygon Plot Summary" tip="Summarizes FIA plot info given stratum and stands" category="rasterUtilities" image="Images\commandFiaPolygonSummary.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSummarizeByField" class="commandSummarizeByField" message="Builds basic statistics by summarizing fields" caption="Summarize By Field" tip="Click to open Summarize By Field form" category="stats" image="Images\commandSummarizeByField.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSummarizeRelated" class="commandSummarizeRelated" message="Summarizes values from a related table and appends those valuse back to the parent" caption="Summarize Related Table" tip="Click to open form" category="stats" image="Images\commandSummarizeRelated.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSpatiallyWeightedAverage" class="commandSpatiallyWeightedAverage" message="takes a polygon layer that represents zones and calcualtes weighted values based on area or permiter length from the value polygons that fall within each zone polygon." caption="Spatially Weighted Average" tip="click to open the form" category="stats" image="Images\commandSpatiallyWeightedAverage.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

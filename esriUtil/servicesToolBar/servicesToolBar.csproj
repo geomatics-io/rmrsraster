@@ -117,6 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="commandBuildAttributeTable.cs" />
+    <Compile Include="commandFiaPolygonSummary.cs" />
     <Compile Include="commandFocalBandRaster.cs" />
     <Compile Include="commandLocalRescaleRaster.cs" />
     <Compile Include="commandNdviRaster.cs" />
@@ -192,9 +193,12 @@
     <Compile Include="commandShowReport.cs" />
     <Compile Include="commandSlope.cs" />
     <Compile Include="commandSoftMaxNnet.cs" />
+    <Compile Include="commandSpatiallyWeightedAverage.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandStratifiedVarCov.cs" />
+    <Compile Include="commandSummarizeByField.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
+    <Compile Include="commandSummarizeRelated.cs" />
     <Compile Include="commandTasseledCapETM7.cs" />
     <Compile Include="commandTTest.cs" />
     <Compile Include="commandVarCov.cs" />
@@ -645,6 +649,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <AddInContent Include="Images\commandFocalBandRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandFiaPolygonSummary.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSummarizeByField.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSummarizeRelated.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSpatiallyWeightedAverage.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <Content Include="RMRSBatchProcess.exe">

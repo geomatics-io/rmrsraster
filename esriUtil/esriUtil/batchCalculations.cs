@@ -558,6 +558,12 @@ namespace esriUtil
                         if (paramArr[5].ToLower() == "true") eW = true;
                         ftrUtil.selectCovCorrFeaturesToSample(inTbl, mdl, prop, alpha);
                         break;
+                    case esriUtil.Statistics.dataPrepBase.modelTypes.StrataCovCorr:
+                        prop = System.Convert.ToDouble(paramArr[3]);
+                        alpha = System.Convert.ToDouble(paramArr[4]);
+                        if (paramArr[5].ToLower() == "true") eW = true;
+                        ftrUtil.selectStrataFeaturesToSample(inTbl, mdl, sFld, prop, alpha,eW);
+                        break;
                     case esriUtil.Statistics.dataPrepBase.modelTypes.PCA:
                         prop = System.Convert.ToDouble(paramArr[3]);
                         alpha = System.Convert.ToDouble(paramArr[4]);

@@ -326,10 +326,10 @@ namespace esriUtil.Statistics
             using (System.IO.StreamReader sr = new System.IO.StreamReader(outmodelpath))
             {
                 dataPrepBase.modelTypes mType = (dataPrepBase.modelTypes)Enum.Parse(typeof(dataPrepBase.modelTypes), sr.ReadLine());
-                if (mType != dataPrepBase.modelTypes.Cluster)
+                if (mType != dataPrepBase.modelTypes.StrataCovCorr)
                 {
 
-                    System.Windows.Forms.MessageBox.Show("Not a Cluster Model!!", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    System.Windows.Forms.MessageBox.Show("Not a StrataCovCorr Model!!", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                     return;
                 }
                 inpath = sr.ReadLine();
@@ -437,7 +437,7 @@ namespace esriUtil.Statistics
             outmodelpath = outPath;
             using (System.IO.StreamWriter sw = new System.IO.StreamWriter(outmodelpath))
             {
-                sw.WriteLine(dataPrepBase.modelTypes.Cluster.ToString());
+                sw.WriteLine(dataPrepBase.modelTypes.StrataCovCorr.ToString());
                 sw.WriteLine(InPath);
                 sw.WriteLine(String.Join(",", VariableFieldNames));
                 sw.WriteLine(n.ToString());
@@ -454,6 +454,73 @@ namespace esriUtil.Statistics
                 }
                 sw.Close();
             }
+        }
+        public void getReport()
+        {
+            if (kmeans == null) buildModel();
+            Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
+            rd.Text = "Stratified Variance Covariance Correlation Results";
+            rd.TopLevel = true;
+            rd.pgbProcess.Visible = false;
+            rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+            rd.addMessage("Input path = " + InPath);
+            rd.addMessage("Sample size = " + n.ToString() + " proportion of total records = " + prop.ToString());
+            rd.addMessage("Number of Strata = " + k.ToString());
+            rd.addMessage("Labels = " + String.Join(", ", lbl.ToArray()));
+            rd.addMessage("Variables: " + String.Join(" ,", VariableFieldNames));
+            kmeansReport(rd);
+            rd.enableClose();
+            rd.Show();
+        }
+        private void kmeansReport(Forms.RunningProcess.frmRunningProcessDialog rd)
+        {
+            KMeansClusterCollection gCol = kmeans.Clusters;
+            for (int i = 0; i < gCol.Count; i++)
+            {
+                KMeansCluster gClust = gCol[i];
+                double[] mns = gClust.Mean;
+                double[,] cov = gClust.Covariance;
+                double[,] corr = getCorr(cov);
+                rd.addMessage("\n\nStratum " + Labels[i] + ":\nMeans: " + String.Join(", ", (from double d in mns select d.ToString()).ToArray()) + "\nCovariance:");
+                for (int j = 0; j < VariableFieldNames.Length; j++)
+                {
+                    string[] covStrArr = new string[VariableFieldNames.Length];
+                    for (int l = 0; l < covStrArr.Length; l++)
+                    {
+                        covStrArr[l] = cov[l, j].ToString();
+                    }
+                    rd.addMessage("\n" + String.Join(",", covStrArr));
+                }
+                rd.addMessage("\nCorr:");
+                for (int j = 0; j < VariableFieldNames.Length; j++)
+                {
+                    string[] corrStrArr = new string[VariableFieldNames.Length];
+                    for (int l = 0; l < corrStrArr.Length; l++)
+                    {
+                        corrStrArr[l] = corr[l, j].ToString();
+                    }
+                    rd.addMessage("\n" + String.Join(",", corrStrArr));
+                }
+
+            }
+        }
+        private double[,] getCorr(double[,] cov)
+        {
+            double[,] corr = new double[VariableFieldNames.Length, VariableFieldNames.Length];
+            for (int i = 0; i < VariableFieldNames.Length; i++)
+            {
+                corr[i, i] = 1;
+                for (int j = 0 + i + 1; j < VariableFieldNames.Length; j++)
+                {
+                    double vl = cov[j, i];
+                    double var1 = cov[i, i];
+                    double var2 = cov[j, j];
+                    double corrVl = vl / Math.Sqrt((var1 * var2));
+                    corr[i, j] = corrVl;
+                    corr[j, i] = corrVl;
+                }
+            }
+            return corr;
         }
     }
 }

@@ -326,7 +326,7 @@ namespace esriUtil
                         Console.WriteLine("database " + dir + " does not exist 94");
                         return wks;
                     }
-                    if (ex != null)
+                    if (ex!=null)// it was ex!=null
                     {
                         ext = ex.ToLower();
                     }

@@ -461,10 +461,22 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.KDA:
                     openKDA(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.StrataCovCorr:
+                    openStrata(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openStrata(double alpha, bool report)
+        {
+            dataPrepStrata strata = new dataPrepStrata();
+            strata.buildModel(mdlp);
+            depvar = strata.VariableFieldNames;
+            indvar = strata.VariableFieldNames;
+            if (report) strata.getReport();
         }
 
         private void openKDA(double alpha, bool report)
