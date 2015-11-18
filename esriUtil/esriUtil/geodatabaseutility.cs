@@ -470,9 +470,11 @@ namespace esriUtil
                                 y = true;
                                 break;
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(subdtsn);
                             subdtsn = subdtsne.Next();
 
                         }
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(subdtsne);
                         if (y) break;
                     }
                     else
@@ -483,8 +485,10 @@ namespace esriUtil
                             break;
                         }
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dtsn);
                     dtsn = dtsne.Next();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(dtsne);
             }
             return x;
         }
@@ -536,9 +540,11 @@ namespace esriUtil
                                     x = true;
                                     break;
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(subdtsn);
                                 subdtsn = subdtsne.Next();
 
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(subdtsne);
                             if (x == true) break;
                         }
                         else
@@ -549,8 +555,10 @@ namespace esriUtil
                                 break;
                             }
                         }
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(dtsn);
                         dtsn = dtsne.Next();
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dtsne);
                 }
             }
             catch (Exception e)
@@ -617,8 +625,10 @@ namespace esriUtil
                                 {
                                     lstFeatureClasses.Add(dataset2.Name);
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset2);
                                 dataset2 = eDatasets2.Next();
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets2);
                             break;
 
                         default:
@@ -628,8 +638,10 @@ namespace esriUtil
                             }
                             break;
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset);
                     dataset = eDatasets.Next();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
             }
             return lstFeatureClasses;
         }
@@ -682,8 +694,10 @@ namespace esriUtil
                                 {
                                     lstFeatureClasses.Add(dataset2.BrowseName, dataset2.FullName);
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset2);
                                 dataset2 = eDatasets2.Next();
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets2);
                             break;
 
                         default:
@@ -693,8 +707,11 @@ namespace esriUtil
                             }
                             break;
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset);
                     dataset = eDatasets.Next();
+                    
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
             }
         
             return lstFeatureClasses;
@@ -730,8 +747,10 @@ namespace esriUtil
                                 {
                                     lstFeatureClasses.Add((IFeatureClass)dataset2.FullName.Open());
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset2);
                                 dataset2 = eDatasets2.Next();
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets2);
                             break;
 
                         case esriDatasetType.esriDTFeatureClass:
@@ -740,8 +759,10 @@ namespace esriUtil
                         default:
                             break;
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset);
                     dataset = eDatasets.Next();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
             }
             return lstFeatureClasses;
         }
@@ -775,8 +796,10 @@ namespace esriUtil
                                 {
                                     lstRasterDataset.Add((IRasterDataset3)dataset2.FullName.Open());
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset2);
                                 dataset2 = eDatasets2.Next();
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
                             break;
 
                         case esriDatasetType.esriDTRasterDataset:
@@ -785,8 +808,10 @@ namespace esriUtil
                         default:
                             break;
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset);
                     dataset = eDatasets.Next();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
             }
             return lstRasterDataset;
         }
@@ -820,8 +845,10 @@ namespace esriUtil
                                 {
                                     lstTable.Add((ITable)dataset2.FullName.Open());
                                 }
+                                System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset2);
                                 dataset2 = eDatasets2.Next();
                             }
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets2);
                             break;
 
                         case esriDatasetType.esriDTTable:
@@ -830,8 +857,11 @@ namespace esriUtil
                         default:
                             break;
                     }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(dataset);
                     dataset = eDatasets.Next();
+
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(eDatasets);
             }
             return lstTable;
         }
@@ -2527,47 +2557,7 @@ namespace esriUtil
 
 
         }
-        /// <summary>
-        /// samples a featureclass given a sample location point file a featureclass to sample, and the sample field to get info from 
-        /// </summary>
-        /// <param name="sampleLocations">the sample locations</param>
-        /// <param name="featureClassToSample">the feature class to sample</param>
-        /// <param name="fld">the field to sample</param>
-        public void sampleFeatureClass(IFeatureClass sampleLocations, IFeatureClass featureClassToSample, IField fld)
-        {
-            string als = fld.Name;
-            if (als.Length > 12)
-            {
-                als = als.Substring(12);
-            }
-            IDataset dSet = (IDataset)featureClassToSample;
-            createField(sampleLocations, als, fld.Type);
-            int fldIndex = featureClassToSample.FindField(fld.Name);
-            int uFldIndex = sampleLocations.FindField(als);
-            IFeatureCursor sCur = featureClassToSample.Search(null, false);
-            IFeature sRow = sCur.NextFeature();
-            while (sRow != null)
-            {
-                IGeometry geo = sRow.Shape;
-                object sFldV = sRow.get_Value(fldIndex);
-                ISpatialFilter spFlt = new SpatialFilterClass();
-                spFlt.Geometry = geo;
-                spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
-                spFlt.GeometryField = sampleLocations.ShapeFieldName;
-                IFeatureCursor sCur2 = sampleLocations.Search(spFlt, false);
-                IFeature sRow2 = sCur2.NextFeature();
-                while (sRow2 != null)
-                {
-                    sRow2.set_Value(uFldIndex, sFldV);
-                    sRow2.Store();
-                    sRow2 = sCur2.NextFeature();
-                }
-                sRow = sCur.NextFeature();
-
-            }
-
-           
-        }
+        
         /// <summary>
         /// returns a featureclass
         /// </summary>

@@ -9,6 +9,7 @@ using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.DataSourcesGDB;
 using ESRI.ArcGIS.DataSourcesNetCDF;
 using ESRI.ArcGIS.DataSourcesOleDB;
+using ESRI.ArcGIS.DataSourcesRaster;
 using ESRI.ArcGIS.Controls;
 using System.Windows.Forms;
 using System.Data.SqlClient;
@@ -18,7 +19,16 @@ namespace esriUtil
 {
     public class featureUtil
     {
+        public featureUtil()
+        {
+            rsUtil = new rasterUtil();
+        }
+        public featureUtil(rasterUtil rasterUtility)
+        {
+            rsUtil = rasterUtility;
+        }
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+        private rasterUtil rsUtil = null;
         public void weightFieldValuesByAreaLength(IFeatureClass strataFtr, string[] fldNames, IFeatureClass standsFtr, bool length = false)
         {
             int[] meanFldIndex = new int[fldNames.Length];
@@ -525,7 +535,7 @@ namespace esriUtil
             int cnt = 0;
             foreach (string k in sKey)
             {
-                cnt += 1;
+                cnt += dic[k];
                 if (cnt > mCnt)
                 {
                     outVl = System.Convert.ToDouble(k);
@@ -1433,6 +1443,384 @@ namespace esriUtil
             {
                 System.Windows.Forms.MessageBox.Show(e.ToString());
             }
+        }
+        public ITable subSetRasterTallyCounts(IFeatureClass inFeatureClass, IRasterDataset[] inRasterDatasets, string outTbl)
+        {
+            string wksPath = geoUtil.getDatabasePath(outTbl);
+            IWorkspace wks = geoUtil.OpenWorkSpace(wksPath);
+            string outTblNm = System.IO.Path.GetFileNameWithoutExtension(outTbl);
+            outTblNm = geoUtil.getSafeOutputNameNonRaster(wks, outTblNm);
+            IFields flds = new FieldsClass();
+            IFieldsEdit fldsEdit = (IFieldsEdit)flds;
+            ITable outTable = geoUtil.createTable(wks, outTblNm, null);
+            string ftrIdNm = geoUtil.createField(outTable,"link",esriFieldType.esriFieldTypeInteger,true);
+            string rsFldNm = geoUtil.createField(outTable, "raster", esriFieldType.esriFieldTypeString, true);
+            string bndFldNm = geoUtil.createField(outTable, "band", esriFieldType.esriFieldTypeInteger, true);
+            string vlFldNm = geoUtil.createField(outTable, "value", esriFieldType.esriFieldTypeString, true);
+            string cntFldNm = geoUtil.createField(outTable, "count", esriFieldType.esriFieldTypeInteger, true);
+            int idIndex = outTable.FindField(ftrIdNm);
+            int rsIndex = outTable.Fields.FindField(rsFldNm);
+            int bndIndex = outTable.Fields.FindField(bndFldNm);
+            int vlIndex = outTable.Fields.FindField(vlFldNm);
+            int cntIndex = outTable.Fields.FindField(cntFldNm);
+            int[] fldIndexArr = {idIndex,rsIndex,bndIndex,vlIndex,cntIndex};
+            for (int rsDset = 0; rsDset < inRasterDatasets.Length; rsDset++)
+            {
+                IFunctionRasterDataset inRasterDataset = rsUtil.createIdentityRaster(inRasterDatasets[rsDset]);
+                string rsName = ((IDataset)inRasterDatasets[rsDset]).BrowseName;
+                Console.WriteLine("Working on image " + rsName);
+                int bndCnt = inRasterDataset.RasterInfo.BandCount;
+                IEnvelope ext = inRasterDataset.RasterInfo.Extent;
+                ISpatialFilter sp = new SpatialFilter();
+                sp.GeometryField = inFeatureClass.ShapeFieldName;
+                sp.Geometry = ext;
+                sp.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+                IFeatureCursor ftrCur = inFeatureClass.Search(sp, true);
+                IFeature ftr = ftrCur.NextFeature();
+                while (ftr != null)
+                {
+                    Dictionary<string, int>[] outDic = new Dictionary<string, int>[bndCnt];
+                    for (int b = 0; b < bndCnt; b++)
+                    {
+                        outDic[b] = new Dictionary<string, int>();
+                    }
+                    IGeometry geo = ftr.Shape;
+                    int ftrId = ftr.OID;
+                    ITopologicalOperator4 tp = (ITopologicalOperator4)geo;
+                    IGeometry geo2 = tp.Intersect(ext, esriGeometryDimension.esriGeometry2Dimension);
+                    IFunctionRasterDataset rsDsetClip = rsUtil.clipRasterFunction(inRasterDataset, geo2, esriRasterClippingType.esriRasterClippingOutside);
+                    IRaster rs = rsUtil.createRaster(rsDsetClip);
+                    IRasterCursor rsCur = ((IRaster2)rs).CreateCursorEx(null);
+                    IPixelBlock pb = null;
+                    do
+                    {
+                        pb = rsCur.PixelBlock;
+                        for (int b = 0; b < bndCnt; b++)
+                        {
+                            for (int r = 0; r < pb.Height; r++)
+                            {
+                                for (int c = 0; c < pb.Width; c++)
+                                {
+                                    object vlObj = pb.GetVal(b, c, r);
+                                    if (vlObj != null)
+                                    {
+                                        string vl = vlObj.ToString();
+                                        int rCnt = 1;
+                                        if (outDic[b].TryGetValue(vl, out rCnt))
+                                        {
+                                            outDic[b][vl] = rCnt + 1;
+                                        }
+                                        else
+                                        {
+                                            outDic[b][vl] = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } while (rsCur.Next() == true);
+                    updateTable(outTable, outDic,rsName, ftrId, fldIndexArr);
+                    ftr = ftrCur.NextFeature();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
+            }
+            return outTable;
+        }
+
+        private void updateTable(ITable outTable, Dictionary<string, int>[] outDic, string rsName, int ftrId, int[] fldIndexArr)
+        {
+            ICursor iCur = outTable.Insert(true);
+            IRowBuffer rw = outTable.CreateRowBuffer();
+            object[] vlObj = { ftrId, rsName, 0, 0, 0 };
+            for (int b = 0; b < outDic.Length; b++)
+            {
+                Dictionary<string, int> dic = outDic[b];
+                vlObj[2] = b+1;
+                foreach (KeyValuePair<string,int> kvp in dic)
+                {
+                    vlObj[3] = System.Convert.ToInt32(kvp.Key);
+                    vlObj[4] = kvp.Value;
+                    for (int i = 0; i < fldIndexArr.Length; i++)
+                    {
+                        rw.set_Value(fldIndexArr[i], vlObj[i]);
+                    }
+                    iCur.InsertRow(rw);
+                }
+            }
+            iCur.Flush();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur);
+        }
+        public IFeatureClass createRandomSample(IFeatureClass boundaryFtrCls, int numPlots, string outPath)
+        {
+            ISpatialReference sp = ((IGeoDataset)boundaryFtrCls).SpatialReference;
+            IFeatureClass pntCls = geoUtil.createFeatureClass(outPath, null, esriGeometryType.esriGeometryPoint,sp);   
+            List<IGeometry> geoLst = new List<IGeometry>();
+            List<double> geoArea = new List<double>();
+            double totalArea = 0;
+            IFeatureCursor ftrCurBoundary = boundaryFtrCls.Search(null, true);
+            IFeature ftrBnd = ftrCurBoundary.NextFeature();
+            while (ftrBnd != null)
+            {
+                IGeometry geo = ftrBnd.ShapeCopy;
+                double area = ((IArea)geo).Area;
+                geoLst.Add(geo);
+                geoArea.Add(area);
+                totalArea += area;
+                ftrBnd = ftrCurBoundary.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCurBoundary);
+            int[] sampleSize = new int[geoArea.Count];
+            for (int i = 0; i < sampleSize.Length; i++)
+			{
+                double dArea = geoArea[i];
+                int ss = System.Convert.ToInt32(dArea/totalArea*numPlots);
+                if(ss>0) sampleSize[i] = ss;
+                else sampleSize[i] = 1;
+	        }
+            IFeatureCursor ftrCur = pntCls.Insert(true);
+            IFeatureBuffer ftrBuff = pntCls.CreateFeatureBuffer();
+            Random rnd = new Random();
+            for(int i = 0;i<geoLst.Count;i++)
+	        {
+                //Console.WriteLine("working on geo " + i.ToString());
+                HashSet<string> xyHash = new HashSet<string>();
+                IGeometry geo = geoLst[i];
+                int np = sampleSize[i];
+                double pntCnt = 0;
+                IEnvelope env = geo.Envelope;
+                double xMin = env.XMin;
+                double xMax = env.XMax;
+                double xRange = xMax - xMin;
+                double yMin = env.YMin;
+                double yMax = env.YMax;
+                double yRange = yMax - yMin;
+                while (pntCnt < np)
+                {
+                    double nx = (rnd.NextDouble() * xRange) + xMin;
+                    double ny = (rnd.NextDouble() * yRange) + yMin;
+                    //string nxny = nx.ToString() + ":" + ny.ToString();
+                    //if (xyHash.Add(nxny))
+                    IPoint pnt = new ESRI.ArcGIS.Geometry.PointClass();
+                    pnt.X = nx;
+                    pnt.Y = ny;
+                    pnt.SpatialReference = sp;
+                    IRelationalOperator rOp = (IRelationalOperator)pnt;
+                    if (rOp.Within(geo))
+                    {
+                        ftrBuff.Shape = pnt;
+                        ftrCur.InsertFeature(ftrBuff);
+                        pntCnt++;
+                    }
+                
+                }
+            }
+            ftrCur.Flush();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
+            return pntCls;
+        }
+        /// <summary>
+        /// samples a featureclass given a sample location point file a featureclass to sample, and the sample field to get info from 
+        /// </summary>
+        /// <param name="sampleLocations">the sample locations</param>
+        /// <param name="featureClassToSample">the feature class to sample</param>
+        /// <param name="fld">the field to sample</param>
+        public void sampleFeatureClass(IFeatureClass sampleLocations, IFeatureClass featureClassToSample, IField[] flds)
+        {
+
+            IDataset dSet = (IDataset)featureClassToSample;
+            int[] fldIndexArr = new int[flds.Length];
+            int[] uFldIndexArr = new int[flds.Length];
+            for (int f = 0; f < flds.Length; f++)
+            {
+                IField fld = flds[f];
+                string als = fld.Name;
+                if (als.Length > 12)
+                {
+                    als = als.Substring(12);
+                }
+                geoUtil.createField(sampleLocations, als, fld.Type);
+                fldIndexArr[f] = featureClassToSample.FindField(fld.Name);
+                uFldIndexArr[f] = sampleLocations.FindField(als);
+            }
+
+            IFeatureCursor sCur = featureClassToSample.Search(null, true);
+            IFeature sRow = sCur.NextFeature();
+            while (sRow != null)
+            {
+                IGeometry geo = sRow.Shape;
+                ISpatialFilter spFlt = new SpatialFilterClass();
+                spFlt.Geometry = geo;
+                spFlt.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+                spFlt.GeometryField = sampleLocations.ShapeFieldName;
+                IFeatureCursor sCur2 = sampleLocations.Update(spFlt, true);
+                IFeature sRow2 = sCur2.NextFeature();
+                while (sRow2 != null)
+                {
+                    for (int f = 0; f < flds.Length; f++)
+                    {
+                        int fldIndex = fldIndexArr[f];
+                        int uFldIndex = uFldIndexArr[f];
+                        object sFldV = sRow.get_Value(fldIndex);
+                        sRow2.set_Value(uFldIndex, sFldV);
+
+                    }
+                    sCur2.UpdateFeature(sRow2);
+                    sRow2 = sCur2.NextFeature();
+                }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur2);
+                sRow = sCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(sCur);
+        }
+        public IFeatureClass splitPolyFeatures(IFeatureClass inputFtrCls, int numberOfSplits, string outFtrClsPath, int buffer = 0)
+        {
+            IFeatureClass outFtrCls = geoUtil.createFeatureClass(outFtrClsPath, null, inputFtrCls.ShapeType, ((IGeoDataset)inputFtrCls).SpatialReference);
+            IFeatureCursor inCur = outFtrCls.Insert(true);
+            IFeatureBuffer ftrBuff = outFtrCls.CreateFeatureBuffer();
+            IFeatureCursor ftrCur = inputFtrCls.Search(null, true);
+            IFeature ftr = ftrCur.NextFeature();
+            while (ftr != null)
+            {
+                IGeometry geo = ftr.ShapeCopy;
+                double xMin = geo.Envelope.XMin;
+                double xMax = geo.Envelope.XMax;
+                double yMin = geo.Envelope.YMin;
+                double yMax = geo.Envelope.YMax;
+                double xRange = xMax - xMin;
+                double yRange = yMax - yMin;
+                double tArea = xRange * yRange;
+                double subArea = tArea / numberOfSplits;
+                double step = System.Math.Sqrt(subArea);
+                for (double x = xMin; x < xMax; x = x + step)
+                {
+                    double nx = x - buffer;
+                    for (double y = yMin; y < yMax; y = y + step)
+                    {
+                        double ny = y - buffer;
+                        IPolygon poly = new PolygonClass();
+                        IPointCollection ptCol = (IPointCollection)poly;
+                        IPoint pnt = new PointClass();
+                        pnt.PutCoords(nx, ny);
+                        IPoint pnt2 = new PointClass();
+                        pnt2.PutCoords(nx, ny + step + buffer);
+                        IPoint pnt3 = new PointClass();
+                        pnt3.PutCoords(nx + step+ buffer, ny + step + buffer);
+                        IPoint pnt4 = new PointClass();
+                        pnt4.PutCoords(nx + step + buffer, ny);
+                        ptCol.AddPoint(pnt);
+                        ptCol.AddPoint(pnt2);
+                        ptCol.AddPoint(pnt3);
+                        ptCol.AddPoint(pnt4);
+                        poly.Close();
+                        ftrBuff.Shape = poly;
+                        inCur.InsertFeature(ftrBuff);
+                    }
+                }
+                ftr = ftrCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(inCur);
+            return outFtrCls;
+        }
+        /// <summary>
+        /// Creates mosaic datasets based on the images within a specified directory and the extents each geometry 
+        /// </summary>
+        /// <param name="geoArray">The array of geometries used to define the extent of each mosaic</param>
+        /// <param name="imageWorkspace">the image workspace used to search from images</param>
+        /// <param name="outWorkspace">the output workspace</param>
+        /// <returns>an array of FunctionDatasets containing each mosaic</returns>
+        public IFunctionRasterDataset[] createMosaicDatasetFromGeometry(IGeometry[] geoArray, string outPrefix, IWorkspace imageWorkspace, IWorkspace outWorkspace)
+        {
+            List<IFunctionRasterDataset> dSetLst = new List<IFunctionRasterDataset>();
+            try
+            {
+                int cnt = 1;
+                object[][] rsExt = getRasterExtents(imageWorkspace);
+                foreach (IGeometry geo in geoArray)
+                {
+                    Console.WriteLine("Working on geo " + cnt.ToString());
+                    IEnvelope env = geo.Envelope;
+                    IEnvelope cmbEnv;
+                    string[] rstLst = getRasterList(env, rsExt, out cmbEnv);
+                    if (rstLst.Length > 0)
+                    {
+                        dSetLst.Add((IFunctionRasterDataset)rsUtil.createIdentityRaster(rsUtil.mosaicRastersFunction(outWorkspace, outPrefix + "_" + cnt.ToString(), rstLst, cmbEnv, esriMosaicMethod.esriMosaicNone, rstMosaicOperatorType.MT_FIRST, true, true, false, false)));
+                        cnt++;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            return dSetLst.ToArray();
+        }
+        /// <summary>
+        /// Creates mosaic datasets based on the images within a specified directory and the extents each feature within a specified featureclass 
+        /// </summary>
+        /// <param name="ftrCls">The feature class used to define the extent of each mosaic</param>
+        /// <param name="imageWorkspace">the image workspace used to search from images</param>
+        /// <param name="outWorkspace">the output workspace</param>
+        /// <returns>an array of FunctionDatasets containing each mosaic</returns>
+        public IFunctionRasterDataset[] tiledMosaics(IFeatureClass ftrCls, IWorkspace imageWorkspace, IWorkspace outWorkspace)
+        {
+            IQueryFilter qf = new QueryFilterClass();
+            qf.SubFields = ftrCls.OIDFieldName+","+ftrCls.ShapeFieldName;
+            IFeatureCursor ftrCur = ftrCls.Search(qf, true);
+            IFeature ftr = ftrCur.NextFeature();
+            List<IGeometry> geoLst = new List<IGeometry>();
+            while(ftr!=null)
+            {
+                IGeometry geo = ftr.ShapeCopy;
+                geoLst.Add(geo);
+                ftr = ftrCur.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
+            return createMosaicDatasetFromGeometry(geoLst.ToArray(), "Tile_", imageWorkspace, outWorkspace);
+        }
+
+        private object[][] getRasterExtents(IWorkspace imageWorkspace)
+        {
+            
+            List<object[]> outLst = new List<object[]>();
+            IEnumDataset eDset = imageWorkspace.get_Datasets(esriDatasetType.esriDTRasterDataset);
+            eDset.Reset();
+            List<IEnvelope> envLst = new List<IEnvelope>();
+            IDataset dSet = eDset.Next();
+            while (dSet != null)
+            {
+                //Console.WriteLine("\tadding raster " + dSet.Name);
+                IEnvelope env = ((IGeoDataset)dSet).Extent;
+                string rsName = imageWorkspace.PathName + "\\" + dSet.BrowseName;
+                object[] lsObj = { env, rsName };
+                outLst.Add(lsObj);
+                envLst.Add(env);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(dSet);
+                dSet = eDset.Next();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDset);
+            //Console.WriteLine("Converting to Array");
+            return outLst.ToArray();
+        }
+
+        private string[] getRasterList(IEnvelope env, object[][] rsArra, out IEnvelope cmbEnv)
+        {
+            cmbEnv = new EnvelopeClass();
+            cmbEnv.SpatialReference = ((IEnvelope)rsArra[0][0]).SpatialReference;
+            List<string> rsLst = new List<string>();
+            IRelationalOperator rOp = (IRelationalOperator)env;
+            for (int i = 0; i < rsArra.Length; i++)
+            {
+                IEnvelope rsExt = (IEnvelope)rsArra[i][0];
+                if (!rOp.Disjoint(rsExt))
+                {
+                    cmbEnv.Union(rsExt);
+                    rsLst.Add(rsArra[i][1].ToString());
+                }
+            }
+            return rsLst.ToArray();
+
         }
     }
 }

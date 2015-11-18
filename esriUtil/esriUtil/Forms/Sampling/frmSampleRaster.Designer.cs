@@ -56,6 +56,7 @@
             this.cmbRaster.Name = "cmbRaster";
             this.cmbRaster.Size = new System.Drawing.Size(211, 21);
             this.cmbRaster.TabIndex = 3;
+            this.cmbRaster.SelectedIndexChanged += new System.EventHandler(this.cmbRaster_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -71,9 +72,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(9, 124);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(88, 13);
+            this.label2.Size = new System.Drawing.Size(157, 13);
             this.label2.TabIndex = 5;
-            this.label2.Text = "Raster to Sample";
+            this.label2.Text = "Raster/Feature Class to Sample";
             // 
             // btnSample
             // 
@@ -121,9 +122,9 @@
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(9, 68);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(103, 13);
+            this.label3.Size = new System.Drawing.Size(111, 13);
             this.label3.TabIndex = 9;
-            this.label3.Text = "Band Field (optional)";
+            this.label3.Text = "Band / Field (optional)";
             // 
             // frmSampleRaster
             // 
@@ -142,7 +143,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmSampleRaster";
-            this.Text = "Sample Raster";
+            this.Text = "Sample Layer";
             this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();

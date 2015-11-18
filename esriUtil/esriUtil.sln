@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmrsUtilitywebsite", "RmrsU
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RMRSBatchProcess", "RMRSBatchProcess\RMRSBatchProcess.csproj", "{C1069E50-D285-490A-A6D3-86434242E2BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DownloadData", "DownloadData\DownloadData.csproj", "{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,18 +85,6 @@ Global
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Mixed Platforms.Build.0 = Release|x86
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|Win32.ActiveCfg = Release|x86
 		{C1069E50-D285-490A-A6D3-86434242E2BD}.Release|x86.ActiveCfg = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|Win32.ActiveCfg = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|x86.ActiveCfg = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Debug|x86.Build.0 = Debug|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|Any CPU.ActiveCfg = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|Mixed Platforms.Build.0 = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|Win32.ActiveCfg = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|x86.ActiveCfg = Release|x86
-		{71BB77FD-24B4-49DE-A7FD-7C556EE106D7}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

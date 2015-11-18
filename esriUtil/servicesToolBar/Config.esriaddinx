@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>8/7/2015</Date>
+  <Date>11/13/2015</Date>
   <Targets>
     <Target name="Desktop" version="10.2" />
   </Targets>
@@ -23,7 +23,7 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandStratifiedRandomSample" class="commandStratifiedRandomSample" message="Will create a new point file with randomly choosen raster surface location. The number of points selected will be allocated to each class (strata)." caption="Create Stratified Random Sample" tip="click to create a stratified random sample" category="sample" image="Images\commandStratifiedRandomSample.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandCreateGLCM" class="commandCreateGLCM" message="Creates a functional Raster Dataset of GLCM surfaces" caption="Create GLCM" tip="Click to open create GLCM form" category="rasterUtilities" image="Images\commandCreateGLCM.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandPLRModel" class="commandPLRModel" message="Allows the user to model Multinomial logistic Regression" caption="Multinomial Logistic Regression" tip="Click to model MLR" category="stats" image="Images\commandPLRModel.bmp" />
-        <Button id="USDA_Forest_Service_servicesToolBar_commandSampleRaster" class="commandSampleRaster" message="Samples the values of an existing raster" caption="Sample Raster Values" tip="Allows a user to sample an existing raster" category="sample" image="Images\commandSampleRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSampleRaster" class="commandSampleRaster" message="Samples the values of an existing raster or feature class" caption="Sample Values" tip="Allows a user to sample an existing raster" category="sample" image="Images\commandSampleRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandClipRaster" class="commandClipRaster" message="Clips or erases the area outside or within a polygon layer from a specified raster." caption="Clip Analysis" tip="click to open clip raster form" category="rasterUtilities" image="Images\commandClipRaster.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandExportToCsv" class="commandExportToCsv" message="Will export all text and numeric fields to a csv file." caption="Export to csv" tip="click to open export to csv form" category="sample" image="Images\commandExportToCsv.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandRegModel" class="commandRegModel" message="Allows the user to model linear regression. " caption="Linear Regression" tip="click to open Regression modeling form" category="stats" image="Images\commandRegModel.bmp" />
@@ -109,6 +109,10 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandSummarizeByField" class="commandSummarizeByField" message="Builds basic statistics by summarizing fields" caption="Summarize By Field" tip="Click to open Summarize By Field form" category="stats" image="Images\commandSummarizeByField.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSummarizeRelated" class="commandSummarizeRelated" message="Summarizes values from a related table and appends those valuse back to the parent" caption="Summarize Related Table" tip="Click to open form" category="stats" image="Images\commandSummarizeRelated.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSpatiallyWeightedAverage" class="commandSpatiallyWeightedAverage" message="takes a polygon layer that represents zones and calcualtes weighted values based on area or permiter length from the value polygons that fall within each zone polygon." caption="Spatially Weighted Average" tip="click to open the form" category="stats" image="Images\commandSpatiallyWeightedAverage.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandPhotoAnalysis" class="commandPhotoAnalysis" message="Generates image statistics for a given ROI" caption="Photo Analysis" tip="click to open" category="rasterUtilities" image="Images\commandPhotoAnalysis.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandDeliveredCost" class="commandDeliveredCost" message="Calculates deliver cost surfaces" caption="Delivered Cost" tip="click to open" category="rasterUtilities" image="Images\commandDeliveredCost.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandTileMosaic" class="commandTileMosaic" message="Mosaics images within a workspace base on the geometries of a feature class." caption="Tile Mosaic" tip="click to open" category="rasterUtilities" image="Images\commandTileMosaic.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSplitPoly" class="commandSplitPoly" message="splits the features within a polygon into multiple parts" caption="Split Poly" tip="click to open" category="rasterUtilities" image="Images\commandSplitPoly.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

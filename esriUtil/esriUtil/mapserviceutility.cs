@@ -1472,8 +1472,10 @@ namespace esriUtil
                 {
                     dSet.Delete();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(dSet);
                 dSet = eDset.Next();
             }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDset);
             eDset = servWks.get_Datasets(esriDatasetType.esriDTRasterDataset);
             dSet = eDset.Next();
             while (dSet != null)
@@ -1482,8 +1484,11 @@ namespace esriUtil
                 {
                     dSet.Delete();
                 }
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(dSet);
                 dSet = eDset.Next();
+
             }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(eDset);
 
         }
         public static bool connectedToInternet
@@ -1508,5 +1513,218 @@ namespace esriUtil
                 return con;
             }
         }
+        public static Dictionary<string, IAGSServerObjectName> getServerObjects(IAGSServerConnection con)
+        {
+            Dictionary<string, IAGSServerObjectName> outDic = new Dictionary<string, IAGSServerObjectName>();
+            IAGSEnumServerObjectName sEnum = con.ServerObjectNames;
+            sEnum.Reset();
+            IAGSServerObjectName nms = sEnum.Next();
+            while (nms != null)
+            {
+                outDic[nms.Name] = nms;
+                nms = sEnum.Next();
+            }
+            return outDic;
+        }
+
+        public static IAGSServerConnection GetMapServerConnection(string agsUrl)
+        {
+            IPropertySet propertySet = new PropertySetClass();
+            propertySet.SetProperty("url", agsUrl);
+            Type factoryType = Type.GetTypeFromProgID("esriGISClient.AGSServerConnectionFactory");
+            IAGSServerConnectionFactory agsFactory = (IAGSServerConnectionFactory)Activator.CreateInstance(factoryType);
+            IAGSServerConnection agsConnection = agsFactory.Open(propertySet, 0);
+            return agsConnection;
+        }
+        public static IMapServer getMapServer(IAGSServerObjectName svrObjName)
+        {
+            IAGSServerObject svrObj =  (IAGSServerObject)((IName)svrObjName).Open();
+            return (IMapServer)svrObj;
+        }
+        public static Dictionary<string, int> getLayerIds(IMapServer mpSvr, int mapId = 0)
+        {
+            Dictionary<string, int> outDic = new Dictionary<string, int>();
+            IMapServerInfo msInfo = mpSvr.GetServerInfo(mpSvr.get_MapName(mapId));
+            IMapLayerInfos mpLyrInfos = msInfo.MapLayerInfos;
+            for (int i = 0; i < mpLyrInfos.Count; i++)
+            {
+                IMapLayerInfo mpLyrInfo = mpLyrInfos.get_Element(i);
+                outDic[mpLyrInfo.Name] = mpLyrInfo.ID;
+            }
+            return outDic;
+        }
+        public static IFeatureClass createFeatureClassFromMapService(string outPath, IMapServer mpSvr, int layerId=0, int mapId=0)
+        {
+            IFeatureClass outFtrCls = null;
+            IMapServer3 mpSvr3 = (IMapServer3)mpSvr;
+            IPropertySet pSet = mpSvr3.ServiceConfigurationInfo;
+            string mpName = mpSvr.get_MapName(mapId);
+            //Console.WriteLine("Map Name = " + mpSvr.get_MapName(0));
+            int maxRecords = System.Convert.ToInt32(pSet.GetProperty("MaximumRecordCount"));
+            //Console.WriteLine("MaxRecords = " + maxRecords.ToString());
+            IMapServerInfo mpSvrInfo = mpSvr.GetServerInfo(mpName);
+            IMapLayerInfos mpLyrInfos = mpSvrInfo.MapLayerInfos;
+            IMapLayerInfo mpInfo = mpLyrInfos.get_Element(layerId);
+            //Console.WriteLine(mpInfo.Name);
+            if (!mpInfo.IsFeatureLayer)
+            {
+                return outFtrCls;
+            }
+            else
+            {
+                IQueryFilter qf = new QueryFilterClass();
+                IFIDSet2 fIdSet = (IFIDSet2)mpSvr.QueryFeatureIDs(mpName,layerId,qf);
+                int records = fIdSet.Count();
+                if(maxRecords<records)
+                {
+
+                    int cnt = 0;
+                    IEnumIDs eIds = fIdSet.IDs;
+                    int fid = eIds.Next();
+                    int pid = 0;
+                    while(fid>-1)
+                    {
+                        if(cnt<maxRecords)
+                        {
+                            cnt++;
+                        }
+                        else
+                        {
+                            qf.WhereClause = "OBJECTID > " + pid.ToString() + " AND OBJECTID <= " + fid.ToString();
+                            updateRecords(mpSvr3, mpName, layerId, qf,ref outFtrCls,outPath);
+                            cnt=0;
+                            pid = fid;
+                        }
+                        fid = eIds.Next();
+
+                    }
+                    if (cnt > 0)
+                    {
+                        qf.WhereClause = "OBJECTID > " + pid.ToString();
+                        updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls,outPath);
+                    }
+
+                }
+                else
+                {
+                    updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls,outPath);
+                    
+                }
+                return outFtrCls;
+
+                
+            }
+        }
+
+        private static void updateRecords(IMapServer3 mpSvr, string mpName, int layerId, IQueryFilter qf, ref IFeatureClass outFtrCls, string outPath)
+        {
+            IRecordSet rs = mpSvr.QueryFeatureData(mpName, layerId, qf);
+            IFields flds = rs.Fields;
+            ICursor cur = rs.get_Cursor(true);
+            IRow rw = cur.NextRow();
+            int rwGeoIndex = 0;
+            int rwIdIndex = 0;
+            IFeatureCursor ftrcur = null;
+            IFeatureBuffer uFtrBuff = null;
+            if (outFtrCls != null)
+            {
+                ftrcur = outFtrCls.Insert(true);
+                uFtrBuff = outFtrCls.CreateFeatureBuffer();
+                for (int i = 0; i < flds.FieldCount; i++)
+                {
+                    IField fld = flds.get_Field(i);
+                    if (fld.Type == esriFieldType.esriFieldTypeGeometry)
+                    {
+                        rwGeoIndex = i;
+                    }
+                    else if (fld.Type == esriFieldType.esriFieldTypeOID)
+                    {
+                        rwIdIndex = i;
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            
+            while (rw != null)
+            {
+                if (outFtrCls == null)
+                {
+                    outFtrCls = createFeatureClass(rw, outPath, out rwIdIndex, out rwGeoIndex);
+                    ftrcur = outFtrCls.Insert(true);
+                    uFtrBuff = outFtrCls.CreateFeatureBuffer();
+                }
+                for (int i = 0; i < flds.FieldCount; i++)
+                {
+                    if (i == rwGeoIndex)
+                    {
+                        uFtrBuff.Shape = (IGeometry)((IClone)((IGeometry)rw.get_Value(i))).Clone();
+                    }
+                    else if (i == rwIdIndex)
+                    {
+                    }
+                    else
+                    {
+                        int fldIndex = outFtrCls.FindField(flds.get_Field(i).Name);
+                        if (fldIndex > -1)
+                        {
+                            IField oFld = outFtrCls.Fields.get_Field(fldIndex);
+                            if (oFld.Editable)
+                            {
+                                try
+                                {
+                                    uFtrBuff.set_Value(fldIndex, rw.get_Value(i));
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+
+                }
+                ftrcur.InsertFeature(uFtrBuff);
+                rw = cur.NextRow();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrcur);
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(cur);
+        }
+
+        private static IFeatureClass createFeatureClass(IRow rw,string outPath, out int oidIndex, out int geoIndex)
+        {
+            ISpatialReference sp = null;
+            esriGeometryType geoType = esriGeometryType.esriGeometryAny;
+            IFields otherFlds = new FieldsClass();
+            IFieldsEdit otherFldsE = (IFieldsEdit)otherFlds;
+            geoIndex = 0;
+            oidIndex = 0;
+            for (int i = 0; i < rw.Fields.FieldCount; i++)
+            {
+                IField fld = rw.Fields.get_Field(i);
+                if (fld.Type == esriFieldType.esriFieldTypeGeometry)
+                {
+                    IGeometry geo = (IGeometry)rw.get_Value(i);
+                    sp = geo.SpatialReference;
+                    geoType = geo.GeometryType;
+                    geoIndex = i;
+                }
+                else if (fld.Type== esriFieldType.esriFieldTypeOID)
+                {
+                    oidIndex = i; 
+                }
+                else
+                {
+                    if (fld.Editable)
+                    {
+                        otherFldsE.AddField((IField)((IClone)fld).Clone());
+                    }
+                }
+            }
+            geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+            IFeatureClass outFtrCls = geoUtil.createFeatureClass(outPath, otherFlds, geoType, sp);
+            return outFtrCls;
+        }
+
     }
 }

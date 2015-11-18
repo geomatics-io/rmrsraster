@@ -335,8 +335,9 @@ namespace esriUtil
             {
                 return cnts;
             }
-            ICursor scur = rst2.AttributeTable.Search(null, false);
-            if (scur == null)
+            ITable aTbl = rst2.AttributeTable;
+            
+            if (aTbl == null)
             {
                 Console.WriteLine("Creating VAT...");
                 IFunctionRasterDataset fd = createIdentityRaster(rst);
@@ -349,6 +350,7 @@ namespace esriUtil
             }
             else
             {
+                ICursor scur = rst2.AttributeTable.Search(null, false);
                 Console.WriteLine("Reading VAT...");
                 int vlIndex = scur.Fields.FindField("VALUE");
                 int cntIndex = scur.Fields.FindField("COUNT");
@@ -478,21 +480,27 @@ namespace esriUtil
                 int classIndex = sampFtrCls.FindField("Value");
                 int weightIndex = sampFtrCls.FindField("WEIGHT");
                 double clAv = classCnts.Values.Average();
+                IFeatureBuffer ftrBuff = sampFtrCls.CreateFeatureBuffer();
+                IFeatureCursor ftrCur = sampFtrCls.Insert(true);
                 foreach (KeyValuePair<string, List<double[]>> kVp in xyList)
                 {
                     string ky = kVp.Key;
                     List<double[]> vl = kVp.Value;
                     foreach (double[] d in vl)
                     {
-                        IFeature ftr = sampFtrCls.CreateFeature();
-                        IGeometry geo = ftr.Shape;
-                        IPoint pnt = (IPoint)geo;
+                        //IFeature ftr = sampFtrCls.CreateFeature();
+                        //IGeometry geo = ftr.Shape;
+                        IPoint pnt = new ESRI.ArcGIS.Geometry.PointClass();// (IPoint)geo;
                         pnt.PutCoords(d[0], d[1]);
-                        ftr.set_Value(classIndex, System.Convert.ToDouble(ky));
-                        ftr.set_Value(weightIndex,(classCnts[ky] / clAv));
-                        ftr.Store();
+                        ftrBuff.Shape = pnt;
+                        ftrBuff.set_Value(classIndex, System.Convert.ToDouble(ky));
+                        ftrBuff.set_Value(weightIndex,(classCnts[ky] / clAv));
+                        //ftr.Store();
+                        ftrCur.InsertFeature(ftrBuff);
                     }
                 }
+                ftrCur.Flush();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
             }
             catch (Exception e)
             {
@@ -536,6 +544,8 @@ namespace esriUtil
                 sampFtrCls = geoUtil.createFeatureClass((IWorkspace2)wks, pointName, flds, esriGeometryType.esriGeometryPoint, rstProps.SpatialReference);
                 int checkSampleSize = 0;
                 int classIndex = sampFtrCls.FindField("Value");
+                IFeatureBuffer ftrBuff = sampFtrCls.CreateFeatureBuffer();
+                IFeatureCursor ftrCur = sampFtrCls.Insert(true);
                 while (checkSampleSize<TotalSamples)
                 {
                     int x = rndGen.Next(rWidth);
@@ -549,14 +559,17 @@ namespace esriUtil
                     {
                         double xC = rst2.ToMapX(x);
                         double yC = rst2.ToMapY(y);
-                        IFeature ftr = sampFtrCls.CreateFeature();
-                        IGeometry geo = ftr.Shape;
-                        IPoint pnt = (IPoint)geo;
+                        //IFeature ftr = sampFtrCls.CreateFeature();
+                        //IGeometry geo = ftr.Shape;
+                        IPoint pnt = new ESRI.ArcGIS.Geometry.PointClass();
                         pnt.PutCoords(xC, yC);
                         try
                         {
-                            ftr.set_Value(classIndex, vlT);
-                            ftr.Store();
+                            ftrBuff.Shape = pnt;
+                            ftrBuff.set_Value(classIndex, vlT);
+                            //ftr.set_Value(classIndex, vlT);
+                            //ftr.Store();
+                            ftrCur.InsertFeature(ftrBuff);
                             checkSampleSize++;
                         }
                         catch (Exception e)
@@ -566,6 +579,8 @@ namespace esriUtil
                         }
                     }
                 }
+                ftrCur.Flush();
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(ftrCur);
             }
             catch (Exception e)
             {
@@ -4442,6 +4457,68 @@ namespace esriUtil
             return mosaicRastersFunction(wks, mosaicName, rasters,esriMosaicMethod.esriMosaicNone,rstMosaicOperatorType.MT_FIRST,true, true, true, true);
 
         }
+        public IRaster mosaicRastersFunction(IWorkspace wks, string mosaicName, string[] rasterNames, IEnvelope combinedEnvelope, esriMosaicMethod mosaicmethod, rstMosaicOperatorType mosaictype, bool buildfootprint, bool buildboudary, bool seamlines, bool buildOverview)
+        {
+            IFunctionRasterDataset rs1 = createIdentityRaster(rasterNames[0]);
+            IEnvelope env = combinedEnvelope;
+            int ht = System.Convert.ToInt32(env.Height);
+            int wd = System.Convert.ToInt32(env.Width);
+            int rec = System.Convert.ToInt32(ht * wd);
+            ISpatialReference sr = rs1.RasterInfo.SpatialReference;
+            string mNm = getSafeOutputName(wks, mosaicName);
+            IMosaicDataset msDset = createMosaicDataset(wks, sr, mNm, rs1.RasterInfo.PixelType, rs1.RasterInfo.BandCount);
+            msDset.MosaicFunction.MaxMosaicImageCount = rasterNames.Length;
+            msDset.MosaicFunction.MosaicMethod = mosaicmethod;
+            msDset.MosaicFunction.MosaicOperatorType = mosaictype;
+            IFunctionRasterDataset fDset = (IFunctionRasterDataset)msDset;
+            IPropertySet pSet = (fDset).Properties;
+            pSet.SetProperty("MaxImageHeight", ht);
+            pSet.SetProperty("MaxImageWidth", wd);
+            pSet.SetProperty("MaxRecordCount", rec);
+            pSet.SetProperty("DefaultResamplingMethod", 0);
+            pSet.SetProperty("MaxMosaicImageCount", rasterNames.Length);
+            pSet.SetProperty("MaxDownloadImageCount", rasterNames.Length);
+            pSet.SetProperty("IsPreprocessedData", "True");
+            pSet.SetProperty("MosaicOperator", 4);
+            pSet.SetProperty("MosaicMethod", 0);
+            fDset.Properties = pSet;
+            IMosaicDatasetOperation msDsetOp = (IMosaicDatasetOperation)msDset;
+            addRastersToMosaicDataset(msDset, rasterNames);
+            ICalculateCellSizeRangesParameters computeArgs = new CalculateCellSizeRangesParametersClass();
+            msDsetOp.CalculateCellSizeRanges(computeArgs, null);
+            if (buildfootprint)
+            {
+                IBuildFootprintsParameters fpArgs = new BuildFootprintsParametersClass();
+                fpArgs.Method = esriBuildFootprintsMethods.esriBuildFootprintsByGeometry;
+                msDsetOp.BuildFootprints(fpArgs, null);
+            }
+            if (buildboudary)
+            {
+                IBuildBoundaryParameters bndArgs = new BuildBoundaryParametersClass();
+                bndArgs.AppendToExistingBoundary = true;
+                msDsetOp.BuildBoundary(bndArgs, null);
+            }
+            if (seamlines)
+            {
+                IBuildSeamlinesParameters smArgs = new BuildSeamlinesParametersClass();
+                smArgs.ModifySeamlines = true;
+                msDsetOp.BuildSeamlines(smArgs, null);
+            }
+            if (buildOverview)
+            {
+                IDefineOverviewsParameters ofPar = new DefineOverviewsParametersClass();
+                ofPar.ForceOverviewTiles = true;
+                ((IOverviewTileParameters)ofPar).OverviewFactor = 3;
+                msDsetOp.DefineOverviews(ofPar, null);
+                IGenerateOverviewsParameters ovArgs = new GenerateOverviewsParametersClass();
+                ovArgs.GenerateMissingImages = true;
+                ovArgs.GenerateStaleImages = true;
+                msDsetOp.GenerateOverviews(ovArgs, null);
+            }
+            fDset.Init((IRasterFunction)msDset.MosaicFunction, msDset.MosaicFunctionArguments);
+            IRaster rs = createRaster((IRasterDataset)fDset);
+            return rs;
+        } 
         public IRaster mosaicRastersFunction(IWorkspace wks, string mosaicName, IRaster[] rasters, esriMosaicMethod mosaicmethod, rstMosaicOperatorType mosaictype, bool buildfootprint, bool buildboudary, bool seamlines, bool buildOverview)
         {
             IRaster rs1 = rasters[0];
@@ -4551,6 +4628,28 @@ namespace esriUtil
                 addRs.Crawler = (IDataSourceCrawler)rsDsetCrawl;
                 addRs.RasterType = rsType;
                 mOp.AddRasters(addRs, null);
+            }
+            return;
+
+        }
+        public void addRastersToMosaicDataset(IMosaicDataset mosaicDataSet, string[] rasterNames)
+        {
+            IMosaicDatasetOperation mOp = (IMosaicDatasetOperation)mosaicDataSet;
+            foreach (string rsName in rasterNames)
+            {
+                IAddRastersParameters addRs = new AddRastersParametersClass();
+                IRasterDatasetCrawler rsDsetCrawl = new RasterDatasetCrawlerClass();
+                string bnd;
+                IRasterDataset rDset = openRasterDataset(rsName, out bnd);
+                IName rDsetName = ((IDataset)rDset).FullName;
+                rsDsetCrawl.DatasetName = rDsetName;
+                IRasterTypeFactory rsFact = new RasterTypeFactoryClass();
+                IRasterType rsType = rsFact.CreateRasterType("Raster dataset");
+                rsType.FullName = rsDsetCrawl.DatasetName;
+                addRs.Crawler = (IDataSourceCrawler)rsDsetCrawl;
+                addRs.RasterType = rsType;
+                mOp.AddRasters(addRs, null);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(rDset);
             }
             return;
 

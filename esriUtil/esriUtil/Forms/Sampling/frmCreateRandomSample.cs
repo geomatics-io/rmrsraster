@@ -26,6 +26,11 @@ namespace esriUtil.Forms.Sampling
         public frmCreateRandomSample(IMap map,bool stratified)
         {
             InitializeComponent();
+            frmHlp = new frmHelper(map);
+            geoUtil = frmHlp.GeoUtility;
+            rstDic = frmHlp.FunctionRasterDictionary;
+            rsUtil = frmHlp.RasterUtility;
+            ftrDic = frmHlp.FeatureDictionary;
             strata = stratified;
             mp = map;
             if (mp != null)
@@ -40,30 +45,32 @@ namespace esriUtil.Forms.Sampling
                 btnOpenModel.Visible = true;
             }
         }
+        private frmHelper frmHlp = null;
         private bool strata = false;
         private IMap mp = null;
         private viewUtility vUtil = null;
-        private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        private rasterUtil rsUtil = new rasterUtil();
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private geoDatabaseUtility geoUtil = null;
+        private rasterUtil rsUtil = null;
+        private Dictionary<string, IFunctionRasterDataset> rstDic = null;
+        private Dictionary<string, IFeatureClass> ftrDic = null;
         private void loadCombos()
         {
             if (mp != null)
             {
-                IEnumLayer rstLyrs = vUtil.getActiveViewLayers(viewUtility.esriIRasterLayer);
-                ILayer lyr = rstLyrs.Next();
-                while (lyr != null)
+                foreach (KeyValuePair<string, IFeatureClass> kvp in ftrDic)
                 {
-                    string lyrNm = lyr.Name;
-                    IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
-                    if (!rstDic.ContainsKey(lyrNm))
+                    string nm = kvp.Key;
+                    IFeatureClass ftCls = kvp.Value;
+                    if (ftCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon)
                     {
-                        rstDic.Add(lyrNm, rst);
-                        cmbRst.Items.Add(lyrNm);
+                        cmbRst.Items.Add(nm);
                     }
-                    lyr = rstLyrs.Next();
-
+                }
+                foreach (KeyValuePair<string, IFunctionRasterDataset> kvp in rstDic)
+                {
+                    string nm = kvp.Key;
+                    IFunctionRasterDataset ftCls = kvp.Value;
+                    cmbRst.Items.Add(nm);
                 }
             }
         }
@@ -76,7 +83,7 @@ namespace esriUtil.Forms.Sampling
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
             if (isRaster)
             {
-                flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+                flt = new ESRI.ArcGIS.Catalog.GxFilterDatasetsClass();
             }
             else
             {
@@ -92,14 +99,38 @@ namespace esriUtil.Forms.Sampling
                 outName = gxObj.BaseName;
                 if (isRaster)
                 {
-                    if (!rstDic.ContainsKey(outName))
+                    string wksPath = geoUtil.getDatabasePath(outPath);
+                    IWorkspace wks = geoUtil.OpenWorkSpace(wksPath);
+                    IEnumDatasetName rsDsetName = wks.get_DatasetNames(esriDatasetType.esriDTRasterDataset);
+                    bool rsCheck = false;
+                    IDatasetName dsName = rsDsetName.Next();
+                    while (dsName != null)
                     {
-                        rstDic.Add(outName, rsUtil.returnRaster(outPath));
-                        cmbRst.Items.Add(outName);
+                        if (outName.ToLower() == dsName.Name.ToLower())
+                        {
+                            rsCheck=true;
+                            break;
+                        }
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(dsName);
+                        dsName = rsDsetName.Next();
+                    }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(rsDsetName);
+                    if (rsCheck)
+                    {
+
+                        if (!rstDic.ContainsKey(outName))
+                        {
+                            rstDic.Add(outName, rsUtil.createIdentityRaster(outPath));
+                            cmbRst.Items.Add(outName);
+                        }
+                        else
+                        {
+                            rstDic[outName] = rsUtil.createIdentityRaster(outPath);
+                        }
                     }
                     else
                     {
-                        rstDic[outName] = rsUtil.returnRaster(outPath);
+                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
                     }
                     cmbRst.Text = outName;
                 }
@@ -142,9 +173,8 @@ namespace esriUtil.Forms.Sampling
             {
                 MessageBox.Show("You must specify a raster, an output workspace, and a output file name!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            IRaster rs = rstDic[rst];
-            IRasterBandCollection rsBc = (IRasterBandCollection)rs;
-            IDataset ds = (IDataset)rsBc.Item(0).RasterDataset;
+            bool rsCheck = false;
+            if (rstDic.Keys.Contains(rst)) rsCheck = true;
             this.Visible = false;
             this.Refresh();
             RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -156,10 +186,18 @@ namespace esriUtil.Forms.Sampling
                 IFeatureClass ftrCls = null;
                 if (strata)
                 {
-                    rp.addMessage("Creating random stratified sample. This could take a while...");
-                    rp.stepPGBar(10);
-                    rp.Refresh();
-                    ftrCls = rsUtil.createRandomSampleLocationsByClass(geoUtil.OpenWorkSpace(oWks), rs, numSample, 1, sNm);
+                    if (rsCheck)
+                    {
+                        IFunctionRasterDataset rs = rstDic[rst];
+                        rp.addMessage("Creating random stratified sample. This could take a while...");
+                        rp.stepPGBar(10);
+                        rp.Refresh();
+                        ftrCls = rsUtil.createRandomSampleLocationsByClass(geoUtil.OpenWorkSpace(oWks), rs, numSample, 1, sNm);
+                    }
+                    else
+                    {
+                        rp.addMessage("Cannot create stratified random sample for feature class. Use raster instead!");
+                    }
                     
                 }
                 else
@@ -167,7 +205,16 @@ namespace esriUtil.Forms.Sampling
                     rp.addMessage("Creating random sample. This could take a while...");
                     rp.stepPGBar(10);
                     rp.Refresh();
-                    ftrCls =rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rs, numSample[0],sNm);
+                    if (rsCheck)
+                    {
+                        IFunctionRasterDataset rs = rstDic[rst];
+                        ftrCls = rsUtil.createRandomSampleLocations(geoUtil.OpenWorkSpace(oWks), rs, numSample[0], sNm);
+                    }
+                    else
+                    {
+                        IFeatureClass inFtrCls = ftrDic[rst];
+                        ftrCls = frmHlp.FeatureUtility.createRandomSample(inFtrCls, numSample[0], oWks + "\\" + sNm);
+                    }
                 }
                 if (mp!=null)
                 {

@@ -28,10 +28,10 @@ namespace esriUtil
             sumY2Array = new double[rsBc.Count];
             coef = new double[rsBc.Count][];
             blockCellCount = new int[rsBc.Count];
-            difDic = new Dictionary<double, int>[rsBc.Count];
+            difDic = new Dictionary<int, int>[rsBc.Count];
             for (int i = 0; i < rsBc.Count; i++)
             {
-                difDic[i] = new Dictionary<double, int>();
+                difDic[i] = new Dictionary<int, int>();
             }
             transformRaster = TransformRaster;
             pChange = System.Convert.ToDouble(PercentChange) / 200d;
@@ -99,8 +99,11 @@ namespace esriUtil
       
         private IFunctionRasterDataset normalize()
         {
-            getUnChangeCells();
-            getRegVals();
+            if (cellCount[0] < 1)
+            {
+                getUnChangeCells();
+                getRegVals();
+            }
             return transform();
         }
 
@@ -243,60 +246,88 @@ namespace esriUtil
         private double[] sumXYArray = null;
         private double[] sumX2Array = null;
         private double[] sumY2Array = null;
-        private Dictionary<double,int>[] difDic = null;
+        private Dictionary<int,int>[] difDic = null;
         private int[] cellCount = null;
         private IGeometry clipGeo = null;
-        private void getUnChangeCells()
+        public bool writeModel(string outPath)
         {
-            IEnvelope env1 = referenceRaster.RasterInfo.Extent;
-            IEnvelope env2 = transformRaster.RasterInfo.Extent;
-            env1.Intersect(env2);
-            clipGeo = (IGeometry)env1;
-            IFunctionRasterDataset minRs = rsUtil.calcArithmaticFunction(referenceRaster, transformRaster, esriRasterArithmeticOperation.esriRasterMinus);
-            clipRs = rsUtil.clipRasterFunction(minRs,clipGeo,esriRasterClippingType.esriRasterClippingOutside);
-            IPnt pntSize = new PntClass();
-            pntSize.SetCoords(512, 512);
-            IRasterCursor rsCur = ((IRaster2)rsUtil.createRaster(clipRs)).CreateCursorEx(pntSize);
-            int pCnt = rsCur.PixelBlock.Planes;
-            do
+            bool finished = true;
+            try
             {
-                IPixelBlock pbMinBlock = rsCur.PixelBlock;
-                for (int r = 0; r < pbMinBlock.Height; r++)
-			    {
-                    for (int c = 0; c < pbMinBlock.Width; c++)
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(outPath))
+                {
+                    sw.WriteLine("agncr");
+                    sw.WriteLine(rsType.ToString());
+                    sw.WriteLine(pChange.ToString());
+                    sw.WriteLine(String.Join(",", cellCount.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", minArray.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", maxArray.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", sumX2Array.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", sumXArray.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", sumXYArray.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", sumYArray.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", sumY2Array.Cast<string>().ToArray()));
+                    sw.WriteLine(String.Join(",", blockCellCount.Cast<string>().ToArray()));
+                    for (int i = 0; i < coef.Length; i++)
                     {
-                        for (int p = 0; p < pCnt; p++)
+                        sw.WriteLine(String.Join(",", coef[i].Cast<string>().ToArray()));
+                    }
+                    sw.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                finished = false;
+            }
+            return finished;
+        }
+        public bool buildFreqTable(string outPath)
+        {
+            bool finished = true;
+            try
+            {
+                if (difDic[0].Count < 1)
+                {
+                    createDictionaryArray();
+                }
+                using (System.IO.StreamWriter sw = new System.IO.StreamWriter(outPath))
+                {
+                    string ln = "band,difference,count";
+                    sw.WriteLine(ln);
+                    for (int i = 0; i < difDic.Length; i++)
+                    {
+                        Dictionary<int, int> cDic = difDic[i];
+                        foreach (KeyValuePair<int, int> kvp in cDic)
                         {
-                            object vlObj = pbMinBlock.GetVal(p, c, r);
-                            if (vlObj == null)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                double vl = System.Convert.ToDouble(vlObj);
-                                Dictionary<double, int> cDic = difDic[p];
-                                int cnt = 0;
-                                if (!cDic.TryGetValue(vl, out cnt))
-                                {
-                                    cDic.Add(vl, 1);
-                                }
-                                else
-                                {
-                                    cDic[vl] = cnt + 1;
-                                }
-                                cellCount[p] += 1;
-                            }
+                            ln = i.ToString() + "," + kvp.Key.ToString() + "," + kvp.Value.ToString();
+                            sw.WriteLine(ln);
                         }
                     }
-			    }
-            } while (rsCur.Next() == true);
+                    sw.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                finished = false;
+                Console.WriteLine(e.ToString());
+            }
+            return finished;
+
+        }
+        private void getUnChangeCells()
+        {
+            if (difDic[0].Count < 1)
+            {
+                createDictionaryArray();
+            }
+            int pCnt = referenceRaster.RasterInfo.BandCount;
             for (int p = 0; p < pCnt; p++)
             {
                 int cCnt = cellCount[p];
                 int cutOffCnt = System.Convert.ToInt32(pChange * cCnt);
-                Dictionary<double,int> cDic = difDic[p];
-                List<double> kSort = cDic.Keys.ToList();
+                Dictionary<int,int> cDic = difDic[p];
+                List<int> kSort = cDic.Keys.ToList();
                 kSort.Sort();
                 int kSortLeng = kSort.Count;
                 int lCnt = 0;
@@ -304,7 +335,7 @@ namespace esriUtil
                 double maxDif = 0;
                 for (int i = 0; i < kSortLeng; i++)
                 {
-                    double minVl = kSort[i];
+                    int minVl = kSort[i];
                     lCnt += cDic[minVl];
                     if (lCnt > cutOffCnt)
                     {
@@ -315,7 +346,7 @@ namespace esriUtil
                 lCnt = 0;
                 for (int i = kSortLeng-1; i >= 0; i--)
                 {
-                    double maxVl = kSort[i];
+                    int maxVl = kSort[i];
                     lCnt += cDic[maxVl];
                     if (lCnt > cutOffCnt)
                     {
@@ -330,6 +361,53 @@ namespace esriUtil
             }
 
 
+        }
+
+        private void createDictionaryArray()
+        {
+            IEnvelope env1 = referenceRaster.RasterInfo.Extent;
+            IEnvelope env2 = transformRaster.RasterInfo.Extent;
+            env1.Intersect(env2);
+            clipGeo = (IGeometry)env1;
+            IFunctionRasterDataset minRs = rsUtil.calcArithmaticFunction(referenceRaster, transformRaster, esriRasterArithmeticOperation.esriRasterMinus);
+            clipRs = rsUtil.clipRasterFunction(minRs, clipGeo, esriRasterClippingType.esriRasterClippingOutside);
+            IPnt pntSize = new PntClass();
+            pntSize.SetCoords(512, 512);
+            IRasterCursor rsCur = ((IRaster2)rsUtil.createRaster(clipRs)).CreateCursorEx(pntSize);
+            int pCnt = rsCur.PixelBlock.Planes;
+            do
+            {
+                IPixelBlock pbMinBlock = rsCur.PixelBlock;
+                for (int r = 0; r < pbMinBlock.Height; r++)
+                {
+                    for (int c = 0; c < pbMinBlock.Width; c++)
+                    {
+                        for (int p = 0; p < pCnt; p++)
+                        {
+                            object vlObj = pbMinBlock.GetVal(p, c, r);
+                            if (vlObj == null)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                int vl = System.Convert.ToInt32(vlObj);
+                                Dictionary<int, int> cDic = difDic[p];
+                                int cnt = 0;
+                                if (!cDic.TryGetValue(vl, out cnt))
+                                {
+                                    cDic.Add(vl, 1);
+                                }
+                                else
+                                {
+                                    cDic[vl] = cnt + 1;
+                                }
+                                cellCount[p] += 1;
+                            }
+                        }
+                    }
+                }
+            } while (rsCur.Next() == true);
         }
         
     }

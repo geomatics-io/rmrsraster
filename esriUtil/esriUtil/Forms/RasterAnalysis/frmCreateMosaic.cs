@@ -19,66 +19,42 @@ namespace esriUtil.Forms.RasterAnalysis
         public frmCreateMosaic(IMap map)
         {
             InitializeComponent();
-            rsUtil = new rasterUtil();
-            mp = map;
-            if (mp != null)
-            {
-                vUtil = new viewUtility((IActiveView)mp);
-            }
+            frmHlp = new frmHelper(map);
+            rsUtil = frmHlp.RasterUtility;
+            mp = frmHlp.TheMap;
+            geoUtil = frmHlp.GeoUtility;
             populateComboBox();
             
         }
         public frmCreateMosaic(IMap map, ref rasterUtil rasterUtility, bool AddToMap)
         {
             InitializeComponent();
-            rsUtil = rasterUtility;
+            frmHlp = new frmHelper(map);
+            rsUtil = frmHlp.RasterUtility;
+            mp = frmHlp.TheMap;
+            geoUtil = frmHlp.GeoUtility;
             addToMap = AddToMap;
-            mp = map;
-            if (mp != null)
-            {
-                vUtil = new viewUtility((IActiveView)mp);
-            }
             populateComboBox();
         }
+        frmHelper frmHlp = null;
         private bool addToMap = true;
         private IMap mp = null;
         private viewUtility vUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
         private rasterUtil rsUtil = null;
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
-        public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
+        private Dictionary<string, string> rstDic = new Dictionary<string, string>();
+        public Dictionary<string, string> RasterDictionary { get { return rstDic; } }
         private void getFeaturePath()
         {
-            string outPath = null;
-            string outName = "";
-            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = true;
-            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
-            flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
-            gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select Rasters";
-            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
-            if (gxDialog.DoModalOpen(0, out eGxObj))
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+            string[] rsNames;
+            string[] rsPaths = frmHlp.getPath(flt, out rsNames, true);
+            for (int i = 0; i < rsPaths.Length; i++)
             {
-                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                while (gxObj != null)
-                {
-                    outPath = gxObj.FullName;
-                    outName = gxObj.BaseName;
-                    IRaster rs = rsUtil.returnRaster(outPath);
-                    
-                    if (!rstDic.ContainsKey(outName))
-                    {
-                        rstDic.Add(outName, rs);
-                        lsbRaster.Items.Add(outName);
-                        //cmbInRaster1.Items.Add(nNm);
-                    }
-                    else
-                    {
-                        rstDic[outName] = rs;
-                    }
-                    gxObj = eGxObj.Next();  
-                }
+                string pt = rsPaths[i];
+                string nm = rsNames[i];
+                rstDic[nm] = pt;
+                lsbRaster.Items.Add(nm);
             }
             return;
         }
@@ -86,7 +62,7 @@ namespace esriUtil.Forms.RasterAnalysis
         public IRaster OutRaster { get { return outraster; } }
         private string outrastername = "";
         public string OutRasterName { get { return outrastername; } }
-        public void addRasterToComboBox(string rstName, IRaster rst)
+        public void addRasterToComboBox(string rstName, string rst)
         {
             if (!cmbInRaster1.Items.Contains(rstName))
             {
@@ -104,26 +80,24 @@ namespace esriUtil.Forms.RasterAnalysis
         }
         private void populateComboBox()
         {
-            if (mp != null)
+            if (frmHlp.TheMap != null)
             {
-                IEnumLayer rstLyrs = vUtil.getActiveViewLayers(viewUtility.esriIRasterLayer);
-                ILayer lyr = rstLyrs.Next();
-                while (lyr != null)
+                for (int i = 0; i < frmHlp.TheMap.LayerCount; i++)
                 {
-                    string lyrNm = lyr.Name;
-                    IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
-
-                    if (!rstDic.ContainsKey(lyrNm))
+                    ILayer lyr = frmHlp.TheMap.Layer[i];
+                    if (lyr is IRasterLayer)
                     {
-                        rstDic.Add(lyrNm, rst);
-                        cmbInRaster1.Items.Add(lyrNm);
+                        IRasterLayer rsLyr = (IRasterLayer)lyr;
+                        ITemporaryLayer tmp = (ITemporaryLayer)rsLyr;
+                        if (tmp.Temporary)
+                        {
+                            //MessageBox.Show("Temp layer = " + rsLyr.Name);
+                        }
+                        else
+                        {
+                            rstDic[rsLyr.Name] = rsLyr.FilePath;
+                        }
                     }
-                    else
-                    {
-                        rstDic[lyrNm] = rst;
-                    }
-                    lyr = rstLyrs.Next();
                 }
             }
             foreach (string s in Enum.GetNames(typeof(rstMosaicOperatorType)))
@@ -145,23 +119,12 @@ namespace esriUtil.Forms.RasterAnalysis
         private IWorkspace outWks = null;
         private void getWksPath()
         {
-            string outPath = null;
-            string outName = "";
-            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterFileGeodatabasesClass();
-            gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select or create a Workspace";
-            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
-            if (gxDialog.DoModalOpen(0, out eGxObj))
-            {
-                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                outWks = geoUtil.OpenWorkSpace(outPath);
-                txtWorkspace.Text = outName;
-
-            }
+            string[] namesArr;
+            string[] pathArr = frmHlp.getPath(flt, out namesArr, false);
+            string outPath = pathArr[0];
+            outWks = geoUtil.OpenWorkSpace(outPath);
+            txtWorkspace.Text = namesArr[0];
             return;
         }
 
@@ -185,10 +148,19 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must select at least on Raster", "No Rasters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<IRaster> rsLst = new List<IRaster>();
+            List<string> rsLst = new List<string>();
+            IEnvelope cmbEnv = new EnvelopeClass();
             for (int i = 0; i < lsbRaster.Items.Count; i++)
             {
-                rsLst.Add(rstDic[lsbRaster.Items[i].ToString()]);
+                string nm = rstDic[lsbRaster.Items[i].ToString()];
+                string bnd;
+                IDataset dSet = (IDataset)rsUtil.openRasterDataset(nm,out bnd);
+                IEnvelope rsEnv = ((IGeoDataset)dSet).Extent;
+                cmbEnv.Union(rsEnv);
+                string fPath = dSet.Workspace.PathName + dSet.BrowseName;
+                //MessageBox.Show("Raster name = " + fPath);
+                rsLst.Add(fPath);
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(dSet);
             }
             this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
@@ -203,7 +175,7 @@ namespace esriUtil.Forms.RasterAnalysis
             }
             try
             {
-                outraster = rsUtil.mosaicRastersFunction(outWks,rstNm,rsLst.ToArray(),mMethod,mType,chbFootprint.Checked,chbBoundary.Checked,chbSeamlines.Checked,chbOverview.Checked);
+                outraster = rsUtil.mosaicRastersFunction(outWks,rstNm,rsLst.ToArray(),cmbEnv,mMethod,mType,chbFootprint.Checked,chbBoundary.Checked,chbSeamlines.Checked,chbOverview.Checked);
                 rp.addMessage("Adding mosaic dataset to the map");
                 if (mp != null&&addToMap)
                 {

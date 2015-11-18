@@ -23,19 +23,21 @@ namespace esriUtil.Forms.Sampling
         {
             InitializeComponent();
             mp = map;
-            if (mp != null)
-            {
-                vUtil = new viewUtility((IActiveView)mp);
-            }
+            frmHlp = new frmHelper(map);
+            rsUtil = frmHlp.RasterUtility;
+            geoUtil = frmHlp.GeoUtility;
+            ftrDic = frmHlp.FeatureDictionary;
+            rstDic = frmHlp.FunctionRasterDictionary;
+            ftrUtil = frmHlp.FeatureUtility;
             populateComboBox();
         }
-
+        private frmHelper frmHlp = null;
         private IMap mp = null;
-        private viewUtility vUtil = null;
         private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-        private rasterUtil rsUtil = new rasterUtil();
-        private Dictionary<string, IFeatureClass> ftrDic = new Dictionary<string, IFeatureClass>();
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
+        private rasterUtil rsUtil = null;
+        private featureUtil ftrUtil = null;
+        private Dictionary<string, IFeatureClass> ftrDic = null;
+        private Dictionary<string, IFunctionRasterDataset> rstDic = null;
         private void getFeaturePath(bool featureClass)
         {
             string outPath = null;
@@ -49,10 +51,10 @@ namespace esriUtil.Forms.Sampling
             }
             else
             {
-                flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+                flt = new ESRI.ArcGIS.Catalog.GxFilterDatasets();
             }
             gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a Feature";
+            gxDialog.Title = "Select";
             ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
             if (gxDialog.DoModalOpen(0, out eGxObj))
             {
@@ -61,29 +63,40 @@ namespace esriUtil.Forms.Sampling
                 outName = gxObj.BaseName;
                 if (featureClass)
                 {
-                    if (!ftrDic.ContainsKey(outName))
-                    {
-                        ftrDic.Add(outName, geoUtil.getFeatureClass(outPath));
-                        cmbSampleFeatureClass.Items.Add(outName);
-                    }
-                    else
-                    {
-                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
-                    }
+                    ftrDic[outName] = geoUtil.getFeatureClass(outPath);
+                    cmbSampleFeatureClass.Items.Add(outName);
                     cmbSampleFeatureClass.Text = outName;
                 }
                 else
                 {
-                    if (!rstDic.ContainsKey(outName))
+                    string wksPath = geoUtil.getDatabasePath(outPath);
+                    IWorkspace wks = geoUtil.OpenWorkSpace(wksPath);
+                    IEnumDataset rsDset = wks.get_Datasets(esriDatasetType.esriDTAny);
+                    bool rsCheck = false;
+                    IDataset ds = rsDset.Next();
+                    while (ds != null)
                     {
-                        rstDic.Add(outName, rsUtil.returnRaster(outPath));
+                        if (outName.ToLower() == ds.Name.ToLower()&&(ds.Type== esriDatasetType.esriDTMosaicDataset||ds.Type==esriDatasetType.esriDTRasterDataset||ds.Type== esriDatasetType.esriDTRasterCatalog))
+                        {
+                            rsCheck=true;
+                            break;
+                        }
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(ds);
+                        ds = rsDset.Next();
+                    }
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(rsDset);
+                    if (rsCheck)
+                    {
+                        rstDic[outName] = rsUtil.createIdentityRaster(outPath);
                         cmbRaster.Items.Add(outName);
+                        cmbRaster.Text = outName;
                     }
                     else
                     {
-                        rstDic[outName] = rsUtil.returnRaster(outPath);
+                        ftrDic[outName] = geoUtil.getFeatureClass(outPath);
+                        cmbRaster.Items.Add(outName);
+                        cmbRaster.Text = outName;
                     }
-                    cmbRaster.Text = outName;
                 }
 
             }
@@ -93,38 +106,24 @@ namespace esriUtil.Forms.Sampling
         {
             if (mp != null)
             {
-                IEnumLayer ftrLyrs = vUtil.getActiveViewLayers(viewUtility.esriIFeatureLayer);
-                ILayer lyr = ftrLyrs.Next();
-                while (lyr != null)
+                foreach (KeyValuePair<string,IFeatureClass> kvp in ftrDic)
                 {
-                    string lyrNm = lyr.Name;
-                    IFeatureLayer ftrLyr = (IFeatureLayer)lyr;
-                    IFeatureClass ftrCls = ftrLyr.FeatureClass;
-                    if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPoint)
+                    IFeatureClass ftrCls = kvp.Value;
+                    string nm = kvp.Key;
+                    if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPoint || ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryMultipoint)
                     {
-                        if (!ftrDic.ContainsKey(lyrNm))
-                        {
-                            ftrDic.Add(lyrNm, ftrCls);
-                            cmbSampleFeatureClass.Items.Add(lyrNm);
-                        }
+                        cmbSampleFeatureClass.Items.Add(nm);
                     }
-                    lyr = ftrLyrs.Next();
-
+                    if (ftrCls.ShapeType == ESRI.ArcGIS.Geometry.esriGeometryType.esriGeometryPolygon)
+                    {
+                        cmbRaster.Items.Add(nm);
+                    }
                 }
-                IEnumLayer rstLyrs = vUtil.getActiveViewLayers(viewUtility.esriIRasterLayer);
-                lyr = rstLyrs.Next();
-                while (lyr != null)
+                foreach (KeyValuePair<string, IFunctionRasterDataset> kvp in rstDic)
                 {
-                    string lyrNm = lyr.Name;
-                    IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
-                    if (!rstDic.ContainsKey(lyrNm))
-                    {
-                        rstDic.Add(lyrNm, rst);
-                        cmbRaster.Items.Add(lyrNm);
-                    }
-                    lyr = rstLyrs.Next();
-
+                    IFunctionRasterDataset rsDet = kvp.Value;
+                    string nm = kvp.Key;
+                    cmbRaster.Items.Add(nm);
                 }
             }
         }
@@ -133,14 +132,7 @@ namespace esriUtil.Forms.Sampling
         {
             getFeaturePath(true);
         }
-        public void addRasterToComboBox(string rstName, IRaster rst)
-        {
-            if (!cmbRaster.Items.Contains(rstName))
-            {
-                cmbRaster.Items.Add(rstName);
-                rstDic.Add(rstName, rst);
-            }
-        }
+        
         private void btnOpenRaster_Click(object sender, EventArgs e)
         {
             getFeaturePath(false);
@@ -150,20 +142,17 @@ namespace esriUtil.Forms.Sampling
         {
             string smpFtrNm = cmbSampleFeatureClass.Text;
             string rstNm = cmbRaster.Text;
-            string fldNm = cmbBandField.Text;
+            
             if (smpFtrNm == null || smpFtrNm == "" || rstNm == "" || rstNm == null)
             {
                 MessageBox.Show("sample location or raster are not specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             IFeatureClass ftrCls = ftrDic[smpFtrNm];
-            if (ftrCls.Fields.FindField(fldNm) == -1)
-            {
-                fldNm = null;
-            }
+            string fldNm = cmbBandField.Text;
             this.Visible=false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
-            rp.addMessage("Sampling raster");
+            rp.addMessage("Sampling layers");
             rp.addMessage("This may take a while...");
             rp.stepPGBar(20);
             rp.Show();
@@ -171,8 +160,45 @@ namespace esriUtil.Forms.Sampling
             DateTime dt1 = DateTime.Now;
             try
             {
-
-                rsUtil.sampleRaster(ftrCls, rstDic[rstNm],rstNm,fldNm);
+                if (rstDic.Keys.Contains(rstNm))
+                {
+                    
+                    if (ftrCls.Fields.FindField(fldNm) == -1)
+                    {
+                        fldNm = null;
+                    }
+                    rsUtil.sampleRaster(ftrCls, rstDic[rstNm], rstNm, fldNm);
+                }
+                else
+                {
+                    List<IField> flds = new List<IField>();
+                    IFeatureClass ftrClsSamp = ftrDic[rstNm];
+                    int fldIndex = ftrClsSamp.Fields.FindField(fldNm);
+                    if (fldIndex == -1)
+                    {
+                        fldNm = null;
+                    }
+                    else
+                    {
+                        flds.Add(ftrClsSamp.Fields.get_Field(fldIndex));
+                    }
+                    if(fldNm==null)
+                    {
+                        for (int f = 0; f < ftrClsSamp.Fields.FieldCount; f++)
+			            {
+                            IField fld = ftrClsSamp.Fields.get_Field(f);
+                            if(fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                            {
+                                flds.Add(fld);
+                            }
+                            else
+                            {
+                                
+                            }
+			            }
+                    }
+                    ftrUtil.sampleFeatureClass(ftrCls, ftrDic[rstNm], flds.ToArray());
+                }
                 DateTime dt2 = DateTime.Now;
                 TimeSpan ts = dt2.Subtract(dt1);
                 string prcTime = "Time to complete process:\n" + ts.Days.ToString() + " Days " + ts.Hours.ToString() + " Hours " + ts.Minutes.ToString() + " Minutes " + ts.Seconds.ToString() + " Seconds ";
@@ -194,17 +220,88 @@ namespace esriUtil.Forms.Sampling
         private void cmbSampleFeatureClass_SelectedIndexChanged(object sender, EventArgs e)
         {
             cmbBandField.Items.Clear();
-            cmbBandField.Items.Add(" ");
-            string ftr = cmbSampleFeatureClass.SelectedItem.ToString();
-            IFeatureClass ftrCls = ftrDic[ftr];
-            IFields flds = ftrCls.Fields;
-            for (int i = 0; i < flds.FieldCount; i++)
+            if (rstDic.ContainsKey(cmbRaster.Text)&&ftrDic.ContainsKey(cmbSampleFeatureClass.Text))
             {
-                IField fld = flds.get_Field(i);
-                if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                string ftr = cmbSampleFeatureClass.Text;
+                IFeatureClass ftrCls = ftrDic[ftr];
+                IFields flds = ftrCls.Fields;
+                for (int i = 0; i < flds.FieldCount; i++)
                 {
-                    cmbBandField.Items.Add(fld.Name);
+                    IField fld = flds.get_Field(i);
+                    if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                    {
+                        cmbBandField.Items.Add(fld.Name);
+                    }
                 }
+            }
+            else
+            {
+                if (ftrDic.ContainsKey(cmbRaster.Text))
+                {
+                    IFeatureClass ftrCls = ftrDic[cmbRaster.Text];
+                    IFields flds = ftrCls.Fields;
+                    for (int i = 0; i < flds.FieldCount; i++)
+                    {
+                        IField fld = flds.get_Field(i);
+                        if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                        {
+                            cmbBandField.Items.Add(fld.Name);
+                        }
+                    }
+                }
+                else
+                {
+                    if (ftrDic.ContainsKey(cmbSampleFeatureClass.Text))
+                    {
+                        IFeatureClass ftrCls = ftrDic[cmbSampleFeatureClass.Text];
+                        IFields flds = ftrCls.Fields;
+                        for (int i = 0; i < flds.FieldCount; i++)
+                        {
+                            IField fld = flds.get_Field(i);
+                            if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                            {
+                                cmbBandField.Items.Add(fld.Name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void cmbRaster_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+            if (rstDic.ContainsKey(cmbRaster.Text)&&ftrDic.ContainsKey(cmbSampleFeatureClass.Text))
+            {
+                cmbBandField.Items.Clear();
+                IFeatureClass ftrCls = ftrDic[cmbSampleFeatureClass.Text];
+                IFields flds = ftrCls.Fields;
+                for (int i = 0; i < flds.FieldCount; i++)
+                {
+                    IField fld = flds.get_Field(i);
+                    if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                    {
+                        cmbBandField.Items.Add(fld.Name);
+                    }
+                }
+            }
+            else if (ftrDic.ContainsKey(cmbRaster.Text))
+            {
+                cmbBandField.Items.Clear();
+                IFeatureClass ftrCls = ftrDic[cmbRaster.Text];
+                IFields flds = ftrCls.Fields;
+                for (int i = 0; i < flds.FieldCount; i++)
+                {
+                    IField fld = flds.get_Field(i);
+                    if (fld.Type == esriFieldType.esriFieldTypeDouble || fld.Type == esriFieldType.esriFieldTypeInteger || fld.Type == esriFieldType.esriFieldTypeSingle || fld.Type == esriFieldType.esriFieldTypeSmallInteger)
+                    {
+                        cmbBandField.Items.Add(fld.Name);
+                    }
+                }
+                
+            }
+            else
+            {
             }
         }
     }

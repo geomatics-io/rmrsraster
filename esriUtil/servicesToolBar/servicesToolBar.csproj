@@ -117,10 +117,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="commandBuildAttributeTable.cs" />
+    <Compile Include="commandDeliveredCost.cs" />
     <Compile Include="commandFiaPolygonSummary.cs" />
     <Compile Include="commandFocalBandRaster.cs" />
     <Compile Include="commandLocalRescaleRaster.cs" />
     <Compile Include="commandNdviRaster.cs" />
+    <Compile Include="commandPhotoAnalysis.cs" />
     <Compile Include="commandRegionGroup.cs" />
     <Compile Include="commandAccuracyAssessment.cs" />
     <Compile Include="commandAddFunctionModelToMap.cs" />
@@ -194,12 +196,14 @@
     <Compile Include="commandSlope.cs" />
     <Compile Include="commandSoftMaxNnet.cs" />
     <Compile Include="commandSpatiallyWeightedAverage.cs" />
+    <Compile Include="commandSplitPoly.cs" />
     <Compile Include="commandStratifiedRandomSample.cs" />
     <Compile Include="commandStratifiedVarCov.cs" />
     <Compile Include="commandSummarizeByField.cs" />
     <Compile Include="commandSummarizeRaster.cs" />
     <Compile Include="commandSummarizeRelated.cs" />
     <Compile Include="commandTasseledCapETM7.cs" />
+    <Compile Include="commandTileMosaic.cs" />
     <Compile Include="commandTTest.cs" />
     <Compile Include="commandVarCov.cs" />
     <Compile Include="commandVersion.cs" />
@@ -661,6 +665,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <AddInContent Include="Images\commandSpatiallyWeightedAverage.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandPhotoAnalysis.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandDeliveredCost.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandTileMosaic.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandSplitPoly.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <Content Include="RMRSBatchProcess.exe">

@@ -226,6 +226,7 @@
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -236,6 +237,7 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="batchCalculations.cs" />
@@ -257,6 +259,7 @@
     <Compile Include="Forms\frmAttributeQuery.Designer.cs">
       <DependentUpon>frmAttributeQuery.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\frmHelper.cs" />
     <Compile Include="Forms\FrmNecCdfAttributeSelection.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -287,6 +290,12 @@
     <Compile Include="Forms\RasterAnalysis\frmNormalize.Designer.cs">
       <DependentUpon>frmNormalize.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmPhotoAnalysis.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmPhotoAnalysis.Designer.cs">
+      <DependentUpon>frmPhotoAnalysis.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmResampleRaster.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -299,6 +308,12 @@
     <Compile Include="Forms\RasterAnalysis\frmSetNullValue.Designer.cs">
       <DependentUpon>frmSetNullValue.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSplitPoly.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSplitPoly.Designer.cs">
+      <DependentUpon>frmSplitPoly.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmTasseledCap.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -310,6 +325,18 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmLocalRescaleAnalysis.Designer.cs">
       <DependentUpon>frmLocalRescaleAnalysis.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTiledMosaic.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTiledMosaic.Designer.cs">
+      <DependentUpon>frmTiledMosaic.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTransportationCost.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmTransportationCost.Designer.cs">
+      <DependentUpon>frmTransportationCost.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\Stats\frmChart.cs">
       <SubType>Form</SubType>
@@ -378,6 +405,7 @@
     <Compile Include="FunctionRasters\regionGroupFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionDataset.cs" />
     <Compile Include="normalization.cs" />
+    <Compile Include="photoAnalysis.cs" />
     <Compile Include="segmentation.cs" />
     <Compile Include="Statistics\dataPrepClusterBase.cs" />
     <Compile Include="Statistics\dataPrepClusterBinary.cs" />
@@ -981,6 +1009,7 @@
     <Compile Include="Statistics\dataPrepSoftMaxPlr.cs" />
     <Compile Include="Statistics\dataPrepRandomForest.cs" />
     <Compile Include="FunctionRasters\ttestFunctionDataset.cs" />
+    <Compile Include="TransRouting.cs" />
     <Compile Include="update.cs" />
     <Compile Include="viewutility.cs" />
   </ItemGroup>
@@ -1090,6 +1119,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmNullToValue.resx">
       <DependentUpon>frmNullToValue.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmPhotoAnalysis.resx">
+      <DependentUpon>frmPhotoAnalysis.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRegionGroup.resx">
       <DependentUpon>frmRegionGroup.cs</DependentUpon>
     </EmbeddedResource>
@@ -1120,11 +1152,20 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmShiftRaster.resx">
       <DependentUpon>frmShiftRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmSplitPoly.resx">
+      <DependentUpon>frmSplitPoly.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSummarizeRaster.resx">
       <DependentUpon>frmSummarizeRaster.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmTasseledCap.resx">
       <DependentUpon>frmTasseledCap.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmTiledMosaic.resx">
+      <DependentUpon>frmTiledMosaic.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmTransportationCost.resx">
+      <DependentUpon>frmTransportationCost.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmZonalStats.resx">
       <DependentUpon>frmZonalStats.cs</DependentUpon>
