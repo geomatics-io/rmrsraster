@@ -1541,24 +1541,39 @@ namespace esriUtil
             IAGSServerObject svrObj =  (IAGSServerObject)((IName)svrObjName).Open();
             return (IMapServer)svrObj;
         }
-        public static Dictionary<string, int> getLayerIds(IMapServer mpSvr, int mapId = 0)
+        public static Dictionary<string, int> getLayerIds(IMapServer mpSvr, string mapName, bool justFeatureLayer = true)
         {
             Dictionary<string, int> outDic = new Dictionary<string, int>();
-            IMapServerInfo msInfo = mpSvr.GetServerInfo(mpSvr.get_MapName(mapId));
+            IMapServerInfo msInfo = mpSvr.GetServerInfo(mapName);
             IMapLayerInfos mpLyrInfos = msInfo.MapLayerInfos;
             for (int i = 0; i < mpLyrInfos.Count; i++)
             {
                 IMapLayerInfo mpLyrInfo = mpLyrInfos.get_Element(i);
-                outDic[mpLyrInfo.Name] = mpLyrInfo.ID;
+                if (justFeatureLayer)
+                {
+                    if (mpLyrInfo.IsFeatureLayer)
+                    {
+                        outDic[mpLyrInfo.Name] = mpLyrInfo.ID;
+                    }
+                }
+                else
+                {
+                    outDic[mpLyrInfo.Name] = mpLyrInfo.ID;
+                }
             }
             return outDic;
         }
-        public static IFeatureClass createFeatureClassFromMapService(string outPath, IMapServer mpSvr, int layerId=0, int mapId=0)
+        public static Dictionary<string, int> getLayerIds(IMapServer mpSvr, int mapId = 0, bool justFeatureLayer=true)
+        {
+            string mpName = mpSvr.get_MapName(mapId);
+            return getLayerIds(mpSvr, mpName,justFeatureLayer);
+        }
+        public static IFeatureClass createFeatureClassFromMapService(string outPath, IMapServer mpSvr, string mpName, int layerId = 0)
         {
             IFeatureClass outFtrCls = null;
             IMapServer3 mpSvr3 = (IMapServer3)mpSvr;
             IPropertySet pSet = mpSvr3.ServiceConfigurationInfo;
-            string mpName = mpSvr.get_MapName(mapId);
+            //string mpName = mpSvr.get_MapName(mapId);
             //Console.WriteLine("Map Name = " + mpSvr.get_MapName(0));
             int maxRecords = System.Convert.ToInt32(pSet.GetProperty("MaximumRecordCount"));
             //Console.WriteLine("MaxRecords = " + maxRecords.ToString());
@@ -1573,26 +1588,26 @@ namespace esriUtil
             else
             {
                 IQueryFilter qf = new QueryFilterClass();
-                IFIDSet2 fIdSet = (IFIDSet2)mpSvr.QueryFeatureIDs(mpName,layerId,qf);
+                IFIDSet2 fIdSet = (IFIDSet2)mpSvr.QueryFeatureIDs(mpName, layerId, qf);
                 int records = fIdSet.Count();
-                if(maxRecords<records)
+                if (maxRecords < records)
                 {
 
                     int cnt = 0;
                     IEnumIDs eIds = fIdSet.IDs;
                     int fid = eIds.Next();
                     int pid = 0;
-                    while(fid>-1)
+                    while (fid > -1)
                     {
-                        if(cnt<maxRecords)
+                        if (cnt < maxRecords)
                         {
                             cnt++;
                         }
                         else
                         {
                             qf.WhereClause = "OBJECTID > " + pid.ToString() + " AND OBJECTID <= " + fid.ToString();
-                            updateRecords(mpSvr3, mpName, layerId, qf,ref outFtrCls,outPath);
-                            cnt=0;
+                            updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls, outPath);
+                            cnt = 0;
                             pid = fid;
                         }
                         fid = eIds.Next();
@@ -1601,19 +1616,24 @@ namespace esriUtil
                     if (cnt > 0)
                     {
                         qf.WhereClause = "OBJECTID > " + pid.ToString();
-                        updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls,outPath);
+                        updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls, outPath);
                     }
 
                 }
                 else
                 {
-                    updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls,outPath);
-                    
+                    updateRecords(mpSvr3, mpName, layerId, qf, ref outFtrCls, outPath);
+
                 }
                 return outFtrCls;
 
-                
+
             }
+        }
+        public static IFeatureClass createFeatureClassFromMapService(string outPath, IMapServer mpSvr, int layerId=0, int mapId=0)
+        {
+            string mpName = mpSvr.get_MapName(mapId);
+            return createFeatureClassFromMapService(outPath, mpSvr, mpName, layerId);
         }
 
         private static void updateRecords(IMapServer3 mpSvr, string mpName, int layerId, IQueryFilter qf, ref IFeatureClass outFtrCls, string outPath)

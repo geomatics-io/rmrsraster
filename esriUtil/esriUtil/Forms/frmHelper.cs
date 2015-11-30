@@ -34,39 +34,42 @@ namespace esriUtil.Forms
             FeatureDictionary = new Dictionary<string, IFeatureClass>();
             TableDictionary = new Dictionary<string, ITable>();
             FunctionRasterDictionary = new Dictionary<string, IFunctionRasterDataset>();
-            for (int i = 0; i < TheMap.LayerCount; i++)
+            if (TheMap != null)
             {
-                try
+                for (int i = 0; i < TheMap.LayerCount; i++)
                 {
-                    ILayer lyr = TheMap.Layer[i];
-                    if (lyr is FeatureLayer)
+                    try
                     {
-                        IFeatureLayer ftrLyr = (IFeatureLayer)lyr;
-                        FeatureDictionary[lyr.Name] = ftrLyr.FeatureClass;
+                        ILayer lyr = TheMap.Layer[i];
+                        if (lyr is FeatureLayer)
+                        {
+                            IFeatureLayer ftrLyr = (IFeatureLayer)lyr;
+                            FeatureDictionary[lyr.Name] = ftrLyr.FeatureClass;
+                        }
+                        else if (lyr is RasterLayer)
+                        {
+                            IRasterLayer rsLyr = (IRasterLayer)lyr;
+                            FunctionRasterDictionary[lyr.Name] = RasterUtility.createIdentityRaster(((IRaster2)rsLyr.Raster).RasterDataset);
+                        }
+                        else
+                        {
+                        }
                     }
-                    else if (lyr is RasterLayer)
-                    {
-                        IRasterLayer rsLyr = (IRasterLayer)lyr;
-                        FunctionRasterDictionary[lyr.Name] = RasterUtility.createIdentityRaster(((IRaster2)rsLyr.Raster).RasterDataset);
-                    }
-                    else
+                    catch
                     {
                     }
                 }
-                catch
+                IStandaloneTableCollection tblCol = (IStandaloneTableCollection)TheMap;
+                for (int i = 0; i < tblCol.StandaloneTableCount; i++)
                 {
-                }
-            }
-            IStandaloneTableCollection tblCol = (IStandaloneTableCollection)TheMap;
-            for (int i = 0; i < tblCol.StandaloneTableCount; i++)
-            {
-                try
-                {
-                    IStandaloneTable StTbl = tblCol.StandaloneTable[i];
-                    TableDictionary[StTbl.Name] = StTbl.Table;
-                }
-                catch
-                {
+                    try
+                    {
+                        IStandaloneTable StTbl = tblCol.StandaloneTable[i];
+                        TableDictionary[StTbl.Name] = StTbl.Table;
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }

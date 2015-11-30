@@ -39,23 +39,65 @@ namespace TestConsole
             TimeSpan ts;
             featureUtil ftrUtil = new featureUtil();
             geoDatabaseUtility geoUtil = new geoDatabaseUtility();
-            string baseUrl = @"http://gis.apfo.usda.gov/arcgis/services";
-            string outPath = @"C:\Users\jshogland\Documents\JOHN\projects\R8_Longleaf\LongleafProject.gdb\gaFlightLines";
-            IAGSServerConnection con = mapserviceutility.GetMapServerConnection(baseUrl);
-            Dictionary<string, IAGSServerObjectName> conDic = mapserviceutility.getServerObjects(con);
-            //foreach (string s in conDic.Keys)
-            //{
-            //    Console.WriteLine(s);
-            //}
-            IAGSServerObjectName svrObjName = conDic["NAIP/NAIP_Image_Dates"];
-            IMapServer mpSvr = mapserviceutility.getMapServer(svrObjName);
-            IFeatureClass ftrCls = mapserviceutility.createFeatureClassFromMapService(outPath, mpSvr, 40, 0);
+            rasterUtil rsUtil = new rasterUtil();
+
+            string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            Console.WriteLine(exePath);
+
+
+            //string baseUrl = @"ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/NAIP/al_2013/";
+            //string outDir = @"E:\Florida\NAIP2013\Alabama";
+            //string inDir = @"E:\Florida\NAIP2013";
+            //List<string> fnLst = getFileNames(baseUrl);
+            //moveFiles(inDir,outDir,fnLst);
+            
             dt2 = System.DateTime.Now;
             ts = dt2.Subtract(dt);
             Console.WriteLine("Total Seconds = " + ts.TotalSeconds.ToString());
 
             m_AOLicenseInitializer.ShutdownApplication();
                 
+        }
+
+        private static void moveFiles(string inDir, string outDir, List<string> fnLst)
+        {
+            string[] existingFiles = System.IO.Directory.GetFiles(inDir,"*.jp2");
+            foreach (string s in existingFiles)
+            {
+                string fn = System.IO.Path.GetFileName(s);
+                if (fnLst.Contains(fn))
+                {
+                    System.IO.File.Move(s, outDir + "\\" + fn);
+                    Console.WriteLine("Moving file " + fn);
+                }
+                
+            }
+
+        }
+        private static List<string> getFileNames(string ftpPath)
+        {
+            List<string> outLst = new List<string>();
+
+            // Get the object used to communicate with the server.
+            FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpPath);
+            request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+
+            // This example assumes the FTP site uses anonymous logon.
+            request.Credentials = new NetworkCredential("anonymous", "anonymous");
+
+            FtpWebResponse response = (FtpWebResponse)request.GetResponse();
+
+            System.IO.Stream responseStream = response.GetResponseStream();
+            System.IO.StreamReader sr = new System.IO.StreamReader(responseStream);
+            string ln;
+            while ((ln = sr.ReadLine()) != null)
+            {
+                string[] lnArr = ln.Split(new char[] { ' ' });
+                outLst.Add(lnArr[lnArr.Length - 1].Trim().ToLower());
+            }
+            sr.Close();
+            response.Close();
+            return outLst;
         }
     }
 }

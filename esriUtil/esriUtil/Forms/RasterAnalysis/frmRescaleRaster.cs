@@ -21,10 +21,9 @@ namespace esriUtil.Forms.RasterAnalysis
             InitializeComponent();
             rsUtil = new rasterUtil();
             mp = map;
-            if (mp != null)
-            {
-                vUtil = new viewUtility((IActiveView)mp);
-            }
+            frmHlp = new frmHelper(mp);
+            geoUtil = frmHlp.GeoUtility;
+            rsUtil = frmHlp.RasterUtility;
             populateComboBox();
         }
         public frmRescaleRaster(IMap map,ref rasterUtil rasterUtility, bool AddToMap)
@@ -33,91 +32,40 @@ namespace esriUtil.Forms.RasterAnalysis
             rsUtil = rasterUtility;
             addToMap = AddToMap;
             mp = map;
-            if (mp != null)
-            {
-                vUtil = new viewUtility((IActiveView)mp);
-            }
+            frmHlp = new frmHelper(mp);
+            geoUtil = frmHlp.GeoUtility;
+            rsUtil = frmHlp.RasterUtility;
             populateComboBox();
         }
+        private frmHelper frmHlp = null;
         private bool addToMap = true;
         private IMap mp = null;
-        private viewUtility vUtil = null;
-        private geoDatabaseUtility geoUtil = new geoDatabaseUtility();
+        private geoDatabaseUtility geoUtil = null;
         private rasterUtil rsUtil = null;
-        private Dictionary<string, IRaster> rstDic = new Dictionary<string, IRaster>();
-        public Dictionary<string, IRaster> RasterDictionary { get { return rstDic; } }
+        public Dictionary<string, IFunctionRasterDataset> RasterDictionary { get { return frmHlp.FunctionRasterDictionary; } }
         private void getFeaturePath()
         {
-            string outPath = null;
-            string outName = "";
-            ESRI.ArcGIS.CatalogUI.IGxDialog gxDialog = new ESRI.ArcGIS.CatalogUI.GxDialogClass();
-            gxDialog.AllowMultiSelect = false;
-            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = null;
-            flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
-            gxDialog.ObjectFilter = flt;
-            gxDialog.Title = "Select a Feature";
-            ESRI.ArcGIS.Catalog.IEnumGxObject eGxObj;
-            if (gxDialog.DoModalOpen(0, out eGxObj))
-            {
-                ESRI.ArcGIS.Catalog.IGxObject gxObj = eGxObj.Next();
-                outPath = gxObj.FullName;
-                outName = gxObj.BaseName;
-                if (!rstDic.ContainsKey(outName))
-                {
-                    rstDic.Add(outName, rsUtil.returnRaster(outPath));
-                    cmbInRaster1.Items.Add(outName);
-                }
-                else
-                {
-                    rstDic[outName] = rsUtil.returnRaster(outPath);
-                }
-                cmbInRaster1.Text = outName;
-                
-
-            }
+            ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterRasterDatasetsClass();
+            string[] nm;
+            string outPath = frmHlp.getPath(flt, out nm, false)[0];
+            string outName = nm[0];
+            frmHlp.FunctionRasterDictionary[outName] = rsUtil.createIdentityRaster(outPath);
+            cmbInRaster1.Text = outName;
             return;
         }
-        private IRaster outraster = null;
-        public IRaster OutRaster { get { return outraster; } }
+        private IFunctionRasterDataset outraster = null;
+        public IFunctionRasterDataset OutRaster { get { return outraster; } }
         private string outrastername = "";
         public string OutRasterName { get { return outrastername; } }
-        public void addRasterToComboBox(string rstName, IRaster rst)
-        {
-            if (!cmbInRaster1.Items.Contains(rstName))
-            {
-                cmbInRaster1.Items.Add(rstName);
-                rstDic[rstName] = rst;
-            }
-        }
-        public void removeRasterFromComboBox(string rstName)
-        {
-            if (cmbInRaster1.Items.Contains(rstName))
-            {
-                cmbInRaster1.Items.Remove(rstName);
-                rstDic.Remove(rstName);
-            }
-        }
+        
         private void populateComboBox()
         {
             if (mp != null)
             {
-                
-                IEnumLayer rstLyrs = vUtil.getActiveViewLayers(viewUtility.esriIRasterLayer);
-                ILayer lyr = rstLyrs.Next();
-                while (lyr != null)
+                foreach (string s in frmHlp.FunctionRasterDictionary.Keys)
                 {
-                    string lyrNm = lyr.Name;
-                    IRasterLayer rstLyr = (IRasterLayer)lyr;
-                    IRaster rst = rsUtil.createRaster(((IRaster2)rstLyr.Raster).RasterDataset);
-                    if (!rstDic.ContainsKey(lyrNm))
-                    {
-                        rstDic.Add(lyrNm, rst);
-                        cmbInRaster1.Items.Add(lyrNm);
-                    }
-                    lyr = rstLyrs.Next();
-
-                }
-                
+                    cmbInRaster1.Items.Add(s);
+                }                
             }
             foreach (string s in Enum.GetNames(typeof(rstPixelType)))
             {
@@ -144,25 +92,44 @@ namespace esriUtil.Forms.RasterAnalysis
                 MessageBox.Show("You must specify an output raster name", "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            this.Visible = false;
             esriUtil.Forms.RunningProcess.frmRunningProcessDialog rp = new RunningProcess.frmRunningProcessDialog(false);
             DateTime dt = DateTime.Now;
             rp.addMessage("Rescaling Raster. This may take a while...");
             rp.stepPGBar(10);
             rp.TopMost = true;
+            rp.Show();
+            this.Visible = false;
             try
             {
-                IRaster rst = rstDic[rstNm];
+                IFunctionRasterDataset rst = frmHlp.FunctionRasterDictionary[rstNm];
                 rstPixelType pType = (rstPixelType)Enum.Parse(typeof(rstPixelType),pixelNm);
-                outraster = rsUtil.createRaster(rsUtil.reScaleRasterFunction(rst,pType));
+                if (stats == null)
+                {
+                    outraster = rsUtil.reScaleRasterFunction(rst, pType, esriRasterStretchType.esriRasterStretchMinimumMaximum);
+                }
+                else
+                {
+                    double[] min = new double[rst.RasterInfo.BandCount];
+                    double[] max = new double[rst.RasterInfo.BandCount];
+                    double[] mean = new double[rst.RasterInfo.BandCount];
+                    double[] std = new double[rst.RasterInfo.BandCount];
+                    for (int i = 0; i < rst.RasterInfo.BandCount; i++)
+			        {
+                        min[i] = stats[i][0];
+                        max[i] = stats[i][1];
+                        mean[i] = stats[i][2];
+                        std[i] = stats[i][3];
+			        }
+                    //MessageBox.Show(String.Join(",", (from double d in stats[0] select d.ToString()).ToArray())); 
+                    outraster = rsUtil.reScaleRasterFunction(rst, pType, esriRasterStretchType.esriRasterStretchMinimumMaximum,min,max,mean,std);
+                }
                 if (mp != null&&addToMap)
                 {
                     rp.addMessage("Calculating Statistics...");
-                    rp.Show();
                     rp.Refresh();
                     IRasterLayer rstLyr = new RasterLayerClass();
                     //rsUtil.calcStatsAndHist(((IRaster2)outraster).RasterDataset);
-                    rstLyr.CreateFromRaster(outraster);
+                    rstLyr.CreateFromDataset((IRasterDataset)outraster);
                     rstLyr.Name = outNm;
                     rstLyr.Visible = false;
                     mp.AddLayer(rstLyr);
@@ -185,6 +152,54 @@ namespace esriUtil.Forms.RasterAnalysis
                 this.Close();
             }
 
+        }
+        private double[][] stats = null;
+        private void btnStatistics_Click(object sender, EventArgs e)
+        {
+            if (frmHlp.FunctionRasterDictionary.ContainsKey(cmbInRaster1.Text))
+            {
+                frmSetStatistics frmStats = new frmSetStatistics();
+                IFunctionRasterDataset rs = frmHlp.FunctionRasterDictionary[cmbInRaster1.Text];
+                IRasterBandCollection rsbc = (IRasterBandCollection)rs;
+                frmStats.dgvStats.Rows.Clear();
+                
+                for (int i = 0; i < rsbc.Count; i++)
+                {
+                    IRasterStatistics rsStats = rsbc.Item(i).Statistics;
+                    object[] rVl = {i+1,0,0,0,0};
+                    if (rsStats != null)
+                    {
+                        rVl = new object[]{ i + 1, rsStats.Minimum, rsStats.Maximum, rsStats.Mean, rsStats.StandardDeviation };
+                    }
+                    frmStats.dgvStats.Rows.Add(rVl);
+                }
+                if (frmStats.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    //MessageBox.Show("Dialog = ok");
+                    stats = new double[rsbc.Count][];
+                    //List<string> vlLst = new List<string>();
+                    for (int i = 0; i < frmStats.dgvStats.Rows.Count; i++)
+                    {
+
+                        DataGridViewRow rw = frmStats.dgvStats.Rows[i];
+                        double min = System.Convert.ToDouble(rw.Cells[1].Value);
+                        //vlLst.Add(min.ToString());
+                        double max = System.Convert.ToDouble(rw.Cells[2].Value);
+                        double mean = System.Convert.ToDouble(rw.Cells[3].Value);
+                        double std = System.Convert.ToDouble(rw.Cells[4].Value);
+                        double[] rwS = { min, max, mean, std };
+                        stats[i] = rwS;
+
+                    }
+                    //MessageBox.Show(String.Join(",",vlLst.ToArray()));
+                }
+                else
+                {
+                    stats = null;
+                }
+                frmStats.Dispose();
+
+            }
         }
     }
 }

@@ -118,6 +118,7 @@
   <ItemGroup>
     <Compile Include="commandBuildAttributeTable.cs" />
     <Compile Include="commandDeliveredCost.cs" />
+    <Compile Include="commandDownloadMapService.cs" />
     <Compile Include="commandFiaPolygonSummary.cs" />
     <Compile Include="commandFocalBandRaster.cs" />
     <Compile Include="commandLocalRescaleRaster.cs" />
@@ -184,6 +185,7 @@
     <Compile Include="commandRotateRaster.cs" />
     <Compile Include="commandSampleRaster.cs" />
     <Compile Include="commandSampleRasterCluster.cs" />
+    <Compile Include="commandSaveParallel.cs" />
     <Compile Include="commandSaveRaster.cs" />
     <Compile Include="commandSedByArival.cs" />
     <Compile Include="commandSelectSamplesFromFeature.cs" />
@@ -679,7 +681,16 @@
     <AddInContent Include="Images\commandSplitPoly.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
+    <Content Include="Images\commandDownloadMapService.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <AddInContent Include="Images\commandSaveParallel.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
     <Content Include="RMRSBatchProcess.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="saveSubset.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

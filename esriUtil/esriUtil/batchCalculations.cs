@@ -306,7 +306,7 @@ namespace esriUtil
                                         lBatch(paramArr, outName);
                                         break;
                                     case batchGroups.LOCALFOCALSTATISTICS:
-                                        rstDic[outName] = loadFocalStatistics(paramArr);
+                                        rstDic[outName] = localFocalStatistics(paramArr);
                                         break;
                                     case batchGroups.OPENRASTER:
                                         rstDic[outName] = openRaster(paramArr);
@@ -351,7 +351,7 @@ namespace esriUtil
             }
         }
 
-        private IFunctionRasterDataset loadFocalStatistics(string[] paramArr)
+        private IFunctionRasterDataset localFocalStatistics(string[] paramArr)
         {
             IFunctionRasterDataset rsDset = getRaster(paramArr[0]);
             rasterUtil.localType lt = (rasterUtil.localType)Enum.Parse(typeof(rasterUtil.localType),paramArr[1]);
@@ -1347,7 +1347,22 @@ namespace esriUtil
 
         private IFunctionRasterDataset createRescaleFunction(string[] paramArr)
         {
-            return rsUtil.reScaleRasterFunction(getRaster(paramArr[0]));
+            IFunctionRasterDataset fDset = getRaster(paramArr[0]);
+            rstPixelType rType = rstPixelType.PT_UCHAR;
+            esriRasterStretchType sType = esriRasterStretchType.esriRasterStretchMinimumMaximum;
+            double[] min = null;
+            double[] max = null;
+            double[] mean = null;
+            double[] std = null;
+            if (paramArr.Length > 1) rType = (rstPixelType)Enum.Parse(typeof(rstPixelType), paramArr[1]);
+            if (paramArr.Length > 2)
+            {
+                min = (from string s in paramArr[2].Split(new char[] { ',' }) select System.Convert.ToDouble(s)).ToArray();
+                max = (from string s in paramArr[3].Split(new char[] { ',' }) select System.Convert.ToDouble(s)).ToArray();
+                mean = (from string s in paramArr[4].Split(new char[] { ',' }) select System.Convert.ToDouble(s)).ToArray();
+                std = (from string s in paramArr[5].Split(new char[] { ',' }) select System.Convert.ToDouble(s)).ToArray();
+            }
+            return rsUtil.reScaleRasterFunction(fDset,rType,sType,min,max,mean,std);
         }
 
         private IFunctionRasterDataset createLinearTransformFunction(string[] paramArr)
@@ -1696,7 +1711,7 @@ namespace esriUtil
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;betas{0.12,2.25,1,6.3}; intercept should be the first number)";
                     break;
                 case batchGroups.RESCALE:
-                    msg = "outRs = " + batchFunction.ToString() + "(inRaster)";
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;rstPixelType;min1,min2,min3;max1,max2,max3;mean1,mean2,mean3;std1,std2,std3)";
                     break;
                 case batchGroups.REMAP:
                     msg = "outRs = " + batchFunction.ToString() + "(inRaster;0:1:100,1:6:200,6:1000:300)";

@@ -1411,6 +1411,146 @@ namespace esriUtil
             
             
         }
+        /// <summary>
+        /// Saves a subset of a raster 
+        /// </summary>
+        /// <param name="inRasterPath">the path to the raster can be a batch file</param>
+        /// <param name="outName">the name of the new raster</param>
+        /// <param name="wks">the workspace it will be saved in</param>
+        /// <param name="rastertype">the type of raster</param>
+        /// <param name="extent">the extent to save</param>
+        /// <param name="noDataVl">the not data value</param>
+        /// <param name="IntBlockWidth">the number of cells to read in width</param>
+        /// <param name="IntBlockHeight">the number of cells to read in height</param>
+        /// <returns>the new raster dataset</returns>
+        public IRasterDataset subsetSaveRasterToDataset(object inRasterPath, string outName, IWorkspace wks, rasterType rastertype, IEnvelope extent, object noDataVl = null, int IntBlockWidth = 512, int IntBlockHeight = 512)
+        {
+            IFunctionRasterDataset fDset = createIdentityRaster(inRasterPath);
+            IRasterDataset newRasterDataset = createNewRaster(extent,fDset.RasterInfo.CellSize, wks, outName,fDset.RasterInfo.BandCount,fDset.RasterInfo.PixelType, rastertype,fDset.RasterInfo.SpatialReference);
+            IRasterBandCollection rsbc = (IRasterBandCollection)newRasterDataset;
+            int bndCnt = rsbc.Count;
+            IRaster orgRs = createRaster(fDset);
+            IRaster nRs = ((IRasterDataset3)newRasterDataset).CreateFullRaster();
+            IRasterProps rsPropOut = (IRasterProps)nRs;
+            IPnt mcellSize = fDset.RasterInfo.CellSize;
+            int tRasterWidth = (int)(extent.Width / mcellSize.X);
+            int tRasterHeight = (int)(extent.Height / mcellSize.Y);
+            IPnt pntSize = new PntClass();
+            IPnt topLeft = new PntClass();
+            IPnt topLeftOffset = new PntClass();
+            int wOffset = 0;
+            int hOffset = 0;
+            IRaster2 orgRs2 = (IRaster2)orgRs;
+            orgRs2.MapToPixel(extent.UpperLeft.X, extent.UpperLeft.Y, out wOffset, out hOffset);
+            int intW = IntBlockWidth;
+            int intH = IntBlockHeight;
+            int nw = intW;
+            int nh = intH;
+            IRasterEdit nRsE = (IRasterEdit)nRs;
+            if (rastertype == rasterType.GDB)
+            {
+
+                rsPropOut.Extent = extent;
+                rsPropOut.Width = (int)(extent.Width / mcellSize.X);
+                rsPropOut.Height = (int)(extent.Height / mcellSize.Y);
+                for (int pbh = 0; pbh < tRasterHeight; pbh += intW)
+                {
+
+                    for (int pbw = 0; pbw < tRasterWidth; pbw += intH)
+                    {
+                        topLeft.SetCoords(pbw, pbh);
+                        topLeftOffset.SetCoords(pbw + wOffset, pbh + hOffset);
+                        getPbWidthHeight(tRasterWidth, tRasterHeight, topLeft, intW, intH, out nw, out nh);
+                        pntSize.SetCoords(nw, nh);
+                        IPixelBlock3 inPb = (IPixelBlock3)orgRs.CreatePixelBlock(pntSize);
+                        orgRs.Read(topLeftOffset, (IPixelBlock)inPb);
+                        IPixelBlock3 outPb = (IPixelBlock3)nRs.CreatePixelBlock(pntSize);
+                        for (int b = 0; b < bndCnt; b++)
+                        {
+                            outPb.set_PixelData(b, inPb.get_PixelDataByRef(b));
+                            outPb.set_NoDataMask(b, inPb.get_NoDataMaskByRef(b));
+                        }
+                        nRsE.Write(topLeft, (IPixelBlock)outPb);
+                        nRsE.Refresh();
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(inPb);
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(outPb);
+                        
+                    }
+                }
+            }
+            else
+            {
+                object uNoDataVl = convertToActualNoDataVl(noDataVl, fDset.RasterInfo.PixelType);
+                try
+                {
+                    double nDv;
+                    if (!(Double.TryParse(noDataVl.ToString(), out nDv)))
+                    {
+                        uNoDataVl = nDv;
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+                try
+                {
+                    for (int b = 0; b < bndCnt; b++)
+                    {
+                        IRasterProps rsPropsOut = (IRasterProps)rsbc.Item(b);
+                        rsPropsOut.NoDataValue = uNoDataVl;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+                for (int pbh = 0; pbh < tRasterHeight; pbh += intH)
+                {
+                    for (int pbw = 0; pbw < tRasterWidth; pbw += intW)
+                    {
+                        topLeft.SetCoords(pbw, pbh);
+                        topLeftOffset.SetCoords(pbw + wOffset, pbh + hOffset);
+                        getPbWidthHeight(tRasterWidth, tRasterHeight, topLeft, intW, intH, out nw, out nh);
+                        pntSize.SetCoords(nw, nh);
+                        IPixelBlock3 inPb = (IPixelBlock3)orgRs.CreatePixelBlock(pntSize);
+                        orgRs.Read(topLeftOffset, (IPixelBlock)inPb);
+                        IPixelBlock3 outPb = (IPixelBlock3)nRs.CreatePixelBlock(pntSize);
+                        for (int b = 0; b < bndCnt; b++)
+                        {
+                            outPb.set_PixelData(b, inPb.get_PixelDataByRef(b));
+                            outPb.set_NoDataMask(b, inPb.get_NoDataMaskByRef(b));
+                        }
+                        nRsE.Write(topLeft, (IPixelBlock)outPb);
+                        nRsE.Refresh();
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(inPb);
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(outPb);
+                    }
+                }
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(nRsE);
+            return newRasterDataset;
+        }
+
+        private bool checkEdit(IRasterEdit nRsE)
+        {
+            bool outTest = nRsE.CanEdit();
+            
+            return outTest;
+        }
+        
+        /// <summary>
+        /// Saves a raster dataset using a specified block size
+        /// </summary>
+        /// <param name="inRaster">the raster to save</param>
+        /// <param name="outName">the name of the new raster</param>
+        /// <param name="wks">the workspace to save the raster within</param>
+        /// <param name="rastertype">type of raster</param>
+        /// <param name="noDataVl">the value for no data</param>
+        /// <param name="IntBlockWidth">block width</param>
+        /// <param name="IntBlockHeight">block height</param>
+        /// <returns>the new raster dataset</returns>
         public IRasterDataset saveRasterToDatasetM(object inRaster, string outName, IWorkspace wks, rasterType rastertype, object noDataVl=null, int IntBlockWidth= 512, int IntBlockHeight=512)
         {
             IFunctionRasterDataset fDset = null;
@@ -1463,6 +1603,9 @@ namespace esriUtil
                             outPb.set_NoDataMask(b, inPb.get_NoDataMaskByRef(b));
                         }
                         nRsE.Write(topLeft, (IPixelBlock)outPb);
+                        nRsE.Refresh();
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(inPb);
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(outPb);
                     }
                 }
             }
@@ -1500,7 +1643,7 @@ namespace esriUtil
                     {
                         topLeft.SetCoords(pbw, pbh);
                         getPbWidthHeight(tRasterWidth, tRasterHeight, topLeft, intW, intH, out nw, out nh);
-                        Console.WriteLine("PBTL = " + pbh.ToString() + ", " + pbw.ToString() + ", PBH = " + nh.ToString() + ", PBW = " + nw.ToString());
+                        //Console.WriteLine("PBTL = " + pbh.ToString() + ", " + pbw.ToString() + ", PBH = " + nh.ToString() + ", PBW = " + nw.ToString());
                         pntSize.SetCoords(nw, nh);
                         IPixelBlock3 inPb = (IPixelBlock3)fHelp.Raster.CreatePixelBlock(pntSize);
                         fHelp.Raster.Read(topLeft, (IPixelBlock)inPb);
@@ -1523,6 +1666,9 @@ namespace esriUtil
                             outPb.set_PixelData(b, outSArr);
                         }
                         nRsE.Write(topLeft, (IPixelBlock)outPb);
+                        nRsE.Refresh();
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(inPb);
+                        System.Runtime.InteropServices.Marshal.ReleaseComObject(outPb);
                     }
                 }
             }
@@ -1834,9 +1980,36 @@ namespace esriUtil
             }
             return rV;
         }
-        public IRasterDataset saveRasterToDataset(IRaster inRaster, string outName, IWorkspace wks,rasterType rastertype)
+        /// <summary>
+        /// saves a raster, rasterDataset, FunctionRasterDataset
+        /// </summary>
+        /// <param name="inRaster">raster, rasterDataset, FunctionRasterDataset</param>
+        /// <param name="outName">new name</param>
+        /// <param name="wks">output workspace</param>
+        /// <param name="rastertype">type of output</param>
+        /// <param name="tiled">storage format</param>
+        /// <param name="calcStats"></param>
+        /// <param name="buildAttribute"></param>
+        /// <returns>RasterDataset</returns>
+        public IRasterDataset saveRasterToDataset(object inRaster, string outName, IWorkspace wks,rasterType rastertype, bool tiled=true, bool calcStats=false, bool buildAttribute=false,esriRasterCompressionType comptype = esriRasterCompressionType.esriRasterCompressionUncompressed,int compression=75, int tileWidth = 128, int tileHeight = 128)
         {
+            
+            if (inRaster is RasterDataset)
+            {
+            }
+            else if (inRaster is Raster)
+            {
+            }
+            else if (inRaster is FunctionRasterDataset)
+            {
+                return null;
+            }
+            else
+            {
+                return null;
+            }
             string rsTypeStr = rastertype.ToString();
+            outName = getSafeOutputName(wks, outName);
             string ext = "";
             if (rastertype== rasterType.IMAGINE)
             {
@@ -1851,6 +2024,10 @@ namespace esriUtil
             {
                 ext = ".hdr";
             }
+            else if (rastertype == rasterType.GRID || rastertype == rasterType.GDB)
+            {
+                ext = "";
+            }
             else
             {
                 ext = "." + rastertype.ToString().ToLower();
@@ -1860,16 +2037,16 @@ namespace esriUtil
             {
                 rsTypeStr = rasterType.GDB.ToString();
             }
-            if (rastertype == rasterType.GRID || rastertype == rasterType.GDB)
+            if (rastertype == rasterType.GRID)
             {
-                outName = getSafeOutputName(wks, outName);
                 if (outName.Length > 12)
                 {
                     outName.Substring(12);
                 }
-                if ((rastertype==rasterType.GRID)&&(((IRasterProps)inRaster).PixelType == rstPixelType.PT_FLOAT))
+                if ((rastertype==rasterType.GRID)&&(((IRasterProps)inRaster).PixelType == rstPixelType.PT_DOUBLE))
                 {
-                    inRaster = returnRaster(inRaster,rstPixelType.PT_FLOAT);
+                    inRaster = createIdentityRaster(inRaster,rstPixelType.PT_FLOAT);
+
                 }
             }
             else
@@ -1880,44 +2057,36 @@ namespace esriUtil
                 }
 
             }
-            if (geoUtil.ftrExists(wks, outName))
-            {
-                outName = "_" + outName;
-            }
             IRasterDataset rsDset = null;
             try
             {
                 IRasterStorageDef2 rsStorDef = new RasterStorageDefClass();
                 rsStorDef.PyramidLevel = 0;
+                rsStorDef.Tiled = tiled;
+                rsStorDef.CompressionQuality = compression;
+                rsStorDef.CompressionType = comptype;
+                rsStorDef.TileHeight = tileHeight;
+                rsStorDef.TileWidth = tileWidth;
                 ISaveAs2 sv = (ISaveAs2)inRaster;
-                rsDset = (IRasterDataset)sv.SaveAsRasterDataset(outName, wks, rsTypeStr,rsStorDef);
-                
-                IRaster2 rs2 = (IRaster2)calcStatsAndHist(rsDset);
-                ITable vat = rs2.AttributeTable;
-                int rwCnt = 0;
-                try
+                rsDset = sv.SaveAsRasterDataset(outName, wks, rsTypeStr,rsStorDef);
+                if (calcStats)
                 {
-                    rwCnt = vat.RowCount(null);
+                    IRasterDatasetEdit3 rsDsetEdit = (IRasterDatasetEdit3)rsDset;
+                    object noData = ((IFunctionRasterDataset)(rsDset)).RasterInfo.NoData;
+                    rsDsetEdit.ComputeStatisticsHistogram(1, 1, noData, true);
                 }
-                catch
+                if (buildAttribute)
                 {
-                    rwCnt = 0;
-                }
-                if (rwCnt > 0)
-                {
-                    IRasterDatasetEdit2 rsDsetE = (IRasterDatasetEdit2)rsDset;
-                    rsDsetE.DeleteAttributeTable();
-                    if (((IRasterBandCollection)rs2).Count == 1)
-                    {
-                        rsDsetE.BuildAttributeTable();
-                    }
+                    IRasterDatasetEdit3 rsDsetEdit = (IRasterDatasetEdit3)rsDset;
+                    rsDsetEdit.BuildAttributeTable();
                 }
             }
             catch (Exception e)
             {
-                System.Windows.Forms.MessageBox.Show(e.ToString());
+                //System.Windows.Forms.MessageBox.Show(e.ToString());
                 Console.WriteLine(e.ToString());
-                rsDset = ((IRaster2)returnRaster(wks.PathName + "\\" + outName)).RasterDataset;
+                string bnd;
+                rsDset = openRasterDataset(wks.PathName + "\\" + outName, out bnd);
             }
             return rsDset;
         }
@@ -1997,15 +2166,30 @@ namespace esriUtil
             return outRs;
             
         }
-        public IRaster calcStatsAndHist(IRasterDataset rsDset)
+        
+        public IRasterDataset calcStatsAndHist(IRasterDataset rsDset, bool overwrite=false)
         {
-            IRaster rs = returnRaster(rsDset);
-            rs = calcStatsAndHist(rs);
-            return rs;
+            IRasterDatasetEdit3 rsDe = (IRasterDatasetEdit3)rsDset;
+            IRasterInfo rsInfo = ((IFunctionRasterDataset)rsDset).RasterInfo;
+            IRasterStatistics rsStats = (IRasterStatistics)rsInfo;
+            if (overwrite == true)
+            {
+                object noDataVl = ((IFunctionRasterDataset)rsDset).RasterInfo.NoData;
+                rsDe.ComputeStatisticsHistogram(1, 1, noDataVl, true);
+            }
+            else
+            {
+                if (!rsStats.IsValid)
+                {
+                    object noDataVl = ((IFunctionRasterDataset)rsDset).RasterInfo.NoData;
+                    rsDe.ComputeStatisticsHistogram(1, 1, noDataVl, true);
+                }
+            }
+            return rsDset;
         }
-        public IRaster calcStatsAndHist(IFunctionRasterDataset rsDset)
+        public IRasterDataset calcStatsAndHist(IFunctionRasterDataset rsDset)
         {
-            return calcStatsAndHist(createRaster(rsDset));
+            return calcStatsAndHist((IRasterDataset)rsDset);
         }
         /// <summary>
         /// Rescales raster to 8 byte unsigned integer 0-256
@@ -2025,10 +2209,39 @@ namespace esriUtil
         {
             return reScaleRasterFunction(inRaster,pType,esriRasterStretchType.esriRasterStretchMinimumMaximum);
         }
-        public IFunctionRasterDataset reScaleRasterFunction(object inRaster,rstPixelType pType,esriRasterStretchType stretchType)
+        public IFunctionRasterDataset reScaleRasterFunction(object inRaster,rstPixelType pType,esriRasterStretchType stretchType, double[] min=null, double[] max=null, double[] mean=null, double[] std=null)
         {
             IFunctionRasterDataset iR1 = createIdentityRaster(inRaster);
-            calcStatsAndHist(iR1);
+            if (min == null)
+            {
+                calcStatsAndHist(iR1);
+            }
+            else
+            {
+                
+                IRasterBandCollection rsBC = (IRasterBandCollection)iR1;
+                for (int i = 0; i < rsBC.Count; i++)
+                {
+                    IRasterBand rsBand = rsBC.Item(i);
+                    IRasterStatistics rsStats = rsBand.Statistics;
+                    if (rsStats == null)
+                    {
+                        rsStats = new RasterStatisticsClass();
+                        IRasterBandEdit rsBandE = (IRasterBandEdit)rsBand;
+                        rsBandE.AlterStatistics(rsStats);
+                        rsStats = rsBand.Statistics;
+                    }
+                    if (i < min.Length) rsStats.Minimum = min[i];
+                    else rsStats.Minimum = min[0];
+                    if (i < min.Length) rsStats.Maximum = max[i];
+                    else rsStats.Maximum = max[0];
+                    if (i < min.Length) rsStats.Mean = mean[i];
+                    else rsStats.Mean = mean[0];
+                    if (i < min.Length) rsStats.StandardDeviation = std[i];
+                    else rsStats.StandardDeviation = std[0];
+                    rsStats.IsValid = true;
+                }
+            }
             string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
             IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
@@ -2036,19 +2249,81 @@ namespace esriUtil
             frDset.FullName = (IName)frDsetName;
             IRasterFunction rsFunc = new StretchFunction();
             rsFunc.PixelType = pType;
-            
-            //IRasterProps rsProps = (IRasterProps)iR1;
-            //rsFunc.RasterInfo.Extent = rsProps.Extent;
-            //rsFunc.RasterInfo.CellSize = getCellSize(iR1);
             IStretchFunctionArguments args = new StretchFunctionArgumentsClass();
             args.Raster = iR1;
             args.StretchType = stretchType;
+            args.UseGamma = false;
+            switch (pType)
+            {
+                case rstPixelType.PT_CHAR:
+                    args.Max = 128;
+                    args.Min = -127;
+                    break;
+                case rstPixelType.PT_DOUBLE:
+                    args.Max = double.MaxValue - 1;
+                    args.Min = double.MinValue;
+                    break;
+                case rstPixelType.PT_FLOAT:
+                    args.Max = float.MaxValue - 1;
+                    args.Min = float.MinValue;
+                    break;
+                case rstPixelType.PT_LONG:
+                    args.Max = long.MaxValue - 1;
+                    args.Min = long.MinValue;
+                    break;
+                case rstPixelType.PT_SHORT:
+                    args.Max = short.MaxValue - 1;
+                    args.Min = short.MinValue;
+                    break;
+                case rstPixelType.PT_U1:
+                    args.Max = 1;
+                    args.Min = 0;
+                    break;
+                case rstPixelType.PT_U2:
+                    args.Max = 3;
+                    args.Min = 0;
+                    break;
+                case rstPixelType.PT_U4:
+                    args.Max = 15;
+                    args.Min = 0;
+                    break;
+                case rstPixelType.PT_UCHAR:
+                    args.Max = 255;
+                    args.Min = 0;
+                    break;
+                case rstPixelType.PT_ULONG:
+                    args.Max = ulong.MaxValue - 1;
+                    args.Min = 0;
+                    break;
+                case rstPixelType.PT_USHORT:
+                    args.Max = ushort.MaxValue - 1;
+                    args.Min = 0;
+                    break;
+                default:
+                    args.Max = 255;
+                    args.Min = 0;
+                    break;
+            }
+            switch (stretchType)
+            {
+                case esriRasterStretchType.esriRasterStretchMinimumMaximum:   
+                case esriRasterStretchType.esriRasterStretchNone:
+                    break;
+                case esriRasterStretchType.esriRasterStretchPercentMinimumMaximum:
+                    args.MinPercent = 2;
+                    args.MaxPercent = 2;
+                    break;
+                case esriRasterStretchType.esriRasterStretchStandardDeviation:
+                    args.NumberOfStandardDeviations = 2.5;
+                    break;
+                default:
+                    break;
+            }
+
             frDset.Init(rsFunc, args);
-            //frDset.Simplify();
             return frDset;
-
-
         }
+                
         public IFunctionRasterDataset calcFocalSampleFunction(object inRaster, HashSet<string> offset, focalType statType)
         {
             IFunctionRasterDataset iR1 = createIdentityRaster(inRaster);
@@ -2391,22 +2666,52 @@ namespace esriUtil
             {
                 if (inRaster is string)
                 {
-                    string oStr;
-                    inRaster = openRasterDataset(inRaster.ToString(), out oStr);
-                    if (inRaster == null) return null;
+                    if (System.IO.Path.GetExtension(inRaster.ToString()).ToLower() == ".bch")
+                    {
+                        batchCalculations btch = new batchCalculations(this, new Forms.RunningProcess.frmRunningProcessDialog(true));
+                        btch.BatchPath = inRaster.ToString();
+                        btch.loadBatchFile();
+                        btch.runBatch();
+                        string nm, desc;
+                        IFunctionRasterDataset rs;
+                        btch.GetFinalRaster(out nm, out rs, out desc);
+                        //inRaster = rs;
+                        return rs;
+                    }
+                    else
+                    {
+                        string oStr;
+                        inRaster = openRasterDataset(inRaster.ToString(), out oStr);
+                        if (inRaster == null) return null;
+                        else
+                        {
+                            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+                            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+                            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+                            frDsetName.FullName = tempAr;
+                            frDset.FullName = (IName)frDsetName;
+                            IRasterFunction rsFunc = (IRasterFunction)new IdentityFunctionClass();
+                            frDset.Init(rsFunc, inRaster);
+                            return frDset;
+                        }
+                    }
                 }
                 else if (inRaster is FunctionRasterDataset)
                 {
-                    inRaster = (IRasterDataset)inRaster;
+                    return (IFunctionRasterDataset)inRaster;
+                    //inRaster = (IRasterDataset)inRaster;
                 }
-                string tempAr = funcDir + "\\" + FuncCnt + ".afr";
-                IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
-                IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
-                frDsetName.FullName = tempAr;
-                frDset.FullName = (IName)frDsetName;
-                IRasterFunction rsFunc = (IRasterFunction)new IdentityFunctionClass();
-                frDset.Init(rsFunc, inRaster);
-                return frDset;
+                else
+                {
+                    string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+                    IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+                    IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+                    frDsetName.FullName = tempAr;
+                    frDset.FullName = (IName)frDsetName;
+                    IRasterFunction rsFunc = (IRasterFunction)new IdentityFunctionClass();
+                    frDset.Init(rsFunc, inRaster);
+                    return frDset;
+                }
             }
         }
 
@@ -4421,27 +4726,92 @@ namespace esriUtil
             switch (pType)
             {
                 case rstPixelType.PT_CHAR:
-                    newVl = System.Convert.ToSByte(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToSByte(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>sbyte.MaxValue)newVl=sbyte.MaxValue;
+                        else newVl=sbyte.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_LONG:
-                    newVl = System.Convert.ToInt32(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToInt32(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>long.MaxValue)newVl=long.MaxValue;
+                        else newVl=long.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_SHORT:
-                    newVl = System.Convert.ToInt16(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToInt16(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>short.MaxValue)newVl=short.MaxValue;
+                        else newVl=short.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_U1:
-                    newVl = System.Convert.ToBoolean(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToBoolean(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>1)newVl=1;
+                        else newVl=0;
+                    }
                     break;
                 case rstPixelType.PT_U2:
+ 
                 case rstPixelType.PT_U4:
+                    
                 case rstPixelType.PT_UCHAR:
-                    newVl = System.Convert.ToByte(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToByte(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>byte.MaxValue)newVl=byte.MaxValue;
+                        else newVl=byte.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_ULONG:
-                    newVl = System.Convert.ToUInt32(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToUInt32(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>ulong.MaxValue)newVl=ulong.MaxValue;
+                        else newVl=ulong.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_USHORT:
-                    newVl = System.Convert.ToUInt16(outVl);
+                    try
+                    {
+                        newVl = System.Convert.ToUInt16(outVl);
+                    }
+                    catch
+                    {
+                        double vl = System.Convert.ToDouble(outVl);
+                        if(vl>ushort.MaxValue)newVl=ushort.MaxValue;
+                        else newVl=ushort.MinValue;
+                    }
                     break;
                 case rstPixelType.PT_FLOAT:
                     newVl = System.Convert.ToSingle(outVl);

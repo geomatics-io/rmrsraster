@@ -36,6 +36,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.cmbInRaster1 = new System.Windows.Forms.ComboBox();
             this.cmbPixel = new System.Windows.Forms.ComboBox();
+            this.btnStatistics = new System.Windows.Forms.Button();
             this.btnOpenRaster = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -99,6 +100,16 @@
             this.cmbPixel.Size = new System.Drawing.Size(124, 21);
             this.cmbPixel.TabIndex = 24;
             // 
+            // btnStatistics
+            // 
+            this.btnStatistics.Location = new System.Drawing.Point(178, 78);
+            this.btnStatistics.Name = "btnStatistics";
+            this.btnStatistics.Size = new System.Drawing.Size(75, 23);
+            this.btnStatistics.TabIndex = 32;
+            this.btnStatistics.Text = "Statistics";
+            this.btnStatistics.UseVisualStyleBackColor = true;
+            this.btnStatistics.Click += new System.EventHandler(this.btnStatistics_Click);
+            // 
             // btnOpenRaster
             // 
             this.btnOpenRaster.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
@@ -114,6 +125,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(297, 164);
+            this.Controls.Add(this.btnStatistics);
             this.Controls.Add(this.btnExecute);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.txtOutName);
@@ -126,6 +138,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmRescaleRaster";
             this.Text = "Rescale Min Max  Analysis";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -141,6 +154,7 @@
         private System.Windows.Forms.ComboBox cmbInRaster1;
         private System.Windows.Forms.Button btnOpenRaster;
         private System.Windows.Forms.ComboBox cmbPixel;
+        private System.Windows.Forms.Button btnStatistics;
 
 
     }

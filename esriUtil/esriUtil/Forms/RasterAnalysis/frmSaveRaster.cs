@@ -160,7 +160,7 @@ namespace esriUtil.Forms.RasterAnalysis
             try
             {
                 IRaster rs = rstDic[rstNm];
-                IRasterDataset rsDset = rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl,blSize,blSize);//rsUtil.saveRasterToDataset(rs, outNm, outWks);
+                IRasterDataset rsDset = rsUtil.saveRasterToDatasetM(rs, outNm, outWks, rType, noDataVl,blSize,blSize);
                 DateTime dt2 = DateTime.Now;
                 IRasterLayer rsLyr = new RasterLayerClass();
                 rsLyr.CreateFromDataset(rsDset);

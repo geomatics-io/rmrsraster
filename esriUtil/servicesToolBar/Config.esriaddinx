@@ -6,16 +6,16 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>11/13/2015</Date>
+  <Date>11/30/2015</Date>
   <Targets>
     <Target name="Desktop" version="10.2" />
   </Targets>
   <AddIn language="CLR" library="servicesToolBar.dll" namespace="servicesToolBar">
     <ArcMap>
       <Commands>
-        <Button id="USDA_Forest_Service_servicesToolBar_commandServiceSetup" class="commandServiceSetup" message="Configures services to download" caption="Service Setup" tip="click to setup services to download" category="Sevices" image="Images\commandServiceSetup.bmp" />
-        <Button id="USDA_Forest_Service_servicesToolBar_commandLoad" class="commandLoad" message="loads data into database" caption="Service Download" tip="click to load data" category="Sevices" image="Images\commandLoad.bmp" />
-        <Button id="USDA_Forest_Service_servicesToolBar_commandAddData" class="commandAddData" message="Adds data from local cache" caption="Add Data" tip="Add data from local catch" category="Sevices" image="Images\cmdAddLayer.bmp">
+        <Button id="USDA_Forest_Service_servicesToolBar_commandServiceSetup" class="commandServiceSetup" message="Configures services to download" caption="Service Setup" tip="click to setup services to download" category="serviceUtilities" image="Images\commandServiceSetup.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandLoad" class="commandLoad" message="loads data into database" caption="Service Download" tip="click to load data" category="serviceUtilities" image="Images\commandLoad.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandAddData" class="commandAddData" message="Adds data from local cache" caption="Add Data" tip="Add data from local catch" category="serviceUtilities" image="Images\cmdAddLayer.bmp">
           <Help heading="Add">Add data from cache</Help>
         </Button>
         <Button id="USDA_Forest_Service_servicesToolBar_commandAddRasterData" class="commandAddRasterData" message="Click to add raster data to the map" caption="Add Raster Data" tip="Adds Raster Data" category="general" image="Images\cmdAddRaster.bmp" />
@@ -113,6 +113,8 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandDeliveredCost" class="commandDeliveredCost" message="Calculates deliver cost surfaces" caption="Delivered Cost" tip="click to open" category="rasterUtilities" image="Images\commandDeliveredCost.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandTileMosaic" class="commandTileMosaic" message="Mosaics images within a workspace base on the geometries of a feature class." caption="Tile Mosaic" tip="click to open" category="rasterUtilities" image="Images\commandTileMosaic.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSplitPoly" class="commandSplitPoly" message="splits the features within a polygon into multiple parts" caption="Split Poly" tip="click to open" category="rasterUtilities" image="Images\commandSplitPoly.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandDownloadMapService" class="commandDownloadMapService" message="lets you download feature layers within a map service" caption="MapService Download" tip="click to open" category="serviceUtilities" image="Images\commandDownloadMapService.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandSaveParallel" class="commandSaveParallel" message="Saves an output raster by tiles in parallel" caption="Save Parallel" tip="click to open" category="rasterUtilities" image="Images\commandSaveParallel.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

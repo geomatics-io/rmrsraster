@@ -240,6 +240,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\RasterAnalysis\frmSetStatistics.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSetStatistics.Designer.cs">
+      <DependentUpon>frmSetStatistics.cs</DependentUpon>
+    </Compile>
     <Compile Include="batchCalculations.cs" />
     <Compile Include="Forms\FIA\frmFiaSummarizePoly.cs">
       <SubType>Form</SubType>
@@ -265,6 +271,12 @@
     </Compile>
     <Compile Include="Forms\FrmNecCdfAttributeSelection.Designer.cs">
       <DependentUpon>FrmNecCdfAttributeSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MapServices\frmDownloadMapServiceLayer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\MapServices\frmDownloadMapServiceLayer.Designer.cs">
+      <DependentUpon>frmDownloadMapServiceLayer.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmCreateAttributeTable.cs">
       <SubType>Form</SubType>
@@ -301,6 +313,12 @@
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmResampleRaster.Designer.cs">
       <DependentUpon>frmResampleRaster.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSaveParallel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\RasterAnalysis\frmSaveParallel.Designer.cs">
+      <DependentUpon>frmSaveParallel.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSetNullValue.cs">
       <SubType>Form</SubType>
@@ -1032,6 +1050,9 @@
     <EmbeddedResource Include="Forms\MapServices\frmAddProjectLayers.resx">
       <DependentUpon>frmAddProjectLayers.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\MapServices\frmDownloadMapServiceLayer.resx">
+      <DependentUpon>frmDownloadMapServiceLayer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\MapServices\frmInputBox.resx">
       <DependentUpon>frmInputBox.cs</DependentUpon>
     </EmbeddedResource>
@@ -1137,6 +1158,9 @@
     <EmbeddedResource Include="Forms\RasterAnalysis\frmRotateRaster.resx">
       <DependentUpon>frmRotateRaster.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmSaveParallel.resx">
+      <DependentUpon>frmSaveParallel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSaveRaster.resx">
       <DependentUpon>frmSaveRaster.cs</DependentUpon>
     </EmbeddedResource>
@@ -1145,6 +1169,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSetNullValue.resx">
       <DependentUpon>frmSetNullValue.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\RasterAnalysis\frmSetStatistics.resx">
+      <DependentUpon>frmSetStatistics.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\RasterAnalysis\frmSetupToolbar.resx">
       <DependentUpon>frmSetupToolbar.cs</DependentUpon>

@@ -328,27 +328,7 @@ namespace esriUtil.Forms.RasterAnalysis
                     }
                     //frmF.Dispose();
                     break;
-                case functionModel.functionGroups.Rescale:
-                    if (frmR == null)
-                    {
-                        frmR = new frmRescaleRaster(mp, ref rsUtil, false);
-                    }
-                    foreach (KeyValuePair<string, IRaster> kVp in rsultDic)
-                    {
-                        frmR.addRasterToComboBox(kVp.Key,kVp.Value);
-                    }
-                    dRslt = frmR.ShowDialog(this);
-                    mo = frmR.OutRaster;
-                    nm = frmR.OutRasterName;
-                    if (mo != null && nm != null && nm != "" && dRslt == System.Windows.Forms.DialogResult.OK)
-                    {
-                        desc = vl + "(" + String.Join(";", getFormInputs((Form)frmR).ToArray()) + ")";
-                        rsultDic[nm] = mo;
-                        object[] ob = { nm, false, desc };
-                        addRowsToDataGrid(ob);
-                    }
-                    //frmR.Dispose();
-                    break;
+                
                 case functionModel.functionGroups.Composite:
                     if (frmComp == null)
                     {
