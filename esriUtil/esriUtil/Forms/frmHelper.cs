@@ -51,8 +51,14 @@ namespace esriUtil.Forms
                             IRasterLayer rsLyr = (IRasterLayer)lyr;
                             FunctionRasterDictionary[lyr.Name] = RasterUtility.createIdentityRaster(((IRaster2)rsLyr.Raster).RasterDataset);
                         }
-                        else
+                        else if (lyr is MosaicLayer)
                         {
+                            IMosaicLayer msLyr = (IMosaicLayer)lyr;
+                            IFeatureLayer ftrLyr = msLyr.BoundaryLayer;
+                            FeatureDictionary[ftrLyr.Name] = ftrLyr.FeatureClass;
+                            ftrLyr = msLyr.FootprintLayer;
+                            FeatureDictionary[ftrLyr.Name] = ftrLyr.FeatureClass;
+                            FunctionRasterDictionary[lyr.Name] = (IFunctionRasterDataset)msLyr.MosaicDataset;
                         }
                     }
                     catch

@@ -14,5 +14,8 @@
     <Setting Name="AutoUpdate" Type="System.String" Scope="User">
       <Value Profile="(Default)">yes</Value>
     </Setting>
+    <Setting Name="FusionDir" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\FUSION</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

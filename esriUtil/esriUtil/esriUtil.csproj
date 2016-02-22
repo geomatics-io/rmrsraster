@@ -179,6 +179,10 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ESRI.ArcGIS.GeoDatabaseExtensions, Version=10.2.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="ESRI.ArcGIS.Geometry, Version=10.0.0.0, Culture=neutral, PublicKeyToken=8fc3cc631e44ad86, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -240,6 +244,42 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\Lidar\frmCalcCloudMetrics.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmCalcCloudMetrics.Designer.cs">
+      <DependentUpon>frmCalcCloudMetrics.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmCalcGridMetricsFusion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmCalcGridMetricsFusion.Designer.cs">
+      <DependentUpon>frmCalcGridMetricsFusion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmConvertGridMetricsToRaster.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmConvertGridMetricsToRaster.Designer.cs">
+      <DependentUpon>frmConvertGridMetricsToRaster.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmCreateDtmFiles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmCreateDtmFiles.Designer.cs">
+      <DependentUpon>frmCreateDtmFiles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmFilterLas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmFilterLas.Designer.cs">
+      <DependentUpon>frmFilterLas.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmRemoveSpaces.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Lidar\frmRemoveSpaces.Designer.cs">
+      <DependentUpon>frmRemoveSpaces.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\RasterAnalysis\frmSetStatistics.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -422,6 +462,7 @@
     <Compile Include="FunctionRasters\PixelBlockToRasterFunctionDataset.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionArguments.cs" />
     <Compile Include="FunctionRasters\regionGroupFunctionDataset.cs" />
+    <Compile Include="fusionIntegration.cs" />
     <Compile Include="normalization.cs" />
     <Compile Include="photoAnalysis.cs" />
     <Compile Include="segmentation.cs" />
@@ -1046,6 +1087,24 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FrmNecCdfAttributeSelection.resx">
       <DependentUpon>FrmNecCdfAttributeSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmCalcCloudMetrics.resx">
+      <DependentUpon>frmCalcCloudMetrics.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmCalcGridMetricsFusion.resx">
+      <DependentUpon>frmCalcGridMetricsFusion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmConvertGridMetricsToRaster.resx">
+      <DependentUpon>frmConvertGridMetricsToRaster.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmCreateDtmFiles.resx">
+      <DependentUpon>frmCreateDtmFiles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmFilterLas.resx">
+      <DependentUpon>frmFilterLas.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Lidar\frmRemoveSpaces.resx">
+      <DependentUpon>frmRemoveSpaces.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\MapServices\frmAddProjectLayers.resx">
       <DependentUpon>frmAddProjectLayers.cs</DependentUpon>

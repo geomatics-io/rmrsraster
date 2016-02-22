@@ -42,6 +42,8 @@
             this.btnGrp = new System.Windows.Forms.Button();
             this.btnAccessDb = new System.Windows.Forms.Button();
             this.btnOpenFeatureClass = new System.Windows.Forms.Button();
+            this.chbSeedlings = new System.Windows.Forms.CheckBox();
+            this.chbNonMerch = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label1
@@ -58,7 +60,7 @@
             this.cmbSampleFeatureClass.FormattingEnabled = true;
             this.cmbSampleFeatureClass.Location = new System.Drawing.Point(12, 30);
             this.cmbSampleFeatureClass.Name = "cmbSampleFeatureClass";
-            this.cmbSampleFeatureClass.Size = new System.Drawing.Size(210, 21);
+            this.cmbSampleFeatureClass.Size = new System.Drawing.Size(255, 21);
             this.cmbSampleFeatureClass.TabIndex = 15;
             this.cmbSampleFeatureClass.SelectedIndexChanged += new System.EventHandler(this.cmbSampleFeatureClass_SelectedIndexChanged);
             // 
@@ -73,15 +75,16 @@
             // 
             // clbBiomassTypes
             // 
+            this.clbBiomassTypes.CheckOnClick = true;
             this.clbBiomassTypes.FormattingEnabled = true;
             this.clbBiomassTypes.Location = new System.Drawing.Point(12, 193);
             this.clbBiomassTypes.Name = "clbBiomassTypes";
-            this.clbBiomassTypes.Size = new System.Drawing.Size(210, 154);
+            this.clbBiomassTypes.Size = new System.Drawing.Size(288, 154);
             this.clbBiomassTypes.TabIndex = 21;
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(185, 355);
+            this.btnExecute.Location = new System.Drawing.Point(228, 354);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(75, 23);
             this.btnExecute.TabIndex = 22;
@@ -94,7 +97,7 @@
             this.cmbPlot.FormattingEnabled = true;
             this.cmbPlot.Location = new System.Drawing.Point(12, 76);
             this.cmbPlot.Name = "cmbPlot";
-            this.cmbPlot.Size = new System.Drawing.Size(210, 21);
+            this.cmbPlot.Size = new System.Drawing.Size(255, 21);
             this.cmbPlot.TabIndex = 23;
             // 
             // label3
@@ -120,14 +123,14 @@
             this.cmbSubPlot.FormattingEnabled = true;
             this.cmbSubPlot.Location = new System.Drawing.Point(12, 122);
             this.cmbSubPlot.Name = "cmbSubPlot";
-            this.cmbSubPlot.Size = new System.Drawing.Size(210, 21);
+            this.cmbSubPlot.Size = new System.Drawing.Size(255, 21);
             this.cmbSubPlot.TabIndex = 25;
             // 
             // txtAccessDb
             // 
             this.txtAccessDb.Location = new System.Drawing.Point(13, 165);
             this.txtAccessDb.Name = "txtAccessDb";
-            this.txtAccessDb.Size = new System.Drawing.Size(209, 20);
+            this.txtAccessDb.Size = new System.Drawing.Size(254, 20);
             this.txtAccessDb.TabIndex = 27;
             // 
             // btnGrp
@@ -143,7 +146,7 @@
             // btnAccessDb
             // 
             this.btnAccessDb.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnAccessDb.Location = new System.Drawing.Point(233, 161);
+            this.btnAccessDb.Location = new System.Drawing.Point(273, 160);
             this.btnAccessDb.Name = "btnAccessDb";
             this.btnAccessDb.Size = new System.Drawing.Size(27, 28);
             this.btnAccessDb.TabIndex = 20;
@@ -153,18 +156,40 @@
             // btnOpenFeatureClass
             // 
             this.btnOpenFeatureClass.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
-            this.btnOpenFeatureClass.Location = new System.Drawing.Point(233, 26);
+            this.btnOpenFeatureClass.Location = new System.Drawing.Point(273, 25);
             this.btnOpenFeatureClass.Name = "btnOpenFeatureClass";
             this.btnOpenFeatureClass.Size = new System.Drawing.Size(27, 28);
             this.btnOpenFeatureClass.TabIndex = 17;
             this.btnOpenFeatureClass.UseVisualStyleBackColor = true;
             this.btnOpenFeatureClass.Click += new System.EventHandler(this.btnOpenFeatureClass_Click);
             // 
+            // chbSeedlings
+            // 
+            this.chbSeedlings.AutoSize = true;
+            this.chbSeedlings.Location = new System.Drawing.Point(150, 358);
+            this.chbSeedlings.Name = "chbSeedlings";
+            this.chbSeedlings.Size = new System.Drawing.Size(72, 17);
+            this.chbSeedlings.TabIndex = 29;
+            this.chbSeedlings.Text = "Seedlings";
+            this.chbSeedlings.UseVisualStyleBackColor = true;
+            // 
+            // chbNonMerch
+            // 
+            this.chbNonMerch.AutoSize = true;
+            this.chbNonMerch.Location = new System.Drawing.Point(67, 358);
+            this.chbNonMerch.Name = "chbNonMerch";
+            this.chbNonMerch.Size = new System.Drawing.Size(79, 17);
+            this.chbNonMerch.TabIndex = 30;
+            this.chbNonMerch.Text = "Non Merch";
+            this.chbNonMerch.UseVisualStyleBackColor = true;
+            // 
             // frmFiaBiomass
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(268, 382);
+            this.ClientSize = new System.Drawing.Size(312, 382);
+            this.Controls.Add(this.chbNonMerch);
+            this.Controls.Add(this.chbSeedlings);
             this.Controls.Add(this.btnGrp);
             this.Controls.Add(this.txtAccessDb);
             this.Controls.Add(this.label4);
@@ -203,5 +228,7 @@
         private System.Windows.Forms.ComboBox cmbSubPlot;
         private System.Windows.Forms.TextBox txtAccessDb;
         private System.Windows.Forms.Button btnGrp;
+        private System.Windows.Forms.CheckBox chbSeedlings;
+        private System.Windows.Forms.CheckBox chbNonMerch;
     }
 }

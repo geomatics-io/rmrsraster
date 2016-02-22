@@ -229,14 +229,14 @@ namespace esriUtil
             HashSet<string> uGroups;
             //Console.WriteLine("Summarizing values");
             Dictionary<string,Dictionary<string, object[][]>> sumDic = getRelatedSummary(pTable, rTable, plinkField, rlinkField, summaryFlds, groupFlds, needCatDic, pWhere, rWhere, out uGroups);//<link,<group,[6][number of fields to summarize]>
-            foreach (string s in sumDic.Keys)
-            {
-                //Console.WriteLine("ID key:" + s);
-            }
-            foreach (string s in uGroups)
-            {
-                //Console.WriteLine("Group:" + s);
-            }
+            //foreach (string s in sumDic.Keys)
+            //{
+            //    Console.WriteLine("ID key:" + s);
+            //}
+            //foreach (string s in uGroups)
+            //{
+            //    Console.WriteLine("Group:" + s);
+            //}
             //Console.WriteLine("Updating parent");
             int[] newFldNameIndex = new int[summaryFlds.Length * uGroups.Count * (stats.Length+1)];
             string[] newFldNameString = new string[summaryFlds.Length * uGroups.Count * (stats.Length+1)];
@@ -265,6 +265,7 @@ namespace esriUtil
             }
             IQueryFilter pQf = new QueryFilterClass();
             if (!String.IsNullOrEmpty(pWhere)) pQf.WhereClause = pWhere;
+            //Console.WriteLine(pWhere);
             ICursor cur = pTable.Update(pQf, true);
             IRow rw = cur.NextRow();
             while (rw != null)
@@ -278,6 +279,7 @@ namespace esriUtil
                     for (int i = 0; i < newFldNameString.Length; i++)
                     {
                         string fldNameC = newFldNameString[i];
+                        //Console.WriteLine(fldNameC);
                         string[] fldnameArr = fldNameC.Split(new char[] { '_' });
                         string fld = fldnameArr[0];
                         string grp = fldnameArr[1];
@@ -393,6 +395,7 @@ namespace esriUtil
             if (groupFlds != null && groupFlds.Length > 0) qf.SubFields = qf.SubFields + "," + String.Join(",", groupFlds);
             if (!String.IsNullOrEmpty(rWhere)) qf.WhereClause = rWhere;
             else qf.WhereClause = "";
+            //Console.WriteLine(qf.SubFields);
             ICursor curR = rTable.Search(qf, true);
             linkIndex = curR.FindField(rlinkField);
             int[] grpIndex = null;

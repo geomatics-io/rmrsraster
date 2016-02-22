@@ -170,6 +170,10 @@ namespace esriUtil.Forms.FIA
             }
 
         }
+        bool lt5 = false;
+        public bool LessThan5 { get { return lt5; } set { lt5 = value; } }
+        bool seedlings = false;
+        public bool Seedlings { get { return seedlings; } set { seedlings = value; } }
         HashSet<string> fieldSpcd = new HashSet<string>();
         private void updateSpeciesFromTreeTable()
         {
@@ -178,6 +182,10 @@ namespace esriUtil.Forms.FIA
             {
                 con.Open();
                 string sql = "SELECT DISTINCT PLT_CN, SPCD FROM TREE WHERE DIA >= 5 and SPCD > 0";
+                if (lt5)
+                {
+                    sql = "SELECT DISTINCT PLT_CN, SPCD FROM TREE WHERE SPCD > 0";
+                }
                 System.Data.OleDb.OleDbCommand oleCom = new System.Data.OleDb.OleDbCommand(sql, con);
                 System.Data.OleDb.OleDbDataReader oleRd = oleCom.ExecuteReader();
                 while (oleRd.Read())
@@ -192,6 +200,23 @@ namespace esriUtil.Forms.FIA
                     }
                 }
                 oleRd.Close();
+                if (seedlings)
+                {
+                    sql = "SELECT DISTINCT PLT_CN, SPCD FROM SEEDLING";
+                    oleCom.CommandText = sql;
+                    oleRd = oleCom.ExecuteReader();
+                    while (oleRd.Read())
+                    {
+                        object[] vls = new object[2];
+                        oleRd.GetValues(vls);
+                        string pcn = vls[0].ToString().ToUpper();
+                        if (fieldPltCn.Contains(pcn))
+                        {
+                            string spcd = vls[1].ToString();
+                            fieldSpcd.Add(spcd);
+                        }
+                    }
+                }
                 con.Close();
             }
             populateSpeciesList();
@@ -266,9 +291,16 @@ namespace esriUtil.Forms.FIA
             }
             dgvSp.Rows.Remove(dgR);
         }
-
+        string[] stCodeArr = null;
         private void updateGroupDictionary()
         {
+            if (chbStatusCode.Checked)
+            {
+                if (stCodeArr == null)
+                {
+                    stCodeArr = getStatusCodes();
+                }
+            }
             grpDic.Clear();
             for (int i = 0; i < dgvSp.Rows.Count; i++)
             {
@@ -279,8 +311,11 @@ namespace esriUtil.Forms.FIA
                 {
                     if (chbStatusCode.Checked)
                     {
-                        grpDic[s + "_1"] = grpVl + "_1";
-                        grpDic[s + "_2"] = grpVl + "_2";
+                        foreach (string str in stCodeArr)
+                        {
+                            grpDic[s + "_" + str] = grpVl + "_" + str;
+                        }
+                        
                     }
                     else
                     {
@@ -289,6 +324,28 @@ namespace esriUtil.Forms.FIA
                 }
                 
             } 
+        }
+
+        private string[] getStatusCodes()
+        {
+            HashSet<string> statusCodeHash = new HashSet<string>();
+            using (System.Data.OleDb.OleDbConnection con = new System.Data.OleDb.OleDbConnection(dbLc))
+            {
+                con.Open();
+                string sql = "SELECT DISTINCT STATUSCD FROM TREE";
+                System.Data.OleDb.OleDbCommand oleCom = new System.Data.OleDb.OleDbCommand(sql, con);
+                System.Data.OleDb.OleDbDataReader oleRd = oleCom.ExecuteReader();
+                while (oleRd.Read())
+                {
+                    object[] vls = new object[1];
+                    oleRd.GetValues(vls);
+                    string spcd = vls[0].ToString();
+                    statusCodeHash.Add(spcd);
+                }
+                oleRd.Close();
+                con.Close();
+            }
+            return statusCodeHash.ToArray();
         }
 
         private void frmGroupSpecies_FormClosing(object sender, FormClosingEventArgs e)

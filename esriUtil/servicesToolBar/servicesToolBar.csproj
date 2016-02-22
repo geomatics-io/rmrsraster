@@ -117,9 +117,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="commandBuildAttributeTable.cs" />
+    <Compile Include="commandCalcCloudMetrics.cs" />
+    <Compile Include="commandCalcGridMetrics.cs" />
+    <Compile Include="commandConvertGridMetricsToRaster.cs" />
+    <Compile Include="commandCreateDtmFiles.cs" />
     <Compile Include="commandDeliveredCost.cs" />
     <Compile Include="commandDownloadMapService.cs" />
     <Compile Include="commandFiaPolygonSummary.cs" />
+    <Compile Include="commandFilterLas.cs" />
     <Compile Include="commandFocalBandRaster.cs" />
     <Compile Include="commandLocalRescaleRaster.cs" />
     <Compile Include="commandNdviRaster.cs" />
@@ -180,6 +185,7 @@
     <Compile Include="commandRandomSample.cs" />
     <Compile Include="commandRegModel.cs" />
     <Compile Include="commandRemap.cs" />
+    <Compile Include="commandRemoveSpaces.cs" />
     <Compile Include="commandResampleRaster.cs" />
     <Compile Include="commandRescaleRaster.cs" />
     <Compile Include="commandRotateRaster.cs" />
@@ -681,10 +687,28 @@
     <AddInContent Include="Images\commandSplitPoly.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
-    <Content Include="Images\commandDownloadMapService.bmp">
+    <AddInContent Include="Images\commandDownloadMapService.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </AddInContent>
     <AddInContent Include="Images\commandSaveParallel.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandCalcCloudMetrics.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandCalcGridMetrics.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandConvertGridMetricsToRaster.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandFilterLas.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandCreateDtmFiles.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </AddInContent>
+    <AddInContent Include="Images\commandRemoveSpaces.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AddInContent>
     <Content Include="RMRSBatchProcess.exe">

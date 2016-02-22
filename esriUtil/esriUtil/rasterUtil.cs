@@ -1118,7 +1118,7 @@ namespace esriUtil
                 rsDef.SpatialReference = spRf;
                 newRstDset = (IRasterDataset3)rsWks.CreateRasterDataset(outRasterName, numBands, pixelType, rsStDef, null, rsDef, null);
             }
-            return newRstDset;
+            return (IRasterDataset)newRstDset;
         }
         /// <summary>
         /// creates a rectangle folcal window that can be used to lookup values
@@ -3856,6 +3856,21 @@ namespace esriUtil
             {
                 rsInfo2.set_Statistics(i, rsStats);
             }
+            return frDset;
+        }
+        public IFunctionRasterDataset constantRasterFunction(IRasterInfo rsInfo, double rasterValue)
+        {
+            Console.WriteLine("Making constant value from raster Info");
+            IConstantFunctionArguments rasterFunctionArguments = (IConstantFunctionArguments)new ConstantFunctionArguments();
+            rasterFunctionArguments.Constant = rasterValue;
+            rasterFunctionArguments.RasterInfo = rsInfo;
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new ConstantFunction();
+            frDset.Init(rsFunc, rasterFunctionArguments);
             return frDset;
         }
         /// <summary>

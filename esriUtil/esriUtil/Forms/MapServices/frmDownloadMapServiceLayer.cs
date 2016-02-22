@@ -38,8 +38,15 @@ namespace esriUtil.Forms.MapServices
                 ILayer lyr = frmHlp.TheMap.Layer[i];
                 if (lyr is MapServerLayer)
                 {
-                    mpSrvDic[lyr.Name] = (IMapServerLayer)lyr;
-                    cmbService.Items.Add(lyr.Name);
+                    try
+                    {
+
+                        mpSrvDic[lyr.Name] = (IMapServerLayer)lyr;
+                        cmbService.Items.Add(lyr.Name);
+                    }
+                    catch
+                    {
+                    }
                 }
 
             }

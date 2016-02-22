@@ -171,6 +171,8 @@ namespace esriUtil.Forms.FIA
                 IFeatureClass ftrCls = ftrDic[ftrNm];
                 fiaInt.BiomassTypes = bTypes.ToArray();
                 fiaInt.SampleFeatureClass = ftrCls;
+                fiaInt.Regen = chbSeedlings.Checked;
+                fiaInt.UseLessThan5 = chbNonMerch.Checked;
                 fiaInt.summarizeBiomass();
                 this.DialogResult = DialogResult.OK;
             }
@@ -255,6 +257,7 @@ namespace esriUtil.Forms.FIA
                 frmGp.GroupDictionary = grpDic;
                 frmGp.PLT_CN_FieldName = fiaPlCnNm;
                 frmGp.PlotFeatureClass = ftrDic[fiaFtrClsNm];
+                frmGp.LessThan5 = chbNonMerch.Checked;
                 if (DialogResult.OK == frmGp.ShowDialog())
                 {
                     grpDic = frmGp.GroupDictionary;

@@ -6,7 +6,7 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>11/30/2015</Date>
+  <Date>2/8/2016</Date>
   <Targets>
     <Target name="Desktop" version="10.2" />
   </Targets>
@@ -115,6 +115,12 @@
         <Button id="USDA_Forest_Service_servicesToolBar_commandSplitPoly" class="commandSplitPoly" message="splits the features within a polygon into multiple parts" caption="Split Poly" tip="click to open" category="rasterUtilities" image="Images\commandSplitPoly.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandDownloadMapService" class="commandDownloadMapService" message="lets you download feature layers within a map service" caption="MapService Download" tip="click to open" category="serviceUtilities" image="Images\commandDownloadMapService.bmp" />
         <Button id="USDA_Forest_Service_servicesToolBar_commandSaveParallel" class="commandSaveParallel" message="Saves an output raster by tiles in parallel" caption="Save Parallel" tip="click to open" category="rasterUtilities" image="Images\commandSaveParallel.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCalcCloudMetrics" class="commandCalcCloudMetrics" message="calculates cloud metrics" caption="Calculate Cloud Metrics" tip="click to open form" category="fusion" image="Images\commandCalcCloudMetrics.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCalcGridMetrics" class="commandCalcGridMetrics" message="Calculates Grid Metrics" caption="Calc Grid Metrics" tip="click to open form" category="fusion" image="Images\commandCalcGridMetrics.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandConvertGridMetricsToRaster" class="commandConvertGridMetricsToRaster" message="Converts Grid Metrics to a Raster" caption="Convert Grid Metrics to Raster" tip="click to open" category="fusion" image="Images\commandConvertGridMetricsToRaster.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandFilterLas" class="commandFilterLas" message="filters Las files for ground values" caption="Filter LAS Files" tip="Filters LAS files" category="fusion" image="Images\commandFilterLas.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandCreateDtmFiles" class="commandCreateDtmFiles" message="Creates DTM files from las files" caption="Create DTM files" tip="click to open" category="fusion" image="Images\commandCreateDtmFiles.bmp" />
+        <Button id="USDA_Forest_Service_servicesToolBar_commandRemoveSpaces" class="commandRemoveSpaces" message="Removes spaces from file names and directory paths" caption="Clean Files and Directory" tip="click to open" category="fusion" image="Images\commandRemoveSpaces.bmp" />
       </Commands>
       <Toolbars>
         <Toolbar id="USDA_Forest_Service_servicesToolBar_RMRS_Raster_Utility" caption="RMRS Raster Utility" showInitially="true">

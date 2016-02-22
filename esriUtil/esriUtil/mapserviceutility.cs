@@ -1566,7 +1566,7 @@ namespace esriUtil
         public static Dictionary<string, int> getLayerIds(IMapServer mpSvr, int mapId = 0, bool justFeatureLayer=true)
         {
             string mpName = mpSvr.get_MapName(mapId);
-            return getLayerIds(mpSvr, mpName,justFeatureLayer);
+            return getLayerIds(mpSvr, mpName, justFeatureLayer);
         }
         public static IFeatureClass createFeatureClassFromMapService(string outPath, IMapServer mpSvr, string mpName, int layerId = 0)
         {
@@ -1574,9 +1574,11 @@ namespace esriUtil
             IMapServer3 mpSvr3 = (IMapServer3)mpSvr;
             IPropertySet pSet = mpSvr3.ServiceConfigurationInfo;
             //string mpName = mpSvr.get_MapName(mapId);
-            //Console.WriteLine("Map Name = " + mpSvr.get_MapName(0));
+            //Console.WriteLine("Map Name = " + mpName);
             int maxRecords = System.Convert.ToInt32(pSet.GetProperty("MaximumRecordCount"));
+            if (maxRecords > 100) maxRecords = 100;
             //Console.WriteLine("MaxRecords = " + maxRecords.ToString());
+
             IMapServerInfo mpSvrInfo = mpSvr.GetServerInfo(mpName);
             IMapLayerInfos mpLyrInfos = mpSvrInfo.MapLayerInfos;
             IMapLayerInfo mpInfo = mpLyrInfos.get_Element(layerId);
@@ -1590,6 +1592,7 @@ namespace esriUtil
                 IQueryFilter qf = new QueryFilterClass();
                 IFIDSet2 fIdSet = (IFIDSet2)mpSvr.QueryFeatureIDs(mpName, layerId, qf);
                 int records = fIdSet.Count();
+                //Console.WriteLine("Total Record Count = " + records.ToString());
                 if (maxRecords < records)
                 {
 

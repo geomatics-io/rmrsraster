@@ -1156,7 +1156,7 @@ namespace esriUtil
         private IFeatureClass sampleRaster(string[] paramArr)
         {
             IFeatureClass inFtrCls = getFeatureClass(paramArr[0]);
-            IRaster sampleRst = rsUtil.createRaster(getRaster(paramArr[1]));
+            IFunctionRasterDataset sampleRst = getRaster(paramArr[1]);
             string inName = paramArr[2];
             if (inName == "" || inName == "null")
             {
