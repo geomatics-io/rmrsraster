@@ -13,6 +13,12 @@ namespace esriUtil
 {
     public class normalization
     {
+        public normalization(string mdlPath, IFunctionRasterDataset TransformRaster)
+        {
+            rsUtil = new rasterUtil();
+            transformRaster = TransformRaster;
+            getDaModel(mdlPath);
+        }
         public normalization(IFunctionRasterDataset ReferenceRaster, IFunctionRasterDataset TransformRaster, int PercentChange = 20, rasterUtil rasterUtility = null)
         {
             referenceRaster = ReferenceRaster;
@@ -256,21 +262,13 @@ namespace esriUtil
             {
                 using (System.IO.StreamWriter sw = new System.IO.StreamWriter(outPath))
                 {
-                    sw.WriteLine("agncr");
-                    sw.WriteLine(rsType.ToString());
+                    sw.WriteLine("Normalize");
                     sw.WriteLine(pChange.ToString());
-                    sw.WriteLine(String.Join(",", cellCount.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", minArray.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", maxArray.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", sumX2Array.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", sumXArray.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", sumXYArray.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", sumYArray.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", sumY2Array.Cast<string>().ToArray()));
-                    sw.WriteLine(String.Join(",", blockCellCount.Cast<string>().ToArray()));
+                    sw.WriteLine(rsType.ToString());
+                    sw.WriteLine(coef.Length.ToString());
                     for (int i = 0; i < coef.Length; i++)
                     {
-                        sw.WriteLine(String.Join(",", coef[i].Cast<string>().ToArray()));
+                        sw.WriteLine(String.Join(",", (from double d in coef[i] select d.ToString()).ToArray()));
                     }
                     sw.Close();
                 }
@@ -409,6 +407,69 @@ namespace esriUtil
                 }
             } while (rsCur.Next() == true);
         }
-        
+
+
+        public void getDaModel(string modelPath)
+        {
+            using (System.IO.StreamReader sr = new System.IO.StreamReader(modelPath))
+            {
+                string mType = sr.ReadLine();
+                esriUtil.Statistics.dataPrepBase.modelTypes m = (esriUtil.Statistics.dataPrepBase.modelTypes)Enum.Parse(typeof(esriUtil.Statistics.dataPrepBase.modelTypes), mType);
+                if (m != esriUtil.Statistics.dataPrepBase.modelTypes.Normalize)
+                {
+                    System.Windows.Forms.MessageBox.Show("Model file specified is not a Normalizatoin model!!", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    return;
+                }
+                PercentAreaChange = System.Convert.ToDouble(sr.ReadLine());
+                rsType = (rstPixelType)Enum.Parse(typeof(rstPixelType),sr.ReadLine());
+                int coefLength = System.Convert.ToInt32(sr.ReadLine());
+                coef = new double[coefLength][];
+                cellCount = new int[coefLength];
+                for (int i = 0; i < coefLength; i++)
+                {
+                    cellCount[i] = 100;
+                }
+                for (int i = 0; i < coefLength; i++)
+			    {
+                    double[] vlArr = (from string s in (sr.ReadLine().Split(new char[]{','})) select System.Convert.ToDouble(s)).ToArray();
+                    coef[i] = vlArr;
+			    }
+                sr.Close();
+            }
+        }
+
+        public static void createReport(string mdlp)
+        {
+            Forms.RunningProcess.frmRunningProcessDialog rd = new Forms.RunningProcess.frmRunningProcessDialog(false);
+            rd.Text = "Image Normalization Results";
+            rd.TopLevel = true;
+            rd.pgbProcess.Visible = false;
+            rd.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+            rd.addMessage("Band     |Intercept|Slope    |R-squared");
+            rd.addMessage("".PadRight(39, '-'));
+            using(System.IO.StreamReader sr = new System.IO.StreamReader(mdlp))
+            {
+                sr.ReadLine();
+                sr.ReadLine();
+                sr.ReadLine();
+                int bnds = System.Convert.ToInt32(sr.ReadLine());
+                for (int i = 0; i < bnds; i++)
+                {
+                    string coef = sr.ReadLine();
+                    string[] coefArr = coef.Split(new char[] { ',' });
+                    string ln = (i + 1).ToString();
+                    ln = ln.PadRight(9,' ');
+                    for (int j = 0; j < coefArr.Length; j++)
+                    {
+                        coefArr[j] = coefArr[j].Substring(0, 9);
+                    }
+                    rd.addMessage(ln + "|" + String.Join("|", coefArr));
+                    
+                }
+                sr.Close();
+            }
+            rd.enableClose();
+            rd.Show();
+        }
     }
 }

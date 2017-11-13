@@ -167,6 +167,11 @@
             // nudRows
             // 
             this.nudRows.Location = new System.Drawing.Point(139, 138);
+            this.nudRows.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             this.nudRows.Minimum = new decimal(new int[] {
             1,
             0,
@@ -202,6 +207,11 @@
             // nudColumns
             // 
             this.nudColumns.Location = new System.Drawing.Point(10, 138);
+            this.nudColumns.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
             this.nudColumns.Minimum = new decimal(new int[] {
             1,
             0,

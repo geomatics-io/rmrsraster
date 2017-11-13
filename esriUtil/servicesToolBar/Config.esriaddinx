@@ -6,9 +6,9 @@
   <Image>Images\RmrsLogo.ico</Image>
   <Author>John Hogland</Author>
   <Company>USDA Forest Service</Company>
-  <Date>2/8/2016</Date>
+  <Date>5/5/2016</Date>
   <Targets>
-    <Target name="Desktop" version="10.2" />
+    <Target name="Desktop" version="10.3" />
   </Targets>
   <AddIn language="CLR" library="servicesToolBar.dll" namespace="servicesToolBar">
     <ArcMap>

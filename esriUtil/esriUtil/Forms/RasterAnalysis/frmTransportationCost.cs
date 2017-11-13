@@ -34,6 +34,8 @@ namespace esriUtil.Forms.RasterAnalysis
         {
             foreach (string s in frmHlp.FunctionRasterDictionary.Keys)
             {
+                cmbRoad.Items.Add(s);
+                cmbBarrier.Items.Add(s);
                 cmbDem.Items.Add(s);
                 cmbOffRate.Items.Add(s);
                 cmbOffRoadSpeed.Items.Add(s);
@@ -133,6 +135,12 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 cmbSpeed.SelectedItem = cmbSpeed.Items[0];
             }
+            else if(frmHlp.FunctionRasterDictionary.ContainsKey(cmbRoad.Text))
+            {
+                cmbSpeed.Items.Clear();
+                cmbSpeed.Items.Add("VALUE");
+                cmbSpeed.SelectedItem = cmbSpeed.Items[0];
+            }
         }
 
         private void btnDem_Click(object sender, EventArgs e)
@@ -154,9 +162,26 @@ namespace esriUtil.Forms.RasterAnalysis
 
         private void btnOpenRoad_Click(object sender, EventArgs e)
         {
-            string nm = getFeatureClass(new ESRI.ArcGIS.Catalog.GxFilterPolylineFeatureClassesClass());
+            string nm = getFeatureOrRasterClass(new ESRI.ArcGIS.Catalog.GxFilterDatasetsAndLayersClass());//getFeatureClass(new ESRI.ArcGIS.Catalog.GxFilterPolylineFeatureClassesClass());
             cmbRoad.Items.Add(nm);
             cmbRoad.SelectedItem = nm;
+        }
+
+        private string getFeatureOrRasterClass(ESRI.ArcGIS.Catalog.GxFilterDatasetsAndLayersClass flt)
+        {
+            string[] nm;
+            string ftrPath = frmHlp.getPath(flt, out nm, false)[0];
+            IFeatureClass oFtr = geoUtil.getFeatureClass(ftrPath);
+            if(oFtr==null)
+            {
+                frmHlp.FunctionRasterDictionary[nm[0]] = rsUtil.createIdentityRaster(ftrPath);
+            }
+            else
+            {
+                frmHlp.FeatureDictionary[nm[0]] = oFtr;
+            }
+            
+            return nm[0];
         }
 
         private string getFeatureClass(ESRI.ArcGIS.Catalog.IGxObjectFilter flt )
@@ -197,7 +222,7 @@ namespace esriUtil.Forms.RasterAnalysis
 
         private void btnBarriers_Click(object sender, EventArgs e)
         {
-            string nm = getFeatureClass(new ESRI.ArcGIS.Catalog.GxFilterPolylineFeatureClassesClass());
+            string nm = getFeatureOrRasterClass(new ESRI.ArcGIS.Catalog.GxFilterDatasetsAndLayersClass());
             cmbBarrier.Items.Add(nm);
             cmbBarrier.SelectedItem = nm;
         }
@@ -341,7 +366,14 @@ namespace esriUtil.Forms.RasterAnalysis
                 }
                 if (chbHours.Checked)
                 {
-                    tr.RoadFeatureClass = frmHlp.FeatureDictionary[roadsStr];
+                    if (frmHlp.FeatureDictionary.ContainsKey(roadsStr))
+                    {
+                        tr.RoadFeatureClass = frmHlp.FeatureDictionary[roadsStr];
+                    }
+                    else
+                    {
+                        tr.RoadRaster = frmHlp.FunctionRasterDictionary[roadsStr];
+                    }
                     tr.FacilityFeatureClass = frmHlp.FeatureDictionary[facilityStr];
                     tr.RoadsSpeedField = speedFldStr;
                     if (rsUtil.isNumeric(offSpeedStr))
@@ -356,7 +388,10 @@ namespace esriUtil.Forms.RasterAnalysis
                     {
                         tr.BarriersFeatureClass = frmHlp.FeatureDictionary[offBarriersStr];
                     }
-
+                    else if(frmHlp.FunctionRasterDictionary.ContainsKey(offBarriersStr))
+                    {
+                        tr.BarrierRaster = frmHlp.FunctionRasterDictionary[offBarriersStr];
+                    }
                 }
                 else
                 {

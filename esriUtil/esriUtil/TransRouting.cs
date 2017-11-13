@@ -95,6 +95,8 @@ namespace esriUtil
         public IFunctionRasterDataset FunctionAccumulatedFromPathDistance { get { return fafpd; } set { fafpd = value; } }
         IFunctionRasterDataset rdRs = null;
         public IFunctionRasterDataset RoadRaster { get { return rdRs; } set { rdRs = value; } }
+        IFunctionRasterDataset barrierRaster = null;
+        public IFunctionRasterDataset BarrierRaster { get { return barrierRaster; } set { barrierRaster = value; } }
         ESRI.ArcGIS.esriSystem.IAoInitialize aoInitialize = new ESRI.ArcGIS.esriSystem.AoInitializeClass();
         private ISpatialReference sp = null;
         bool weChecked = false;
@@ -306,13 +308,16 @@ namespace esriUtil
         private IFunctionRasterDataset[] addBarrierRasters(object costRS, IFunctionRasterDataset rdCs)
         {
             IFunctionRasterDataset[] output = new IFunctionRasterDataset[2];
-            IFunctionRasterDataset b1 = createBarrierRaster();
-            IFunctionRasterDataset c1 = rsUtil.calcLessFunction(b1, 0);
+            if (BarrierRaster == null)
+            {
+                BarrierRaster = createBarrierRaster();
+            }
+            IFunctionRasterDataset c1 = rsUtil.calcLessFunction(BarrierRaster, 0);
             IFunctionRasterDataset c2 = rsUtil.setnullToValueFunction(c1, 1);
             IFunctionRasterDataset c3 = rsUtil.setNullValue(c2, 0);
             output[0] = rsUtil.calcArithmaticFunction(costRS, c3, esriRasterArithmeticOperation.esriRasterMultiply);
             //multiple by 1000
-            IFunctionRasterDataset b2 = rsUtil.calcGreaterEqualFunction(b1, 0);
+            IFunctionRasterDataset b2 = rsUtil.calcGreaterEqualFunction(BarrierRaster, 0);
             IFunctionRasterDataset b3 = rsUtil.setnullToValueFunction(b2, 1000);
             IFunctionRasterDataset barRast = rsUtil.setNullValue(b3, 1);
             output[1] = rsUtil.calcArithmaticFunction(rdCs, barRast, esriRasterArithmeticOperation.esriRasterMultiply, rstPixelType.PT_LONG);

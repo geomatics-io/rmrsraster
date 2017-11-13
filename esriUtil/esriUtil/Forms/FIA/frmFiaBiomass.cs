@@ -255,9 +255,11 @@ namespace esriUtil.Forms.FIA
             {
                 frmGroupSpecies frmGp = new frmGroupSpecies(fiaDbNm);
                 frmGp.GroupDictionary = grpDic;
+                frmGp.LessThan5 = chbNonMerch.Checked;
+                frmGp.Seedlings = chbSeedlings.Checked;
                 frmGp.PLT_CN_FieldName = fiaPlCnNm;
                 frmGp.PlotFeatureClass = ftrDic[fiaFtrClsNm];
-                frmGp.LessThan5 = chbNonMerch.Checked;
+                //frmGp.LessThan5 = chbNonMerch.Checked;
                 if (DialogResult.OK == frmGp.ShowDialog())
                 {
                     grpDic = frmGp.GroupDictionary;

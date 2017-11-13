@@ -23,7 +23,7 @@ namespace esriUtil
             if (rp != null) rp = runningDialog;
         }
         featureUtil ftrUtil = new featureUtil();
-        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LOCALFOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, SETVALUESTONULL, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS, RENAMEFIELD, FORMATZONAL, NDVI, RESAMPLE, LOCALRESCALE, OPENNETCDF, CREATERASTERATTRIBUTE, LOAD, OPENRASTER, OPENFEATURECLASS, OPENTABLE, OPENMODEL }
+        public enum batchGroups { ARITHMETIC, MATH, SETNULL, LOGICAL, CLIP, CONDITIONAL, CONVOLUTION, FOCAL, FOCALSAMPLE, LOCALSTATISTICS, LOCALFOCALSTATISTICS, LINEARTRANSFORM, RESCALE, REMAP, COMPOSITE, EXTRACTBAND, CONVERTPIXELTYPE, GLCM, LANDSCAPE, ZONALSTATS, ZONALCLASSCOUNTS, SAVEFUNCTIONRASTER, BUILDRASTERSTATS, BUILDRASTERVAT, MOSAIC, MERGE, SAMPLERASTER, CLUSTERSAMPLERASTER, CREATERANDOMSAMPLE, CREATESTRATIFIEDRANDOMSAMPLE, MODEL, PREDICT, AGGREGATION, SURFACE, COMBINE, CONSTANT, ROTATE, SHIFT, NULLTOVALUE, SETVALUESTONULL, BUILDMODEL, SELECTSAMPLES, EXPORTTABLE, EXPORTFEATURECLASS, RENAMEFIELD, FORMATZONAL, NDVI, RESAMPLE, LOCALRESCALE, OPENNETCDF, CREATERASTERATTRIBUTE, LOAD, OPENRASTER, OPENFEATURECLASS, OPENTABLE, OPENMODEL, EXTRACTMODELDOMAIN }
         private rasterUtil rsUtil = null;
         private System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog();
         private System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog();
@@ -320,6 +320,9 @@ namespace esriUtil
                                     case batchGroups.OPENMODEL:
                                         modelDic[outName] = openModel(paramArr);
                                         break;
+                                    case batchGroups.EXTRACTMODELDOMAIN:
+                                        rstDic[outName] = extractModelDomain(paramArr);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -349,6 +352,14 @@ namespace esriUtil
                 rp.addMessage("Fished Batch Process in " + tsStr);
                 rp.enableClose();
             }
+        }
+
+        private IFunctionRasterDataset extractModelDomain(string[] paramArr)
+        {
+            IFunctionRasterDataset rsDset = getRaster(paramArr[0]);
+            double[] minArr, maxArr;
+            batchCalculations.getMinMaxArr(paramArr[1], out minArr, out maxArr);
+            return rsUtil.extactModelDomainFunction(rsDset,minArr,maxArr);
         }
 
         private IFunctionRasterDataset localFocalStatistics(string[] paramArr)
@@ -1735,7 +1746,7 @@ namespace esriUtil
                     msg = "outTbl = " + batchFunction.ToString() + "(ZoneRaster;ValueRaster;OutTableName)\noutTbl = " + batchFunction.ToString() + "(ZoneFeatureClass;ZoneField;ValueRaster2;OutTableName)";
                     break; 
                 case batchGroups.SAVEFUNCTIONRASTER:
-                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;outName;outWorkspace;rasterType)";
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;outName;outWorkspace;rasterType)\noutRs = " + batchFunction.ToString() + "(inRaster;outName;outWorkspace;rasterType;nodata;blockwidth;blockheight)";
                     break;
                 case batchGroups.BUILDRASTERSTATS:
                     msg = "outRS = " + batchFunction.ToString() + "(in_Raster;skipFactor)";
@@ -1845,6 +1856,9 @@ namespace esriUtil
                 case batchGroups.OPENMODEL:
                     msg = "outMDL = " + batchFunction.ToString() + "(ModelPath)";
                     break;
+                case batchGroups.EXTRACTMODELDOMAIN:
+                    msg = "outRs = " + batchFunction.ToString() + "(inRaster;modelPath)";
+                    break;
                 default:
                     break;
             }
@@ -1931,6 +1945,76 @@ namespace esriUtil
         public void ClearModels()
         {
             modelDic.Clear();
+        }
+        public static void getMinMaxArr(string inModelPath,out double[] minArr, out double[] maxArr)
+        {
+            Statistics.dataPrepBase.modelTypes md;
+            string[] outlnArr = null;
+            using(System.IO.StreamReader sr = new System.IO.StreamReader(inModelPath))
+            {
+                string fln = sr.ReadLine();
+                md = (Statistics.dataPrepBase.modelTypes)Enum.Parse(typeof(Statistics.dataPrepBase.modelTypes), fln);
+                //Console.WriteLine(md.ToString());
+                sr.Close();
+            }
+            switch (md)
+            {
+                case esriUtil.Statistics.dataPrepBase.modelTypes.LinearRegression:
+                    outlnArr = getLns(inModelPath, new int[] { 15, 16 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.MvlRegression:
+                    outlnArr = getLns(inModelPath, new int[] { 15, 16 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.LogisticRegression:
+                    outlnArr = getLns(inModelPath, new int[] { 12, 13 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.PLR:
+                    outlnArr = getLns(inModelPath, new int[] { 15, 16 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.RandomForest:
+                    outlnArr = getLns(inModelPath, new int[] { 27, 28 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.SoftMax:
+                    outlnArr = getLns(inModelPath, new int[] { 15, 16 });
+                    break;
+                case esriUtil.Statistics.dataPrepBase.modelTypes.GLM:
+                    outlnArr = getLns(inModelPath, new int[] { 18, 19 });
+                    break;
+                default:
+                    break;
+            }
+            if (outlnArr == null)
+            {
+                minArr = null;
+                maxArr = null;
+            }
+            else
+            {
+                minArr = (from string s in outlnArr[0].Split(new char[]{',',' '}) select System.Convert.ToDouble(s)).ToArray();
+                maxArr = (from string s in outlnArr[1].Split(new char[] { ',', ' ' }) select System.Convert.ToDouble(s)).ToArray();
+            }
+        }
+
+        private static string[] getLns(string inModelPath, int[] lns)
+        {
+            List<string> outLst = new List<string>();
+            int cnt = 0;
+            using(System.IO.StreamReader sr = new System.IO.StreamReader(inModelPath))
+            {
+                string ln = sr.ReadLine();
+                while (ln!= null)
+                {
+                    if(lns.Contains(cnt))
+                    {
+                        outLst.Add(ln);
+                        //Console.WriteLine(ln + cnt.ToString());
+                    }
+                    ln = sr.ReadLine();
+                    cnt++;
+                }
+                sr.Close();
+            }
+            return (outLst.ToArray());
         }
     }
 }

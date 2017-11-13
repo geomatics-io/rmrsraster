@@ -35,7 +35,7 @@ namespace esriUtil
         {
             using (System.IO.StreamWriter sw = new System.IO.StreamWriter(outCSV))
             {
-                string hd = "ROI,DIR,NAME,Year,Month,Day,Time,Red,Green,Blue,GCC,ExG,VIgreen";
+                string hd = "ROI,DIR,NAME,Year,Month,Day,Time,Red,Green,Blue,GCC,ExG,VIgreen,RCC,RGB,Area";//add RCC, RGB, Area
                 sw.WriteLine(hd);
                 IFeatureClass ftrCls = geoUtil.getFeatureClass(polyPath);
                 IFeatureCursor fCur = ftrCls.Search(null, true);
@@ -44,7 +44,7 @@ namespace esriUtil
                 while (ftr != null)
                 {
                     IGeometry geo = ftr.Shape;
-                    string[] lnArr = new string[13];
+                    string[] lnArr = new string[16];
                     lnArr[0] = cnt.ToString();
                     lnArr[1] = photoDir.Split(new char[] { '\\' }).Last();
                     foreach (string flPath in System.IO.Directory.GetFiles(photoDir, "*." + ext))
@@ -90,15 +90,23 @@ namespace esriUtil
                         double GCC=0;
                         double ExG=0;
                         double VIgreen=0;
+                        double RCC = 0;
+                        double RGB = 0;
+                        double Area = ((IArea)geo).Area;
                         if(!cntCheck)
-                        { 
-                            GCC = g / (r + g + b);
+                        {
+                            RGB = r + g + b;
+                            GCC = g / RGB;
                             ExG = 2 * g - (r + b);
                             VIgreen = (g - r) / (g + r);
+                            RCC = r / RGB;
                         }
                         lnArr[10] = GCC.ToString();
                         lnArr[11] = ExG.ToString();
                         lnArr[12] = VIgreen.ToString();
+                        lnArr[13] = RCC.ToString();
+                        lnArr[14] = RGB.ToString();
+                        lnArr[15] = Area.ToString();
                         sw.WriteLine(String.Join(",", lnArr));
                     }
                     ftr = fCur.NextFeature();

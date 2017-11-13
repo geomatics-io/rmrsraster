@@ -74,8 +74,8 @@ namespace esriUtil.Forms.RasterAnalysis
             ESRI.ArcGIS.Catalog.IGxObjectFilter flt = new ESRI.ArcGIS.Catalog.GxFilterPolygonFeatureClassesClass();
             ftrClsPath = frmHelper.getPath(flt, out ftrClsName)[0];
             frmHelper.FeatureDictionary[ftrClsName[0]] = geoUtil.getFeatureClass(ftrClsPath);
-            cmbROI.Items.Add(ftrClsName);
-            cmbROI.SelectedItem = ftrClsName;
+            cmbROI.Items.Add(ftrClsName[0]);
+            cmbROI.SelectedItem = ftrClsName[0];
             
         }
 

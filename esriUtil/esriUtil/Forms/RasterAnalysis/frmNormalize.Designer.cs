@@ -41,12 +41,15 @@
             this.trbPercent = new System.Windows.Forms.TrackBar();
             this.label1 = new System.Windows.Forms.Label();
             this.lblPercent = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtModelPath = new System.Windows.Forms.TextBox();
+            this.btnModelPath = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.trbPercent)).BeginInit();
             this.SuspendLayout();
             // 
             // btnExecute
             // 
-            this.btnExecute.Location = new System.Drawing.Point(221, 206);
+            this.btnExecute.Location = new System.Drawing.Point(221, 250);
             this.btnExecute.Name = "btnExecute";
             this.btnExecute.Size = new System.Drawing.Size(54, 24);
             this.btnExecute.TabIndex = 32;
@@ -57,7 +60,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(7, 189);
+            this.label4.Location = new System.Drawing.Point(7, 233);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(55, 13);
             this.label4.TabIndex = 31;
@@ -65,7 +68,7 @@
             // 
             // txtOutName
             // 
-            this.txtOutName.Location = new System.Drawing.Point(10, 206);
+            this.txtOutName.Location = new System.Drawing.Point(10, 250);
             this.txtOutName.Name = "txtOutName";
             this.txtOutName.Size = new System.Drawing.Size(205, 20);
             this.txtOutName.TabIndex = 30;
@@ -157,11 +160,41 @@
             this.lblPercent.TabIndex = 36;
             this.lblPercent.Text = "20%";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(9, 186);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(127, 13);
+            this.label5.TabIndex = 38;
+            this.label5.Text = "Out Model Path (optional)";
+            // 
+            // txtModelPath
+            // 
+            this.txtModelPath.Location = new System.Drawing.Point(12, 203);
+            this.txtModelPath.Name = "txtModelPath";
+            this.txtModelPath.Size = new System.Drawing.Size(205, 20);
+            this.txtModelPath.TabIndex = 37;
+            this.txtModelPath.Text = "\"\"";
+            // 
+            // btnModelPath
+            // 
+            this.btnModelPath.Image = global::esriUtil.Properties.Resources.cmdOpenProject;
+            this.btnModelPath.Location = new System.Drawing.Point(231, 199);
+            this.btnModelPath.Name = "btnModelPath";
+            this.btnModelPath.Size = new System.Drawing.Size(27, 27);
+            this.btnModelPath.TabIndex = 39;
+            this.btnModelPath.UseVisualStyleBackColor = true;
+            this.btnModelPath.Click += new System.EventHandler(this.btnModelPath_Click);
+            // 
             // frmNormalize
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(289, 256);
+            this.ClientSize = new System.Drawing.Size(286, 281);
+            this.Controls.Add(this.btnModelPath);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.txtModelPath);
             this.Controls.Add(this.lblPercent);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.trbPercent);
@@ -199,5 +232,8 @@
         private System.Windows.Forms.TrackBar trbPercent;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblPercent;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox txtModelPath;
+        private System.Windows.Forms.Button btnModelPath;
     }
 }

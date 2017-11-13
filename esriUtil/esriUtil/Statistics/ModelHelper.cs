@@ -208,11 +208,20 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.LDA:
                     outRs = getLDARaster();
                     break;
+                case dataPrepBase.modelTypes.Normalize:
+                    outRs = getNormalizeRaster();
+                    break;
                 default:
                     Console.WriteLine("Can't make a raster out of model");
                     break;
             }
             return outRs;
+        }
+
+        private IRaster getNormalizeRaster()
+        {
+            normalization nm = new normalization(mdlp,rsUtil.createIdentityRaster(coefRst));
+            return rsUtil.createRaster(nm.OutRaster);
         }
 
         private IRaster getLDARaster()
@@ -398,7 +407,7 @@ namespace esriUtil.Statistics
             }
             return mType;
         }
-        public void openModelReport(string modelPath,double alpha,bool report=true)
+        public void openModelReport(string modelPath,double alpha = 0.05,bool report=true)
         {
             string fLn = getFirstLineOfModel();
             dataPrepBase.modelTypes mType = (dataPrepBase.modelTypes)Enum.Parse(typeof(dataPrepBase.modelTypes), fLn);
@@ -464,10 +473,18 @@ namespace esriUtil.Statistics
                 case dataPrepBase.modelTypes.StrataCovCorr:
                     openStrata(alpha, report);
                     break;
+                case dataPrepBase.modelTypes.Normalize:
+                    openNormalize(alpha, report);
+                    break;
                 default:
                     break;
             }
 
+        }
+
+        private void openNormalize(double alpha, bool report)
+        {
+            normalization.createReport(mdlp);
         }
 
         private void openStrata(double alpha, bool report)

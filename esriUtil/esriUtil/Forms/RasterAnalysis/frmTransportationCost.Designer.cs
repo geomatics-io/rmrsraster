@@ -95,9 +95,9 @@
             this.lblRoads.AutoSize = true;
             this.lblRoads.Location = new System.Drawing.Point(23, 72);
             this.lblRoads.Name = "lblRoads";
-            this.lblRoads.Size = new System.Drawing.Size(67, 13);
+            this.lblRoads.Size = new System.Drawing.Size(153, 13);
             this.lblRoads.TabIndex = 1;
-            this.lblRoads.Text = "Roads Layer";
+            this.lblRoads.Text = "Roads Layer (Vector or Raster)";
             // 
             // btnOpenRoad
             // 
@@ -185,9 +185,9 @@
             this.lblFacility.AutoSize = true;
             this.lblFacility.Location = new System.Drawing.Point(204, 18);
             this.lblFacility.Name = "lblFacility";
-            this.lblFacility.Size = new System.Drawing.Size(39, 13);
+            this.lblFacility.Size = new System.Drawing.Size(79, 13);
             this.lblFacility.TabIndex = 31;
-            this.lblFacility.Text = "Facility";
+            this.lblFacility.Text = "Facility (Vector)";
             // 
             // label1
             // 

@@ -8,7 +8,7 @@ using System.Data;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesRaster;
 using ESRI.ArcGIS.Geometry;
-using ESRI.ArcGIS.Geodatabase;
+
 namespace esriUtil
 {
     public class fiaIntegration
@@ -260,7 +260,7 @@ namespace esriUtil
                         {
                             double[] vlSumArr = new double[3];
                             object vlObj =sFtr.get_Value(ptfldIndex[i]);
-                            if (vlObj != null)
+                            if (vlObj != null && !System.Convert.IsDBNull(vlObj))
                             {
                                 double vl =  System.Convert.ToDouble(vlObj);
                                 vlSumArr[0] = vl;
@@ -742,6 +742,7 @@ namespace esriUtil
                 {
                     object[] vls = new object[8];
                     oleRd.GetValues(vls);
+                    updateObjectVls(vls);
                     string pltCn = vls[1].ToString();
                     string subp = vls[2].ToString();
                     if(SubPlotField==""||SubPlotField==null)subp="0";
@@ -819,6 +820,20 @@ namespace esriUtil
                 }
                 oleRd.Close();
                 con.Close();
+            }
+        }
+
+        private void updateObjectVls(object[] vls)
+        {
+            for (int i = 0; i < vls.Length; i++)
+            {
+                object vl = vls[i];
+                if(vl==null||System.Convert.IsDBNull(vls[i]))
+                {
+                    //Console.WriteLine("Changing value " + i.ToString());
+                    vls[i] = 0;
+                }
+
             }
         }
 

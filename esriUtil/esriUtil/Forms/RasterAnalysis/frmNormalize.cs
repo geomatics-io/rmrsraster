@@ -182,6 +182,7 @@ namespace esriUtil.Forms.RasterAnalysis
                     double r2 = intSlp[2];
                     rp.addMessage("R2, Intercept, Slope (" + (i+1).ToString() + ") = " + r2.ToString() + ", " + intercept.ToString() + ", " + slope.ToString());
                 }
+                if (!(txtModelPath.Text == ""||txtModelPath.Text==null)) nm.writeModel(txtModelPath.Text);
                 if (mp != null && aM)
                 {
                     //rsUtil.calcStatsAndHist(((IRaster2)outRs).RasterDataset);
@@ -213,6 +214,18 @@ namespace esriUtil.Forms.RasterAnalysis
         private void trbPercent_Scroll(object sender, EventArgs e)
         {
             lblPercent.Text = trbPercent.Value.ToString()+"%";
+        }
+
+        private void btnModelPath_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sd = new SaveFileDialog();
+            sd.Filter = "Model|*.mdl";
+            sd.DefaultExt = "mdl";
+            sd.AddExtension = true;
+            if (sd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                txtModelPath.Text = sd.FileName;
+            }
         }
     }
 }

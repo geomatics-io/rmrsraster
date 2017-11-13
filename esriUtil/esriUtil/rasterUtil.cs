@@ -1356,6 +1356,7 @@ namespace esriUtil
             }
             else if (isNumeric(inRaster2.ToString()) && !isNumeric(inRaster1.ToString()))
             {
+                
                 iR1 = createIdentityRaster(inRaster1, rstPixelType.PT_FLOAT);
                 IScalar sc = new ScalarClass();
                 int bCnt = ((IRasterBandCollection)iR1).Count;
@@ -1378,27 +1379,28 @@ namespace esriUtil
                 bCnt2 = rsBc2.Count;
                 if (bCnt1 != rsBc2.Count)
                 {
+                    IRasterBandCollection rsBc = new RasterClass();
                     int dif = bCnt1-bCnt2;
                     int absDif = Math.Abs(dif);
                     if (dif > 0)
                     {
-                        IRaster rsB = createRaster(getBand(iR2, 0));
-                        IRaster[] rsArr = new IRaster[absDif];
+                        IFunctionRasterDataset rsfb = getBand(iR2, 0);
+                        rsBc.AppendBand(((IRasterBandCollection)rsfb).Item(0));
                         for (int i = 0; i < absDif; i++)
                         {
-                            rsArr[i] = rsB;
+                            rsBc.AppendBand(((IRasterBandCollection)rsfb).Item(0));
                         }
-                        iR2 = compositeBandFunction(rsArr);
+                        iR2 = compositeBandFunction(rsBc);
                     }
                     else
                     {
-                        IRaster rsB = createRaster(getBand(iR1, 0));
-                        IRaster[] rsArr = new IRaster[absDif];
+                        IFunctionRasterDataset rsfb = getBand(iR1, 0);
+                        rsBc.AppendBand(((IRasterBandCollection)rsfb).Item(0));
                         for (int i = 0; i < absDif; i++)
                         {
-                            rsArr[i] = rsB;
+                            rsBc.AppendBand(((IRasterBandCollection)rsfb).Item(0));
                         }
-                        iR1 = compositeBandFunction(rsArr);
+                        iR1 = compositeBandFunction(rsBc);
                     }
                 }
             }
@@ -2770,8 +2772,8 @@ namespace esriUtil
             IGeometry geo = (IGeometry)rs.RasterInfo.Extent;
             IPoint ul = rs.RasterInfo.Extent.UpperLeft;
             IPnt cellSize = rs.RasterInfo.CellSize;
-            int width = rs.RasterInfo.Width;
-            int height = rs.RasterInfo.Height;
+            //int width = rs.RasterInfo.Width;
+            //int height = rs.RasterInfo.Height;
             ISpatialFilter spFlt = new SpatialFilterClass();
             spFlt.Geometry = geo;
             spFlt.GeometryField = inFtrCls.ShapeFieldName;
@@ -2827,7 +2829,7 @@ namespace esriUtil
 
         }
 
-        private void getClmRw(IPoint ul, IPnt cellSize, IPoint pnt, out int clm, out int rw)
+        public void getClmRw(IPoint ul, IPnt cellSize, IPoint pnt, out int clm, out int rw)
         {
             double lengthX = System.Math.Abs(pnt.X - ul.X);
             double lengthY = System.Math.Abs(ul.Y - pnt.Y);
@@ -3814,8 +3816,7 @@ namespace esriUtil
             rasterFunctionArguments.RasterInfo = rsInfo;
             IRaster tRs = createRaster(tDset);
             rasterFunctionArguments.Init(tRs, rasterValue);
-            IFunctionRasterDataset dSet = createIdentityRaster(tRs);
-            dSet.RasterInfo.PixelType = outPixelType;
+            IFunctionRasterDataset dSet = createIdentityRaster(tRs,outPixelType);
             return dSet;
             //string tempAr = funcDir + "\\" + FuncCnt + ".afr";
             //IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
@@ -5214,6 +5215,24 @@ namespace esriUtil
             args.BandsAfter = bandsAfter;
             frDset.Init(rsFunc, args);
             return frDset;
+        }
+
+        public IFunctionRasterDataset extactModelDomainFunction(object inRaster, double[] mins, double[] maxs)
+        {
+            string tempAr = funcDir + "\\" + FuncCnt + ".afr";
+            IFunctionRasterDataset frDset = new FunctionRasterDatasetClass();
+            IFunctionRasterDatasetName frDsetName = new FunctionRasterDatasetNameClass();
+            frDsetName.FullName = tempAr;
+            frDset.FullName = (IName)frDsetName;
+            IRasterFunction rsFunc = new FunctionRasters.ExtractModelRangeFunctionDataset();
+            FunctionRasters.ExtractModelRangeFunctionArguments args = new FunctionRasters.ExtractModelRangeFunctionArguments(this);
+            IFunctionRasterDataset inRs = createIdentityRaster(inRaster);
+            args.InRaster = inRs;
+            args.Maxs = maxs;
+            args.Mins = mins;
+            frDset.Init(rsFunc, args);
+            return frDset;
+
         }
 
     }
